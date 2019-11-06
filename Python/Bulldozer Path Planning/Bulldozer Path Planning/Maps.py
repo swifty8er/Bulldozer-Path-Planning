@@ -1,9 +1,11 @@
 import numpy as np
 import cv2
 from Map import Map
+import sys
 
 class Maps:
-    """description of class"""
+    #Creates a collection of Map classes based on the Microban Level Text File
+
     @staticmethod
     def __turnLeft(ori):
             left_ori = np.copy(ori)
@@ -46,8 +48,8 @@ class Maps:
 
 
     def __init__(self):
-        raw_mb = open("C:/Users/User/Documents/UNI/Thesis/Proof of Concept/Microban Levels.txt", "r")
-        _test_maps = []
+        raw_mb = open("C:/Users/User/Documents/Bulldozer Path Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Microban Levels.txt", "r")
+        self._test_maps = []
         if raw_mb.readable():
             curr_max_str_len = 0
             num_str_in_level = 0
@@ -194,7 +196,7 @@ class Maps:
             #setting up Outlines to fill later
             #Now find the outlines of the obstalces
             #Find the starting point for the boundary
-            min_x = 99999
+            min_x = int(sys.maxsize)
             max_y = 0
             for coord in curr_outline:
                 if coord[0] < min_x:
@@ -277,8 +279,8 @@ class Maps:
                     curr_obs_outline.append(curr_obs_outline[0])
 
                 obstacles.append(curr_obs_outline)
-            print("Level", i + 1, "Complete")
-            min_y = 99999
+            #print("Level", i + 1, "Complete")
+            min_y = int(sys.maxsize)
             max_x = 0
             for coord in curr_outline:
                 if coord[1] < min_y:
@@ -309,8 +311,9 @@ class Maps:
                         initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
                         goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
 
-            curr_map = Map(i+1, min_x, min_y, max_x, max_y, 0.025, curr_outline, obstacles, 0.45, 0.45, goal_pos_xy, initial_vehicle_pos_xy, initial_disk_pos_xy)
-            _test_maps.append(curr_map)
+            curr_map = Map(i+1, min_x, min_y, max_x, max_y, 1, curr_outline, obstacles, 0.45, 0.45, goal_pos_xy, initial_vehicle_pos_xy, initial_disk_pos_xy)
+            self._test_maps.append(curr_map)
+
         #for i in range(50): #len(test_maps)
         #    print("Test Map: ",test_maps[i].number)
         #    print("Range: [",test_maps[i].min_x, "->", test_maps[i].max_x, ", ",test_maps[i].min_y, "->", test_maps[i].max_y, "]")
