@@ -3,33 +3,12 @@ from matplotlib import path
 from matplotlib import pyplot as plt
 import math
 
+from BasicGeometry import BasicGeometry
+
 class Map:
     #A list of attributes that specify the size, shape and starting positions of a Continous Sokoban problem
 
-    @staticmethod
-    def __isPointInArray(array, point, tolerance):
-        index = -1
-        i = 0
-        while ((i < len(array)) and (index == -1)):
-            #print("test point", array[i])
-            #print("point", point)
-            if ((abs(array[i][0] - point[0]) < tolerance) and (abs(array[i][1] - point[1])) < tolerance):
-                index = i
-            i += 1
-        return index
-
-    @staticmethod
-    def __circlePoints(centre, radius, segments):
-        x_axis = []
-        y_axis = []
-        for i in range(segments):
-            x = centre[0] + radius*math.cos((i-1)*(2*math.pi/(segments-1)))
-            y = centre[1] + radius*math.sin((i-1)*(2*math.pi/(segments-1)))
-            x_axis.append(x)
-            y_axis.append(y)
-
-        return [x_axis, y_axis]
-
+    
     #private method
     def __findNodes(self):
         #set up the nodes in the map
@@ -77,20 +56,20 @@ class Map:
 
         #find the indexes of the nodes that hold a vehicle, disk or goal
         for i in range(len(self._initial_vehicle_pos_xy)):
-            node_index = self.__isPointInArray(self._nodes, self._initial_vehicle_pos_xy[i], self._grid_size*0.05)
+            node_index = BasicGeometry.isPointInArray(self._nodes, self._initial_vehicle_pos_xy[i], self._grid_size*0.05)
             if node_index >= 0:
                  self._initial_vehicle_pos.append(node_index)
             else:
                 self._nodes.append(self._initial_vehicle_pos_xy[i])
                 self._initial_vehicle_pos.append(len(self._nodes))
         for i in range(len(self._initial_disk_pos_xy)):
-            node_index = self.__isPointInArray(self._nodes, self._initial_disk_pos_xy[i], self._grid_size*0.05)
+            node_index = BasicGeometry.isPointInArray(self._nodes, self._initial_disk_pos_xy[i], self._grid_size*0.05)
             if node_index >= 0:
                 self._initial_disk_pos.append(node_index)
             else:
                 self._nodes.append(self._initial_disk_pos_xy[i])
                 self._initial_disk_pos.append(len(self._nodes))
-            node_index = self.__isPointInArray(self._nodes, self._goal_pos_xy[i], self._grid_size*0.05)
+            node_index = BasicGeometry.isPointInArray(self._nodes, self._goal_pos_xy[i], self._grid_size*0.05)
             if node_index >= 0:
                 self._goal_pos.append(node_index)
             else:
@@ -191,13 +170,13 @@ class Map:
                 y_axis.append(point[1])
             ax.plot(x_axis, y_axis, 'k-')
         for goal in self._goal_pos_xy:
-            goal_circle = self.__circlePoints(goal, self._disk_radius*1.1, 25)
+            goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
         for pos in self._initial_vehicle_pos_xy:
-            pos_circle = self.__circlePoints(pos, self._disk_radius, 25)
+            pos_circle = BasicGeometry.circlePoints(pos, self._disk_radius, 25)
             ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
         for disk_pos in self._initial_disk_pos_xy:
-            disk_circle = self.__circlePoints(disk_pos, self._disk_radius, 25)
+            disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
         plt.draw()
         plt.pause(0.001)

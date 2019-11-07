@@ -1,7 +1,8 @@
 import numpy as np
 import cv2
-from Map import Map
 import sys
+
+from Map import Map
 
 class Maps:
     #Creates a collection of Map classes based on the Microban Level Text File

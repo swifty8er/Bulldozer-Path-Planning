@@ -23,6 +23,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Bulldozer_Path_Planning.py" />
+    <Compile Include="BasicGeometry.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Graph.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PushabilityGraph.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Map.py" />
     <Compile Include="Maps.py" />
     <Compile Include="VisibilityGraph.py" />
