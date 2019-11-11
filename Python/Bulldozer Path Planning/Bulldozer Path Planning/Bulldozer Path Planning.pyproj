@@ -26,6 +26,15 @@
     <Compile Include="BasicGeometry.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PQNode.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MapState.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TranspositionTable.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Graph.py">
       <SubType>Code</SubType>
     </Compile>

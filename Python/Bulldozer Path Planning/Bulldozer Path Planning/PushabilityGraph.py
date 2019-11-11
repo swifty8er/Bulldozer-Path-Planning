@@ -46,25 +46,35 @@ class PushabilityGraph(Graph):
 
     def __init__(self, map, vg):
         self._graph = dict()
-        self._nodes = map.nodes
+        self._nodes = vg.nodes.copy()
         self._push_points = []
         self._dest_points = []
         all_push_dest_points = []
         for r in range(len(self._nodes)):
             self._graph[r] = dict()
+        
+        #Find the node index for each goal position
+        goal_pos = []
+        for p in range(len(map._goal_pos_xy)):
+            node_index = BasicGeometry.isPointInArray(self._nodes, map._goal_pos_xy[p], map._grid_size*0.05)
+            if node_index >= 0:
+                goal_pos.append(node_index)
+            else:
+                print("error goal pos not found")
+
         added = np.zeros(len(self._nodes))
         q = queue.Queue()
-        for goal in map.goal_pos:
+        for goal in goal_pos:
             q.put(goal)
         while (q.empty() == False):
             curr_node = q.get()
-            for i in vg.nodes_with_connections():
+            for i in vg.nodesWithConnections():
                 #checks if node isn't the same and that they can see each other
-                if ((curr_node in vg.connecting_nodes(i)) and (curr_node != i)):
+                if ((curr_node in vg.connectingNodes(i)) and (curr_node != i)):
                     #finds and adds the push point if it exists
                     push_dest_point = self.__pushPoint(self._nodes[i], self._nodes[curr_node], map, i, curr_node)
                     if (len(push_dest_point) > 0):
-                        self._graph[i][curr_node] = vg.edge_weight(i, curr_node)
+                        self._graph[i][curr_node] = vg.edgeWeight(i, curr_node)
                         #add to queue if not in there already
                         if (added[i] == 0):
                             q.put(i)
@@ -76,3 +86,11 @@ class PushabilityGraph(Graph):
         for p_d_point in all_push_dest_points:
             self._push_points.append([p_d_point[0], p_d_point[1], p_d_point[2]])
             self._dest_points.append([p_d_point[3], p_d_point[4], p_d_point[5]])
+
+    @property
+    def push_points(self):
+        return self._push_points
+
+    @property
+    def dest_points(self):
+        return self._dest_points
