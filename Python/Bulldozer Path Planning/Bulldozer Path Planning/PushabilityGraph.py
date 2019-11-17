@@ -55,8 +55,8 @@ class PushabilityGraph(Graph):
         
         #Find the node index for each goal position
         goal_pos = []
-        for p in range(len(map._goal_pos_xy)):
-            node_index = BasicGeometry.isPointInArray(self._nodes, map._goal_pos_xy[p], map._grid_size*0.05)
+        for p in range(len(map._goal_poses_xy)):
+            node_index = BasicGeometry.isPointInArray(self._nodes, map._goal_poses_xy[p], map._grid_size*0.05)
             if node_index >= 0:
                 goal_pos.append(node_index)
             else:

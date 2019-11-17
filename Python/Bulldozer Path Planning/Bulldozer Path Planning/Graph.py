@@ -58,21 +58,29 @@ class Graph():
         if self.validEdge(j, i):
             self._graph[j][i] = weight
     
-    #Remove an edge from the graph. An error print message appears if the edge doesn't exist
+    #Remove an edge from the graph. Returns the removed edges
     def removeEdge(self, i, j):
+        removed_edges = []
         if self.validEdge(i, j):
             del self._graph[i][j]
+            removed_edges.append([i,j])
         if self.validEdge(j, i):
             del self._graph[j][i]
+            removed_edges.append([j,i])
 
-    #Remove all the edges from a node. An error print message appears if the node doesn't exist
+        return removed_edges
+
+    #Remove all the edges from a node. Returns the removed edges
     def removeAllNodesEdges(self, i):
+        removed_edges = []
         if self.validNode(i):
             for node in self._graph[i].keys():
                 del self._graph[node][i]
+                removed_edges.append([node,i])
+                removed_edges.append([i, node])
             self._graph[i] = dict()
-        else:
-            print("node does not exist, no change was made")
+
+        return removed_edges
 
 
     @property

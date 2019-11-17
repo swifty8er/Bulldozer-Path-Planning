@@ -18,9 +18,9 @@ class Map:
         self._obstacles = obs
         self._disk_radius = diskradi
         self._vehicle_radius = vehradi
-        self._goal_pos_xy = goalpos
+        self._goal_poses_xy = goalpos
         self._initial_vehicle_pos_xy = vehpos
-        self._initial_disk_pos_xy = diskpos
+        self._initial_disk_poses_xy = diskpos
         #for i in range(len(self._nodes)):
         #    print(self._nodes[i])
 
@@ -66,7 +66,7 @@ class Map:
 
     @property
     def goal_pos_xy(self):
-        return self._goal_pos_xy
+        return self._goal_poses_xy
 
     @property
     def initial_vehicle_pos_xy(self):
@@ -74,7 +74,7 @@ class Map:
 
     @property
     def initial_disk_pos_xy(self):
-        return self._initial_disk_pos_xy
+        return self._initial_disk_poses_xy
 
     def plotMap(self, line_width, ax):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
@@ -92,13 +92,13 @@ class Map:
                 x_axis.append(point[0])
                 y_axis.append(point[1])
             ax.plot(x_axis, y_axis, 'k-')
-        for goal in self._goal_pos_xy:
+        for goal in self._goal_poses_xy:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
         for pos in self._initial_vehicle_pos_xy:
             pos_circle = BasicGeometry.circlePoints(pos, self._disk_radius, 25)
             ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
-        for disk_pos in self._initial_disk_pos_xy:
+        for disk_pos in self._initial_disk_poses_xy:
             disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
         plt.draw()

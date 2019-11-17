@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import sys
+import math
 
 from Map import Map
 
@@ -197,7 +197,7 @@ class Maps:
             #setting up Outlines to fill later
             #Now find the outlines of the obstalces
             #Find the starting point for the boundary
-            min_x = int(sys.maxsize)
+            min_x = math.inf
             max_y = 0
             for coord in curr_outline:
                 if coord[0] < min_x:
@@ -281,7 +281,7 @@ class Maps:
 
                 obstacles.append(curr_obs_outline)
             #print("Level", i + 1, "Complete")
-            min_y = int(sys.maxsize)
+            min_y = math.inf
             max_x = 0
             for coord in curr_outline:
                 if coord[1] < min_y:

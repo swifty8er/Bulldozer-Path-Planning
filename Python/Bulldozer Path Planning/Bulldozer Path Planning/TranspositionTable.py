@@ -63,9 +63,7 @@ class TranspositionTable:
         empty_node["key"] = 0
         empty_node["visited"] = False
         node_array = [empty_node]
-        self._table = []
-        for i in range(self._size):
-            self._table.append(node_array)
+        self._table = [node_array]*self._size
 
 
     def getZorbistKey(self, node):
@@ -75,7 +73,7 @@ class TranspositionTable:
             #find the current value for a certain node
             if (node.vehicle_pos == i):
                 curr_value = self._zorbist_key[i]["vehicle"]
-            elif (i in node.disk_pos == True):
+            elif (i in node.disk_poses == True):
                 curr_value = self._zorbist_key[i]["disk"]
             else:
                 curr_value = self._zorbist_key[i]["empty"]
@@ -85,10 +83,10 @@ class TranspositionTable:
         return key
 
 
-    def addToTranspositionTable(self, node):
+    def addToTable(self, node):
         # Get the Zorbist Key for a state
-        key = getZorbistKey(node)
-        index = key%self._size + 1
+        key = self.getZorbistKey(node)
+        index = key%self._size
     
         #check if a value already exists
         if (self._table[index][0]["key"] == 0):
@@ -100,7 +98,7 @@ class TranspositionTable:
             i = 0
             found = False
             while ((i < len(self._table[index])) and (found == False)):
-                if (key == self._table[index][i].key):
+                if (key == self._table[index][i]["key"]):
                     found = True
                     if (node.cf < self._table[index][i]["cf"]):
                         self._table[index][i]["cf"] = node.cf
@@ -109,7 +107,7 @@ class TranspositionTable:
                         status = 'N'
                     
                 
-                i = i + 1
+                i += 1
             
             if (found == False):
                 new_node = dict()
@@ -120,3 +118,21 @@ class TranspositionTable:
                 status = 'E'
 
         return status
+
+    def isVisited(self, node, set_to_visit):
+        key = self.getZorbistKey(node)
+        index = key%self._size
+        found = False
+        visited = False
+        i = 0
+        while ((i < len(self._table[index])) and (found == False)):
+            if (key == self._table[index][i]["key"]):
+                found = True
+                if (self._table[index][i]["visited"] == False):
+                    if (set_to_visit == True):
+                        self._table[index][i]["visited"] = True
+                else:
+                     visited = True
+            i += 1
+
+        return visited

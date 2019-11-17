@@ -61,10 +61,21 @@ class BasicGeometry():
     def isPointInArray(array, point, tolerance):
         index = -1
         i = 0
-        while ((i < len(array)) and (index == -1)):
-            if ((abs(array[i][0] - point[0]) < tolerance) and (abs(array[i][1] - point[1])) < tolerance):
-                index = i
-            i += 1
+        if len(array) > 0 and len(array[0]) > 0 and len(point) > 0:
+            if len(array[0]) < len(point):
+                num_of_comp = len(array)
+            else:
+                num_of_comp = len(point)
+            while ((i < len(array)) and (index == -1)):
+                j = 0
+                equal = True
+                while j < num_of_comp and equal == True: 
+                    if (abs(array[i][j] - point[j]) >= tolerance):
+                        equal = False
+                    j += 1
+                if equal == True:
+                    index = i
+                i += 1
         return index
 
     @staticmethod
@@ -89,3 +100,7 @@ class BasicGeometry():
 
         return intersect
 
+    @staticmethod
+    def ptDist(pt1, pt2):
+        distance = math.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)
+        return distance
