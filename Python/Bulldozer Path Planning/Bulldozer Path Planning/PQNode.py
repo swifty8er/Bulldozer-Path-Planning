@@ -1,26 +1,30 @@
+import copy
+
 class PQNode():
     #All info required to keep track of each state
     def __init__(self, vehicle_pos, vehicle_dest_pt, vehicle_decision_path, disk_poses, disk_num, travelled, vehicle_path, disk_path, dist2goal):
         if len(vehicle_path) > 0 and vehicle_dest_pt >= 0 and len(vehicle_decision_path) > 0:
+            node_vehicle_path = vehicle_path.copy()
             for point in vehicle_decision_path:
-                vehicle_path.append(point)
-            vehicle_path.append(vehicle_dest_pt)
+                node_vehicle_path.append(point)
+            node_vehicle_path.append(vehicle_dest_pt)
         else:
-            vehicle_path = [vehicle_pos]
+            node_vehicle_path = [vehicle_pos]
 
         if disk_num >= 0 and len(disk_path) > 0:
-            disk_path[disk_num].append(disk_poses[disk_num])
+            node_disk_path = copy.deepcopy(disk_path)
+            node_disk_path[disk_num].append(disk_poses[disk_num])
         else:
-            disk_path = []
+            node_disk_path = []
             for disk in disk_poses:
-                disk_path.append([disk])
+                node_disk_path.append([disk])
 
         self._cf = travelled + dist2goal
         self._travelled = travelled
         self._vehicle_pos = vehicle_pos
-        self._vehicle_path = vehicle_path
-        self._disk_poses = disk_poses
-        self._disk_path = disk_path
+        self._vehicle_path = node_vehicle_path
+        self._disk_poses = disk_poses.copy()
+        self._disk_path = node_disk_path
 
     
     #def __getitem__(self, index):
@@ -55,3 +59,19 @@ class PQNode():
     @property
     def cf(self):
         return self._cf
+
+    def printNode(self):
+        print("Vehicle Pos:", self._vehicle_pos)
+        print("Vehicle Path:")
+        for point in self._vehicle_path:
+            print(point)
+        print("Disk Poses:", self._disk_poses)
+        for disk_point in self._disk_path:
+            print(disk_point)
+        print("Travelled:", self._travelled)
+        print("Cost:", self._cf)
+        
+        
+        
+        
+        

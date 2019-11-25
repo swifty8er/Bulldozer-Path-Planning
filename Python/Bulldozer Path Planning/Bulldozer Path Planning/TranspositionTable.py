@@ -22,7 +22,7 @@ class TranspositionTable:
             node_num_id["empty"] = random.randint(1,threshold)
         
         # store in Zorbist Key
-        Map_num_ids = [node_num_id]
+        Map_num_ids = [node_num_id.copy()]
         # keep track of all current numbers
         rand_nums = [node_num_id["vehicle"], node_num_id["disk"], node_num_id["empty"]]
     
@@ -45,7 +45,7 @@ class TranspositionTable:
                 node_num_id["empty"] = random.randint(1,threshold)
             
             rand_nums.append(node_num_id["empty"])
-            Map_num_ids.append(node_num_id)
+            Map_num_ids.append(node_num_id.copy())
         
     
         return Map_num_ids
@@ -73,7 +73,7 @@ class TranspositionTable:
             #find the current value for a certain node
             if (node.vehicle_pos == i):
                 curr_value = self._zorbist_key[i]["vehicle"]
-            elif (i in node.disk_poses == True):
+            elif ((i in node.disk_poses) == True):
                 curr_value = self._zorbist_key[i]["disk"]
             else:
                 curr_value = self._zorbist_key[i]["empty"]

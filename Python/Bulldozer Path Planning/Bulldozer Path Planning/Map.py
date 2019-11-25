@@ -76,7 +76,7 @@ class Map:
     def initial_disk_pos_xy(self):
         return self._initial_disk_poses_xy
 
-    def plotMap(self, line_width, ax):
+    def plotMap(self, ax, show_plot, vehicle_pos = [], disk_poses = [], line_width = 2):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
         x_axis = []
         y_axis = []
@@ -95,13 +95,26 @@ class Map:
         for goal in self._goal_poses_xy:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
-        for pos in self._initial_vehicle_pos_xy:
-            pos_circle = BasicGeometry.circlePoints(pos, self._disk_radius, 25)
+        if len(vehicle_pos) > 0:
+            pos_circle = BasicGeometry.circlePoints(vehicle_pos, self._disk_radius, 25)
             ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
-        for disk_pos in self._initial_disk_poses_xy:
-            disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
-            ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
-        plt.draw()
-        plt.pause(0.001)
-        plt.show(block=False)
+        else:
+            for pos in self._initial_vehicle_pos_xy:
+                pos_circle = BasicGeometry.circlePoints(pos, self._disk_radius, 25)
+                ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
+        if len(disk_poses) > 0:
+            for disk_pos in disk_poses:
+                disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
+                ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
+        else:
+
+            for disk_pos in self._initial_disk_poses_xy:
+                disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
+                ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
+
+        if show_plot == True:
+            plt.draw()
+            plt.pause(0.001)
+            plt.show(block=False)
         
+        return ax

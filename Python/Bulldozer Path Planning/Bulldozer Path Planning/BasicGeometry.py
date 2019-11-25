@@ -104,3 +104,17 @@ class BasicGeometry():
     def ptDist(pt1, pt2):
         distance = math.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)
         return distance
+
+    @staticmethod
+    def findClosestPoint(start_point, dest_points):
+        closest_dist = math.inf
+        #check all destination points
+        i = 0
+        for dest_point in dest_points:
+            #find the distance between the start point and that particular destination point
+            curr_dist = BasicGeometry.ptDist(start_point, dest_point)
+            if (curr_dist < closest_dist):
+                closest_dist = curr_dist
+                closest_point = i
+            i += 1
+        return closest_point

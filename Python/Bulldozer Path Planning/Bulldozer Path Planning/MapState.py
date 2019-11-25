@@ -1,6 +1,9 @@
 import queue
 import numpy as np
 from matplotlib import path
+import matplotlib
+import matplotlib.pyplot as plt
+import imageio
 import math
 
 from Map import Map
@@ -89,7 +92,7 @@ class MapState():
     #function from updating the visibility graph and the pushability graph
     def updateState(self, node):
         self._vehicle_pos = [node.vehicle_pos]
-        self._disk_poses = node.disk_poses
+        self._disk_poses = node.disk_poses.copy()
 
         self._pg_removed_edges = {disk_pos: [] for disk_pos in self._disk_poses}
         #Find the correct VG, PG to use by blocking paths that are inaccesible
@@ -249,7 +252,7 @@ class MapState():
         return disk_req_move
 
     def _getStateFromDecision(self, push_decision, decision_path, vehicle_path, disks_path):
-        vehicle_dest_pt = push_decision + self.num_of_points
+        vehicle_dest_pt = push_decision + self.num_of_nodes + int(self.num_of_points/2)
         vehicle_pos = self._pg.push_points[push_decision][2]
         disk_num = self._disk_poses.index(self._pg.push_points[push_decision][2])
         new_disk_poses = self._disk_poses.copy()
@@ -320,7 +323,7 @@ class MapState():
         #find all possible push points by a depth first search
         while ((stack.empty() == False) and (len(decisions) < max_num_points)):
             curr_node = stack.get()
-            new_positions = list(self._vg.connectingNodes(curr_node["pos"]))
+            new_positions = sorted(list(self._vg.connectingNodes(curr_node["pos"])))
             #add unvisited nodes to the stack
             t = 0
             while t < len(new_positions) and new_positions[t] < self._num_of_nodes:
@@ -462,17 +465,50 @@ class MapState():
                                 if (valid == True):
                                     point_path = curr_node["path"].copy()
                                     point_path.append(pp_index+self._num_of_nodes)
-                                    self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path)
+                                    decisions.append(self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path))
                                     visited_nodes[pp_index+self._num_of_nodes] = True
                         
                     
                         else:
                             point_path = curr_node["path"].copy()
                             point_path.append(pp_index+self._num_of_nodes)
-                            self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path)
+                            decisions.append(self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path))
                             visited_nodes[pp_index+self._num_of_nodes] = True
 
         return decisions
 
+    def plotSolution(self, vehicle_path, disks_path):
 
+        solution_images = []
+        all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
+        curr_disk_index = [1]*len(disks_path)
+        curr_disk_pos = []
+        push_point_rng = [self.num_of_nodes, self.num_of_nodes + int(self.num_of_points/2) - 1]
+        dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
+        for curr_disk_path in disks_path:
+            curr_disk_pos.append(all_nodes[curr_disk_path[0]])
+        for i in range(2,len(vehicle_path)):
+            fig, ax = plt.subplots(1, 1)
+            #get and plot vehicle position
+            curr_pos = all_nodes[vehicle_path[i]]
+            #find transition in vehicle path when vehicle pushes a disk
+            if ((vehicle_path[i-1] <= push_point_rng[1]) and (vehicle_path[i-1] >= push_point_rng[0]) and 
+                (vehicle_path[i] <= dest_points_rng[1]) and (vehicle_path[i] >= dest_points_rng[0])):
+                #find closest disk to the vehicle
+                closest_disk = BasicGeometry.findClosestPoint(all_nodes[vehicle_path[i-1]], curr_disk_pos)
+                #store the next move to be made by the disks if valid
+                curr_disk_path = disks_path[closest_disk]
+                if (curr_disk_index[closest_disk] + 1 <len(curr_disk_path)):
+                    curr_disk_index[closest_disk] = curr_disk_index[closest_disk] + 1
+                    curr_disk_pos[closest_disk] = all_nodes[curr_disk_path[curr_disk_index[closest_disk]]]
+            
+            #plot new game state
+            ax = self.map.plotMap(ax, False, curr_pos, curr_disk_pos)
+            
+            # Used to return the plot as an image array
+            fig.canvas.draw()       # draw the canvas, cache the renderer
+            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            solution_images.append(image)
 
+        return solution_images
