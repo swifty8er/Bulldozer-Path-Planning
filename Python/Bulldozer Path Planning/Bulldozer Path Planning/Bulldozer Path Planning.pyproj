@@ -26,12 +26,25 @@
     <Compile Include="BasicGeometry.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="complexCommandTest.py" />
+    <Compile Include="depth_image_encoding.py" />
+    <Compile Include="pathPlanningTest.py" />
+    <Compile Include="pController.py" />
+    <Compile Include="ply.py" />
     <Compile Include="PQNode.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MapState.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="sendMovementSequence-mov.py" />
+    <Compile Include="sendMovementSequence-pts.py" />
+    <Compile Include="sendSimultan2MovementSequences-mov.py" />
+    <Compile Include="sim.py" />
+    <Compile Include="simConst.py" />
+    <Compile Include="simpleSynchronousTest.py" />
+    <Compile Include="simpleTest.py" />
+    <Compile Include="synchronousImageTransmission.py" />
     <Compile Include="TranspositionTable.py">
       <SubType>Code</SubType>
     </Compile>
@@ -44,6 +57,7 @@
     <Compile Include="Map.py" />
     <Compile Include="Maps.py" />
     <Compile Include="VisibilityGraph.py" />
+    <Compile Include="visualization.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|Nature" />

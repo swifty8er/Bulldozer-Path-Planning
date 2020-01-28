@@ -190,6 +190,16 @@ class MapState():
     def nodes(self):
         return self._nodes
 
+    def getNodeOrPoint(self, index):
+        coordinate = [math.inf, math.inf]
+        if index >= 0 and index < self._num_of_nodes:
+            coordinate = self._nodes[index]
+        elif index >= self._num_of_nodes and index < self._num_of_nodes + len(self._pg.push_points):
+            coordinate = self._pg.push_points[index-self._num_of_nodes]
+        elif index >= self._num_of_nodes + len(self._pg.push_points) and index < self._total_num_nodes:
+            coordinate = self._pg.dest_points[index-(self._num_of_nodes + len(self._pg.push_points))]
+
+        return coordinate
 
     def __findPushPoints(self, disk_from, disks_to):
         valid_push_points = []
@@ -481,13 +491,13 @@ class MapState():
 
         solution_images = []
         all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
-        curr_disk_index = [1]*len(disks_path)
+        curr_disk_index = [0]*len(disks_path)
         curr_disk_pos = []
         push_point_rng = [self.num_of_nodes, self.num_of_nodes + int(self.num_of_points/2) - 1]
         dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
         for curr_disk_path in disks_path:
             curr_disk_pos.append(all_nodes[curr_disk_path[0]])
-        for i in range(2,len(vehicle_path)):
+        for i in range(1,len(vehicle_path)):
             fig, ax = plt.subplots(1, 1)
             #get and plot vehicle position
             curr_pos = all_nodes[vehicle_path[i]]
@@ -510,5 +520,6 @@ class MapState():
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             solution_images.append(image)
-
+        
+        plt.close("all")
         return solution_images
