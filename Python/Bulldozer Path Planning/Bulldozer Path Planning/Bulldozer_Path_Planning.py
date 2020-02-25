@@ -89,7 +89,8 @@ for mm in range(num,num+10):
 
         #add time solve in to work sheet
         counter = 0
-        while(read_sheet.cell_value(map.number+4, counter + 6) != ''):
+       
+        while(read_sheet.nrows>=map.number+4 and read_sheet.ncols-2>=counter+6 and read_sheet.cell_value(map.number+4, counter + 6) != ''):
             counter += 1
         work_sheet.write(map.number+4, counter + 6, time.time() - start_time)
 

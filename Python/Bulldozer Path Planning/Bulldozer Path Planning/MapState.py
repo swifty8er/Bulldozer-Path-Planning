@@ -518,8 +518,9 @@ class MapState():
             # Used to return the plot as an image array
             fig.canvas.draw()       # draw the canvas, cache the renderer
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            image  = image.reshape((1920,640,3))
             solution_images.append(image)
+            plt.close(fig)
         
         plt.close("all")
         return solution_images
