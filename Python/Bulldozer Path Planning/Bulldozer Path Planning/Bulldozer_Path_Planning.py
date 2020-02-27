@@ -25,9 +25,9 @@ fig1, ax1 = plt.subplots(1, 1)
 
 #for map in myMap.test_maps:
 num = 0
-for mm in range(num,num+10):
+#for mm in range(num,num+10):
 #for mm in range(num,num+1):
-#for mm in range(num,len(myMap.test_maps)):
+for mm in range(num,len(myMap.test_maps)):
     map = myMap.test_maps[mm]
     print("Test Map", map.number)
     curr_state = MapState(map)
@@ -43,15 +43,15 @@ for mm in range(num,num+10):
 
     while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
         curr_node = pq.get()
-        #print("Current Node")
-        #curr_node.printNode()
+        print("Current Node")
+        curr_node.printNode()
         if (trans_table.isVisited(curr_node, True) == False):
             curr_state.updateState(curr_node)
             decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
-            #print("\nList of Decisions")
+            print("\nList of Decisions")
             for decision in decisions:
                     status = trans_table.addToTable(decision)
-                    #decision.printNode()
+                    decision.printNode()
                     if status == "E" or status == "R":
                         pq.put(decision)
 
