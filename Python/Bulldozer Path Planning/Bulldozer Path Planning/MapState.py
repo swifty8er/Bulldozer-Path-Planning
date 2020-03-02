@@ -323,8 +323,32 @@ class MapState():
                     finished = True
                 k += 1
 
+        #filter out any disk poses that don't have any push points
+        index_ranges = [index_range for index_range in index_ranges if index_range[0] != -1]
         return index_ranges
 
+
+    def getMaxNumPointsDFS(self,index_ranges):
+        max_num_points = 0
+        if (len(index_ranges) > 0):
+            for index_range in index_ranges:
+                max_num_points += index_range[1] - index_range[0] + 1
+        return max_num_points
+
+    def addUnvisitedNodesToStackDFS(self,stack,curr_node,new_positions,visited_nodes):
+        #add unvisited nodes to the stack
+        t = 0
+        while t < len(new_positions) and new_positions[t] < self._num_of_nodes:
+            new_pos = new_positions[t]
+            if(visited_nodes[new_pos] == False):
+                new_node = {
+                    "pos" : new_pos,
+                    "path" : curr_node["path"].copy()
+                }
+                new_node["path"].append(new_pos)
+                stack.put(new_node)
+                visited_nodes[new_pos] = True
+            t += 1
 
     def findReachablePushPoints(self, vehicle_path, disks_path):
         decisions = []
@@ -372,29 +396,21 @@ class MapState():
         
     
         #filter out any disk poses that don't have any push points
-        index_ranges = [index_range for index_range in index_ranges if index_range[0] != -1]
-        max_num_points = 0
-        if (len(index_ranges) > 0):
-            for index_range in index_ranges:
-                max_num_points += index_range[1] - index_range[0] + 1
+        #index_ranges = [index_range for index_range in index_ranges if index_range[0] != -1]
+        #max_num_points = 0
+        #if (len(index_ranges) > 0):
+        #    for index_range in index_ranges:
+        #        max_num_points += index_range[1] - index_range[0] + 1
+
+        max_num_points = self.getMaxNumPointsDFS(index_ranges)
 
         #find all possible push points by a depth first search
         while ((stack.empty() == False) and (len(decisions) < max_num_points)):
             curr_node = stack.get()
             new_positions = sorted(list(self._vg.connectingNodes(curr_node["pos"])))
-            #add unvisited nodes to the stack
-            t = 0
-            while t < len(new_positions) and new_positions[t] < self._num_of_nodes:
-                new_pos = new_positions[t]
-                if(visited_nodes[new_pos] == False):
-                    new_node = {
-                        "pos" : new_pos,
-                        "path" : curr_node["path"].copy()
-                    }
-                    new_node["path"].append(new_pos)
-                    stack.put(new_node)
-                    visited_nodes[new_pos] = True
-                t += 1
+
+            self.addUnvisitedNodesToStackDFS(stack,curr_node,new_positions,visited_nodes)
+            
         
     
             #add all accessible push points
