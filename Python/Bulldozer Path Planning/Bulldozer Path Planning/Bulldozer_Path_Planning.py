@@ -25,10 +25,12 @@ fig1, ax1 = plt.subplots(1, 1)
 
 #for map in myMap.test_maps:
 num = 0
+#mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
+mapNums = list(range(88,93))+list(range(94,97))
 #for mm in range(num,num+10):
 #for mm in range(num,num+1):
-for mm in range(num,len(myMap.test_maps)):
-    map = myMap.test_maps[mm]
+for mm in mapNums:
+    map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
     curr_state = MapState(map)
     trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
@@ -43,15 +45,15 @@ for mm in range(num,len(myMap.test_maps)):
 
     while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
         curr_node = pq.get()
-        print("Current Node")
-        curr_node.printNode()
+        #print("Current Node")
+        #curr_node.printNode()
         if (trans_table.isVisited(curr_node, True) == False):
             curr_state.updateState(curr_node)
             decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
-            print("\nList of Decisions")
+            #print("\nList of Decisions")
             for decision in decisions:
                     status = trans_table.addToTable(decision)
-                    decision.printNode()
+                    #decision.printNode()
                     if status == "E" or status == "R":
                         pq.put(decision)
 

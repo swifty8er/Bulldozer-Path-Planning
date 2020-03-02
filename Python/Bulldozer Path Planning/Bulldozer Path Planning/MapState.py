@@ -284,23 +284,25 @@ class MapState():
         return node
 
 
-
-    def findReachablePushPoints(self, vehicle_path, disks_path):
-        decisions = []
+    def addVehiclePositionsToStack(self):
         stack = queue.LifoQueue()
-        curr_node =  dict()
-        #push vehicle pos into the stack
         for r in range(len(self._vehicle_pos)):
             curr_node = {
                 "pos" : self._vehicle_pos[r],
                 "path" : [self._vehicle_pos[r]]
-            }
+                }
             stack.put(curr_node)
+       
+        return stack
 
+    def getVisitedNodesForDFS(self):
         visited_nodes = [False]*self._total_num_nodes
         visited_nodes[self._vehicle_pos[0]] = True
         for disk_pos in self._disk_poses:
             visited_nodes[disk_pos] = True
+        return visited_nodes
+
+    def getIndexRangesForDFS(self):
         #find range necessary indices to check for possible push points
         #This works because the push points are list in order of disk poses
         index_ranges = [[-1,-1] for _ in range(len(self._disk_poses))]
@@ -320,6 +322,52 @@ class MapState():
                 elif index_ranges[p][0] != -1:
                     finished = True
                 k += 1
+
+        return index_ranges
+
+
+    def findReachablePushPoints(self, vehicle_path, disks_path):
+        decisions = []
+        stack = self.addVehiclePositionsToStack()
+
+        #stack = queue.LifoQueue()
+        #curr_node =  dict()
+        ##push vehicle pos into the stack
+        #for r in range(len(self._vehicle_pos)):
+        #    curr_node = {
+        #        "pos" : self._vehicle_pos[r],
+        #        "path" : [self._vehicle_pos[r]]
+        #    }
+        #    stack.put(curr_node)
+
+        visited_nodes = self.getVisitedNodesForDFS()
+
+        #visited_nodes = [False]*self._total_num_nodes
+        #visited_nodes[self._vehicle_pos[0]] = True
+        #for disk_pos in self._disk_poses:
+        #    visited_nodes[disk_pos] = True
+
+        index_ranges = self.getIndexRangesForDFS()
+
+        ##find range necessary indices to check for possible push points
+        ##This works because the push points are list in order of disk poses
+        #index_ranges = [[-1,-1] for _ in range(len(self._disk_poses))]
+        #for p in range(len(self._disk_poses)):
+        #    k = 0
+        #    finished = False
+        #    while k < len(self._pg._push_points) and finished == False:
+        #        if(self._pg._push_points[k][2] == self._disk_poses[p]):
+        #            if (index_ranges[p][0] == -1):
+        #                #first index in the push point list that has a push point relevant to the current disk pos
+        #                index_ranges[p][0] = k
+        #                index_ranges[p][1] = k
+        #            else:
+        #                #last index in the push point list that has a push point relevant to the current disk pos
+        #                index_ranges[p][1] = k
+
+        #        elif index_ranges[p][0] != -1:
+        #            finished = True
+        #        k += 1
             
         
     
