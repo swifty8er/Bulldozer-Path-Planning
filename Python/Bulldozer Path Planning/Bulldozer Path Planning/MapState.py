@@ -350,10 +350,8 @@ class MapState():
                 visited_nodes[new_pos] = True
             t += 1
 
-    def pushIntoDeadEnd(self,disk_pushed_from,disk_pushed_to):
-        #check if being pushed into a dead-end
-        #get a list of the disks that aren't being moved
-        other_disks = [disk_pos for disk_pos in self._disk_poses if disk_pos != disk_pushed_from]
+    def pushIntoDeadEnd(self,disk_pushed_from,disk_pushed_to,other_disks):
+     
         #check to see if there are any pushable connections
         #from the destination node
         #pushable connections have been found
@@ -386,7 +384,7 @@ class MapState():
             u += 1
         return True #is a dead end
 
-    def getDisksThatAreRequiredToMove(self,disk_pushed_from,disk_pushed_to):
+    def getDisksThatAreRequiredToMove(self,disk_pushed_from,disk_pushed_to,other_disks):
         #find the push points that were neglected
         #from the CellPG
         nodes_pushed_to = self.__possibleDiskDest(disk_pushed_from, [], other_disks) #every single node connected to a certain node
@@ -403,10 +401,58 @@ class MapState():
                         disk_req_move[u].append(other_disk)
         return disk_req_move
                                     
+    def disksCanBeMovedFromPushPoint(self,disk_pushed_from,disk_pushed_to,other_disks,disk_req_move):
+        #Now take the first possible push point and
+        #check that the disks that are in the way
+        #can be moved
+        i = 0
+        disk_req_move_conn = dict()
+        filter_disks = other_disks.copy()
+        filter_disks.append(disk_pushed_from)
+        for other_disk in other_disks:
+            disk_req_move_conn[other_disk] = self.__possibleDiskDest(other_disk, filter_disks, other_disks)
+        #search through all possible push points to
+        #see if any are valid
+        while i < len(disk_req_move):
+            u = 0
+            valid_pp = True
+            #search through all the disks that need
+            #moving to see if any have valid push
+            #decisions
+            while ((u < len(disk_req_move[i])) and (valid_pp == True)):
+                if len(disk_req_move_conn[disk_req_move[i][u]]) > 0:
+                    v = 0
+                    valid_disk_move = False
+                    #find the push points for the
+                    #disk that needs moving
+                    pps = self.__findPushPoints(disk_req_move[i][u], disk_req_move_conn[disk_req_move[i][u]])
+                    #check that at least on push
+                    #point isn't too close to the
+                    #new disk location
+                    while ((v < len(pps)) and (valid_disk_move == False)):
+                        curr_pp = self._pg.push_points[pps[v]]
+                        curr_dist = BasicGeometry.ptDist(self._nodes[disk_pushed_from], curr_pp)
+                        if ((2*self._map._disk_radius-curr_dist) <= np.finfo(np.float32).eps):
+                            valid_disk_move = True
+                                        
+                        v += 1
+                                    
+                    if (valid_disk_move == False):
+                        valid_pp = False
+                                    
+                else:
+                    valid_pp = False
                                 
+                u += 1
+                            
+            if (valid_pp == True):
+                return True
+                            
+            i += 1
+        return False
                             
 
-    def addAllAccessiblePushPointsDFS(self, decisions, index_ranges, visited_nodes, max_num_points):
+    def addAllAccessiblePushPointsDFS(self,curr_node, decisions,vehicle_path,disks_path, index_ranges, visited_nodes, max_num_points):
         #add all accessible push points
         for index_range in index_ranges:
             for pp_index in range(index_range[0], index_range[1]+1):
@@ -417,73 +463,23 @@ class MapState():
                         (not (disk_pushed_to in self._disk_poses)) and
                         (self._pg.validEdge(disk_pushed_from,disk_pushed_to) == True)):
                     if (not (disk_pushed_to in self._goal_poses)):
-
-                        if not self.pushIntoDeadEnd(disk_pushed_from,disk_pushed_to):
+                        #check if being pushed into a dead-end
+                        #get a list of the disks that aren't being moved
+                        other_disks = [disk_pos for disk_pos in self._disk_poses if disk_pos != disk_pushed_from]
+                        if not self.pushIntoDeadEnd(disk_pushed_from,disk_pushed_to,other_disks):
                             point_path = curr_node["path"].copy()
                             point_path.append(pp_index+self._num_of_nodes)
                             decisions.append(self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path))
                             visited_nodes[pp_index+self._num_of_nodes] = True
                     
                         else:
-                            disk_req_move = self.getDisksThatAreRequiredToMove(disk_pushed_from,disk_pushed_to)
-
-                            
-                        
+                            disk_req_move = self.getDisksThatAreRequiredToMove(disk_pushed_from,disk_pushed_to,other_disks)
                             #order all push points to be investigated
                             #by the number of disks that they require
                             #to be moved from least to most
                             sorted(disk_req_move,key=lambda disks:len(disks))
-                            
-                            #Now take the first possible push point and
-                            #check that the disks that are in the way
-                            #can be moved
-                            i = 0
-                            valid = False
-                            disk_req_move_conn = dict()
-                            filter_disks = other_disks.copy()
-                            filter_disks.append(disk_pushed_from)
-                            for other_disk in other_disks:
-                                disk_req_move_conn[other_disk] = self.__possibleDiskDest(other_disk, filter_disks, other_disks)
-                            #search through all possible push points to
-                            #see if any are valid
-                            while ((i < len(disk_req_move)) and (valid == False)):
-                                u = 0
-                                valid_pp = True
-                                #search through all the disks that need
-                                #moving to see if any have valid push
-                                #decisions
-                                while ((u < len(disk_req_move[i])) and (valid_pp == True)):
-                                    if len(disk_req_move_conn[disk_req_move[i][u]]) > 0:
-                                        v = 0
-                                        valid_disk_move = False
-                                        #find the push points for the
-                                        #disk that needs moving
-                                        pps = self.__findPushPoints(disk_req_move[i][u], disk_req_move_conn[disk_req_move[i][u]])
-                                        #check that at least on push
-                                        #point isn't too close to the
-                                        #new disk location
-                                        while ((v < len(pps)) and (valid_disk_move == False)):
-                                            curr_pp = self._pg.push_points[pps[v]]
-                                            curr_dist = BasicGeometry.ptDist(self._nodes[disk_pushed_from], curr_pp)
-                                            if ((2*self._map._disk_radius-curr_dist) <= np.finfo(np.float32).eps):
-                                                valid_disk_move = True
-                                        
-                                            v += 1
-                                    
-                                        if (valid_disk_move == False):
-                                            valid_pp = False
-                                    
-                                    else:
-                                        valid_pp = False
-                                
-                                    u += 1
-                            
-                                if (valid_pp == True):
-                                    valid = True
-                            
-                                i += 1
                         
-                            if (valid == True):
+                            if (self.disksCanBeMovedFromPushPoint(disk_pushed_from,disk_pushed_to,other_disks,disk_req_move)):
                                 point_path = curr_node["path"].copy()
                                 point_path.append(pp_index+self._num_of_nodes)
                                 decisions.append(self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path))
@@ -510,7 +506,7 @@ class MapState():
 
             self.addUnvisitedNodesToStackDFS(stack,curr_node,new_positions,visited_nodes)
             
-            self.addAllAccessiblePushPointsDFS(decisions,index_ranges,visited_nodes,max_num_points)
+            self.addAllAccessiblePushPointsDFS(curr_node,decisions,vehicle_path,disks_path,index_ranges,visited_nodes,max_num_points)
         
 
         return decisions
@@ -546,7 +542,7 @@ class MapState():
             # Used to return the plot as an image array
             fig.canvas.draw()       # draw the canvas, cache the renderer
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            image  = image.reshape((1920,640,3))
+            image  = image.reshape((1280,960,3))
             solution_images.append(image)
             plt.close(fig)
         
