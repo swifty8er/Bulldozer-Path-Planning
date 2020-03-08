@@ -522,7 +522,7 @@ class MapState():
         for curr_disk_path in disks_path:
             curr_disk_pos.append(all_nodes[curr_disk_path[0]])
         for i in range(1,len(vehicle_path)):
-            fig, ax = plt.subplots(figsize=(15,20))
+            fig, ax = plt.subplots(1,1)
             #get and plot vehicle position
             curr_pos = all_nodes[vehicle_path[i]]
             #find transition in vehicle path when vehicle pushes a disk

@@ -116,5 +116,5 @@ class Map:
             plt.draw()
             plt.pause(0.001)
             plt.show(block=False)
-        ax.set_ylim(0, max(y_axis))
+        #ax.set_ylim(0, max(y_axis))
         return ax
