@@ -522,7 +522,7 @@ class MapState():
         for curr_disk_path in disks_path:
             curr_disk_pos.append(all_nodes[curr_disk_path[0]])
         for i in range(1,len(vehicle_path)):
-            fig, ax = plt.subplots(1, 1)
+            fig, ax = plt.subplots(figsize=(15,20))
             #get and plot vehicle position
             curr_pos = all_nodes[vehicle_path[i]]
             #find transition in vehicle path when vehicle pushes a disk
@@ -538,11 +538,19 @@ class MapState():
             
             #plot new game state
             ax = self.map.plotMap(ax, False, curr_pos, curr_disk_pos)
-            
-            # Used to return the plot as an image array
+
             fig.canvas.draw()       # draw the canvas, cache the renderer
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            image  = image.reshape((1280,960,3))
+            tp = fig.canvas.get_width_height()[::-1]
+            print(tp)
+            newtp = (tp[0]*2,tp[1]*2)
+            print(newtp)
+            image  = image.reshape(newtp + (3,))
+            
+            # Used to return the plot as an image array
+            #fig.canvas.draw()       # draw the canvas, cache the renderer
+            #image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+            #image  = image.reshape((1280,960,3))
             solution_images.append(image)
             plt.close(fig)
         
