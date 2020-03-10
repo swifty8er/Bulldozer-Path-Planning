@@ -122,7 +122,7 @@ class Maps:
             start_j += 1
         return (start_i,start_j)
 
-    def GetOutlineForLevel(self,start_i,start_j):
+    def GetOutlineForLevel(self,curr_level,start_i,start_j,max_i,max_j):
         #Trace the boundary
         first_node = (start_i, start_j)
         #find first curr node after first step
@@ -175,7 +175,7 @@ class Maps:
                 curr_outline[k] = curr_outline[k-1] + xy_direction
         return curr_outline
 
-    def BinariseImage(self,max_i,max_j):
+    def BinariseImage(self,curr_level,max_i,max_j):
         #Convert GridMap into Binary Image
         BI = np.zeros((max_i,max_j))
         for p in range(max_i):
@@ -196,92 +196,44 @@ class Maps:
                 obs_list.append(curr_obs)
         return obs_list
 
-    def LoadTestMaps(self,raw_mb):
-        Levels = self.LoadLevels(raw_mb)
-        #now we have a list of 2d arrays with all the characters for each level
+    def GetObstacles(self,curr_level,mcurr_outline,obs_list,min_x,max_y,max_i,max_j):
+        obstacles = []
+        #setting up Outlines to fill later
+        #Now find the outlines of the obstalces
+        #Find the starting point for the boundary
 
-        for curr_level in Levels:
-            start_i, start_j = self.GetStartIJForLevel(curr_level)
-            
-            
-            max_i = len(curr_level)
-            max_j = len(curr_level[0])
-            curr_outline = self.GetOutlineForlevel(start_i,start_j)
-            BI  = self.BinariseImage(max_i,max_j)
-            #Find any obstacles inside the boundary
-            BI = np.uint8(BI)
-            # Perform the operation
-            nb_components, output, _, _ = cv2.connectedComponentsWithStats(BI,connectivity=4)
-            obs_list = self.GetObstaclesList(max_i,max_j,nb_components,output)
-            obstacles = []
-            #setting up Outlines to fill later
-            #Now find the outlines of the obstalces
-            #Find the starting point for the boundary
-            min_x = math.inf
-            max_y = 0
-            for coord in curr_outline:
-                if coord[0] < min_x:
-                    min_x = coord[0]
-                if coord[1] > max_y:
-                    max_y = coord[1]
 
-            for p in range(len(obs_list)):
-                if (len(obs_list[p]) == 1):
-                    #obstacle is just a box
-                    curr_obs_outline = [np.array([obs_list[p][0][1]-min_x-1,max_y+1-obs_list[p][0][0]])]
-                    curr_obs_outline.append(curr_obs_outline[0] + [1,0])
-                    curr_obs_outline.append(curr_obs_outline[1] + [0,-1])
-                    curr_obs_outline.append(curr_obs_outline[2] + [-1,0])
-                    curr_obs_outline.append(curr_obs_outline[3] + [0,1])
-                else:
-                    #Trace the boundary of the obstacles
-                    curr_obs_outline = [np.array([obs_list[p][0][1]-min_x-1,max_y+1-obs_list[p][0][0]])]
-                    first_node = np.array([obs_list[p][0][0], obs_list[p][0][1]])
-                    #find first curr node after first step
-                    curr_node = first_node.copy()
-                    first = True
-                    visited = [first_node.copy()]
-                    curr_ori = np.array([-1,0])
-                    num_obs_blocks = len(obs_list[p])
-                    k = 0
-                    #Do a wall hug algorithm to find the obstacle outline, only search NESW in that order
-                    while ((num_obs_blocks != len(visited)) or ((first_node[0] != curr_node[0]) or (first_node[1] != curr_node[1]))):
-                        #find which adjacent nodes are valid
-                        left_ori = self.__turnLeft(curr_ori)
-                        curr_left = curr_node + left_ori
-                        curr_forward = curr_node + curr_ori
-                        #if there is no wall on the left and check index is valid
-                        if ((self.__ifIndexIsValid(curr_left, max_i, max_j)) and (curr_level[curr_left[0]][curr_left[1]] != '#')):
-                            #if there is a wall in front and check index is valid
-                            if ((self.__ifIndexIsValid(curr_forward, max_i, max_j)) and (curr_level[curr_forward[0]][curr_forward[1]] == '#')):
-                                #move forward
-                                curr_node = curr_forward
-                                first = False
-                                if (not self.__isIndexInPath(visited, curr_node)):
-                                    visited.append(curr_node.copy())
-
-                                #convert to cartesian cooridinate direction
-                                xy_direction = np.array([0,0])
-                                xy_direction[0] = curr_ori[1]
-                                xy_direction[1] =  -curr_ori[0]
-
-                                curr_obs_outline.append(curr_obs_outline[k] + xy_direction)
-                                k += 1
-                            else:
-                                #turn right on the spot
-                                curr_ori = self.__turnRight(curr_ori)
-                                #convert to cartesian cooridinate direction
-                                xy_direction = np.array([0,0])
-                                xy_direction[0] = curr_ori[1]
-                                xy_direction[1] =  -curr_ori[0]
-
-                                curr_obs_outline.append(curr_obs_outline[k] + xy_direction)
-                                k += 1
-
-                        else:
-                            #turn left
-                            curr_node = curr_left
-                            curr_ori = left_ori
+        for p in range(len(obs_list)):
+            if (len(obs_list[p]) == 1):
+                #obstacle is just a box
+                curr_obs_outline = [np.array([obs_list[p][0][1]-min_x-1,max_y+1-obs_list[p][0][0]])]
+                curr_obs_outline.append(curr_obs_outline[0] + [1,0])
+                curr_obs_outline.append(curr_obs_outline[1] + [0,-1])
+                curr_obs_outline.append(curr_obs_outline[2] + [-1,0])
+                curr_obs_outline.append(curr_obs_outline[3] + [0,1])
+            else:
+                #Trace the boundary of the obstacles
+                curr_obs_outline = [np.array([obs_list[p][0][1]-min_x-1,max_y+1-obs_list[p][0][0]])]
+                first_node = np.array([obs_list[p][0][0], obs_list[p][0][1]])
+                #find first curr node after first step
+                curr_node = first_node.copy()
+                first = True
+                visited = [first_node.copy()]
+                curr_ori = np.array([-1,0])
+                num_obs_blocks = len(obs_list[p])
+                k = 0
+                #Do a wall hug algorithm to find the obstacle outline, only search NESW in that order
+                while ((num_obs_blocks != len(visited)) or ((first_node[0] != curr_node[0]) or (first_node[1] != curr_node[1]))):
+                    #find which adjacent nodes are valid
+                    left_ori = self.__turnLeft(curr_ori)
+                    curr_left = curr_node + left_ori
+                    curr_forward = curr_node + curr_ori
+                    #if there is no wall on the left and check index is valid
+                    if ((self.__ifIndexIsValid(curr_left, max_i, max_j)) and (curr_level[curr_left[0]][curr_left[1]] != '#')):
+                        #if there is a wall in front and check index is valid
+                        if ((self.__ifIndexIsValid(curr_forward, max_i, max_j)) and (curr_level[curr_forward[0]][curr_forward[1]] == '#')):
+                            #move forward
+                            curr_node = curr_forward
                             first = False
                             if (not self.__isIndexInPath(visited, curr_node)):
                                 visited.append(curr_node.copy())
@@ -291,71 +243,119 @@ class Maps:
                             xy_direction[0] = curr_ori[1]
                             xy_direction[1] =  -curr_ori[0]
 
-                            curr_obs_outline[k] = curr_obs_outline[k-1] + xy_direction
-                            #curr_obs_outline(k,:) = [];
-                            #k = k - 1;
-                            #curr_obs_outline(k+1,:) = curr_obs_outline(k,:) + xy_direction;
-                            #k = k + 1;
-                if ((curr_obs_outline[0][0] !=  curr_obs_outline[-1][0]) or (curr_obs_outline[0][1] !=  curr_obs_outline[-1][1])):
-                    curr_obs_outline.append(curr_obs_outline[0])
+                            curr_obs_outline.append(curr_obs_outline[k] + xy_direction)
+                            k += 1
+                        else:
+                            #turn right on the spot
+                            curr_ori = self.__turnRight(curr_ori)
+                            #convert to cartesian cooridinate direction
+                            xy_direction = np.array([0,0])
+                            xy_direction[0] = curr_ori[1]
+                            xy_direction[1] =  -curr_ori[0]
 
-                obstacles.append(curr_obs_outline)
+                            curr_obs_outline.append(curr_obs_outline[k] + xy_direction)
+                            k += 1
+
+                    else:
+                        #turn left
+                        curr_node = curr_left
+                        curr_ori = left_ori
+                        first = False
+                        if (not self.__isIndexInPath(visited, curr_node)):
+                            visited.append(curr_node.copy())
+
+                        #convert to cartesian cooridinate direction
+                        xy_direction = np.array([0,0])
+                        xy_direction[0] = curr_ori[1]
+                        xy_direction[1] =  -curr_ori[0]
+
+                        curr_obs_outline[k] = curr_obs_outline[k-1] + xy_direction
+                        #curr_obs_outline(k,:) = [];
+                        #k = k - 1;
+                        #curr_obs_outline(k+1,:) = curr_obs_outline(k,:) + xy_direction;
+                        #k = k + 1;
+            if ((curr_obs_outline[0][0] !=  curr_obs_outline[-1][0]) or (curr_obs_outline[0][1] !=  curr_obs_outline[-1][1])):
+                curr_obs_outline.append(curr_obs_outline[0])
+
+            obstacles.append(curr_obs_outline)
+        return obstacles
+
+    def GetMinyMaxx(self,curr_outline):
+        min_y = math.inf
+        max_x = 0
+        for coord in curr_outline:
+            if coord[1] < min_y:
+                min_y = coord[1]
+            if coord[0] > max_x:
+                max_x = coord[0]
+        return (min_y,max_x)
+
+
+    def FindVehicleDiskAndGoalPos(self,curr_level,max_i,max_j,min_x,max_x,min_y,max_y):
+        #find vehicle, disk and goal positions
+        goal_pos_xy = []
+        initial_vehicle_pos_xy = []
+        initial_disk_pos_xy = []
+        for j in range (max_i):
+            for k in range(max_j):
+                if (curr_level[j][k] == '.'):
+                    #goal
+                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                elif (curr_level[j][k] == '@'):
+                    #vehicle
+                    initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                elif (curr_level[j][k] == '$'):
+                    #disk
+                    initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                elif (curr_level[j][k] == '*'):
+                    #disk on top of goal
+                    initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                elif (curr_level[j][k] == '+'):
+                    #vehicle on top of goal
+                    initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+        return (initial_vehicle_pos_xy,initial_disk_pos_xy,goal_pos_xy)
+
+    def GetMinxMaxy(self,curr_outline):
+        min_x = math.inf
+        max_y = 0
+        for coord in curr_outline:
+            if coord[0] < min_x:
+                min_x = coord[0]
+            if coord[1] > max_y:
+                max_y = coord[1]
+        return (min_x,max_y)
+
+    def LoadTestMaps(self,raw_mb):
+        testMaps = []
+        Levels = self.LoadLevels(raw_mb)
+        #now we have a list of 2d arrays with all the characters for each level
+        i = 1
+        for curr_level in Levels:
+            start_i, start_j = self.GetStartIJForLevel(curr_level)
+            
+            
+            max_i = len(curr_level)
+            max_j = len(curr_level[0])
+            curr_outline = self.GetOutlineForLevel(curr_level,start_i,start_j,max_i,max_j)
+            BI  = self.BinariseImage(curr_level,max_i,max_j)
+            #Find any obstacles inside the boundary
+            BI = np.uint8(BI)
+            # Perform the operation
+            nb_components, output, _, _ = cv2.connectedComponentsWithStats(BI,connectivity=4)
+            obs_list = self.GetObstaclesList(max_i,max_j,nb_components,output)
+            min_x,max_y = self.GetMinxMaxy(curr_outline)
+            obstacles = self.GetObstacles(curr_level,curr_outline,obs_list,min_x,max_y,max_i,max_j)
             #print("Level", i + 1, "Complete")
-            min_y = math.inf
-            max_x = 0
-            for coord in curr_outline:
-                if coord[1] < min_y:
-                    min_y = coord[1]
-                if coord[0] > max_x:
-                    max_x = coord[0]
-            #find vehicle, disk and goal positions
-            goal_pos_xy = []
-            initial_vehicle_pos_xy = []
-            initial_disk_pos_xy = []
-            for j in range (max_i):
-                for k in range(max_j):
-                    if (curr_level[j][k] == '.'):
-                        #goal
-                        goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    elif (curr_level[j][k] == '@'):
-                        #vehicle
-                        initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    elif (curr_level[j][k] == '$'):
-                        #disk
-                        initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    elif (curr_level[j][k] == '*'):
-                        #disk on top of goal
-                        initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                        goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    elif (curr_level[j][k] == '+'):
-                        #vehicle on top of goal
-                        initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                        goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+            min_y,max_x = self.GetMinyMaxx(curr_outline)
+            
+            initial_vehicle_pos_xy,initial_disk_pos_xy,goal_pos_xy = self.FindVehicleDiskAndGoalPos(curr_level,max_i,max_j,min_x,max_x,min_y,max_y)
+            curr_map = Map(i, min_x, min_y, max_x, max_y, 1, curr_outline, obstacles, 0.45, 0.45, goal_pos_xy, initial_vehicle_pos_xy, initial_disk_pos_xy)
+            testMaps.append(curr_map)
+            i+=1
 
-            curr_map = Map(i+1, min_x, min_y, max_x, max_y, 1, curr_outline, obstacles, 0.45, 0.45, goal_pos_xy, initial_vehicle_pos_xy, initial_disk_pos_xy)
-            self._test_maps.append(curr_map)
-
-            #for i in range(50): #len(test_maps)
-            #    print("Test Map: ",test_maps[i].number)
-            #    print("Range: [",test_maps[i].min_x, "->", test_maps[i].max_x, ", ",test_maps[i].min_y, "->", test_maps[i].max_y, "]")
-            #    print("Grid size: ",test_maps[i].grid_size)
-            #    print("Disk radius: ",test_maps[i].disk_radius)
-            #    print("Vehicle radius: ",test_maps[i].vehicle_radius)
-            #    print("Boundary")
-            #    for j in range(len(test_maps[i].boundary)):
-            #        print(test_maps[i].boundary[j])
-            #    print("Obstacles")
-            #    for j in range(len(test_maps[i].obstacles)):
-            #        print("Obstacle", j+1)
-            #        for k in range(len(test_maps[i].obstacles[j])):
-            #            print(test_maps[i].obstacles[j][k])
-            #    print("Vehicle Position: ", test_maps[i].initial_vehicle_pos_xy)
-            #    print("Goal Positions")
-            #    for j in range(len(test_maps[i].goal_pos_xy)):
-            #        print(test_maps[i].goal_pos_xy[j])
-            #    print("Disk Positions")
-            #    for j in range(len(test_maps[i].initial_disk_pos_xy)):
-            #        print(test_maps[i].initial_disk_pos_xy[j])
+        return testMaps
 
     @property
     def test_maps(self):
