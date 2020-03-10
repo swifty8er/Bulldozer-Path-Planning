@@ -27,9 +27,9 @@ fig1, ax1 = plt.subplots(1, 1)
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
-#mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
+mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
 #mapNums = list(range(88,93))+list(range(94,97))
-mapNums = list(range(1,4))
+#mapNums = list(range(1,4))
 #for mm in range(num,num+10):
 #for mm in range(num,num+1):
 for mm in mapNums:

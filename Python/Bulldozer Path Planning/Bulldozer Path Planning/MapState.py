@@ -542,15 +542,8 @@ class MapState():
             fig.canvas.draw()       # draw the canvas, cache the renderer
             image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
             tp = fig.canvas.get_width_height()[::-1]
-            print(tp)
             newtp = (tp[0]*2,tp[1]*2)
-            print(newtp)
             image  = image.reshape(newtp + (3,))
-            
-            # Used to return the plot as an image array
-            #fig.canvas.draw()       # draw the canvas, cache the renderer
-            #image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            #image  = image.reshape((1280,960,3))
             solution_images.append(image)
             plt.close(fig)
         

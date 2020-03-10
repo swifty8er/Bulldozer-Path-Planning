@@ -52,38 +52,26 @@ class Maps:
         raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Microban Levels.txt", "r")
         self._test_maps = []
         if raw_mb.readable():
-            curr_max_str_len = 0
-            num_str_in_level = 0
-            curr_level_rows = []
-            Levels = []
-            for raw_mb_line in raw_mb.readlines():
-                if "Level" not in raw_mb_line and raw_mb_line != "" and raw_mb_line != " " and raw_mb_line != "\n":
-                    #find the biggest string in the current level
-                    if curr_max_str_len < len(raw_mb_line)-1:
-                        curr_max_str_len = len(raw_mb_line)-1
-                    #collect all the strings for this level
-                    curr_level_rows.append(raw_mb_line.replace("\n", ""))
-                    num_str_in_level += 1
-                elif "Level" in raw_mb_line and curr_max_str_len != 0:
-                    #Found all strings for a level put in 2d array
-                    Level = [None]*num_str_in_level
-                    for index in range(num_str_in_level):
-                        tmp_list = list(curr_level_rows[index])
-                        #add wall string characters to outside space
-                        i = 0
-                        while i < len(tmp_list) and tmp_list[i] != "#":
-                            tmp_list[i] = "#"
-                            i += 1
-                        Level[index] = tmp_list
-                        #Add wall string character to the end of the list to create rect 2d array
-                        if len(curr_level_rows[index]) < curr_max_str_len:
-                            for j in range(0,(curr_max_str_len-len(curr_level_rows[index]))):
-                                Level[index].append("#")
-                    Levels.append(Level)
-                    curr_max_str_len = 0
-                    num_str_in_level = 0
-                    curr_level_rows.clear()
-            if curr_max_str_len != 0:
+            self._test_maps = self.LoadTestMaps(raw_mb)
+        else:
+            print("File not readable")
+        raw_mb.close()
+
+
+    def LoadLevels(self,raw_mb):
+        curr_max_str_len = 0
+        num_str_in_level = 0
+        curr_level_rows = []
+        Levels = []
+        for raw_mb_line in raw_mb.readlines():
+            if "Level" not in raw_mb_line and raw_mb_line != "" and raw_mb_line != " " and raw_mb_line != "\n":
+                #find the biggest string in the current level
+                if curr_max_str_len < len(raw_mb_line)-1:
+                    curr_max_str_len = len(raw_mb_line)-1
+                #collect all the strings for this level
+                curr_level_rows.append(raw_mb_line.replace("\n", ""))
+                num_str_in_level += 1
+            elif "Level" in raw_mb_line and curr_max_str_len != 0:
                 #Found all strings for a level put in 2d array
                 Level = [None]*num_str_in_level
                 for index in range(num_str_in_level):
@@ -94,105 +82,137 @@ class Maps:
                         tmp_list[i] = "#"
                         i += 1
                     Level[index] = tmp_list
-                    #Add empty string character to the end of the list to create rect 2d array
+                    #Add wall string character to the end of the list to create rect 2d array
                     if len(curr_level_rows[index]) < curr_max_str_len:
                         for j in range(0,(curr_max_str_len-len(curr_level_rows[index]))):
                             Level[index].append("#")
                 Levels.append(Level)
-        #row we have a list of 2d arrays with all the characters for each level
-        else:
-            print("File not readable")
+                curr_max_str_len = 0
+                num_str_in_level = 0
+                curr_level_rows.clear()
+        if curr_max_str_len != 0:
+            #Found all strings for a level put in 2d array
+            Level = [None]*num_str_in_level
+            for index in range(num_str_in_level):
+                tmp_list = list(curr_level_rows[index])
+                #add wall string characters to outside space
+                i = 0
+                while i < len(tmp_list) and tmp_list[i] != "#":
+                    tmp_list[i] = "#"
+                    i += 1
+                Level[index] = tmp_list
+                #Add empty string character to the end of the list to create rect 2d array
+                if len(curr_level_rows[index]) < curr_max_str_len:
+                    for j in range(0,(curr_max_str_len-len(curr_level_rows[index]))):
+                        Level[index].append("#")
+            Levels.append(Level)
+        return Levels
 
-        raw_mb.close()
-        #for i in range(156):
-        #    for j in range(len(Levels[i])):
-        #        print(Levels[i][j])
-        for i in range(len(Levels)):
-            #Map out the lines that make up the boundary
-            curr_level = Levels[i]
-            #Find the starting point for the boundary
-            start_j = 0
-            found = False
-            while (start_j < len(curr_level[0])) and not found:
-                start_i = 0
-                while (start_i < len(curr_level)) and not found:
-                    if (curr_level[start_i][start_j] != '#'):
-                        found = True
-                        start_i -= 1
-                        start_j -= 1
-                    start_i += 1
-                start_j += 1
-            #Trace the boundary
-            first_node = (start_i, start_j)
-            #find first curr node after first step
-            curr_node = np.array([start_i, start_j])
-            first = True
-            curr_ori = np.array([0,1])
-            max_i = len(curr_level)
-            max_j = len(curr_level[0])
-            curr_outline = [np.array([0,max_i-1-start_i]), np.array([1,max_i-1-start_i])]
-            k = 1
-            #Do a wall hug algorithm to find the outline, only search NESW in that order
-            while ((first == True) or ((first_node[0] != curr_node[0]) or (first_node[1] != curr_node[1]))):
-                #find which adjacent nodes are valid
-                left_ori = self.__turnLeft(curr_ori)
-                curr_left = curr_node + left_ori
-                curr_forward = curr_node + curr_ori
-                #if there is a wall on the left and the check index is valid
-                if ((self.__ifIndexIsValid(curr_left, max_i, max_j)) and (curr_level[curr_left[0]][curr_left[1]] == '#')):
-                    #if there is no wall in front and check index is valid
-                    if ((self.__ifIndexIsValid(curr_forward, max_i, max_j)) and (curr_level[curr_forward[0]][curr_forward[1]] != '#')):
-                        #move forward
-                        curr_node = curr_forward
-                        first = False
-                        #convert to cartesian cooridinate direction
-                        xy_direction = np.array([0,0])
-                        xy_direction[0] = curr_ori[1]
-                        xy_direction[1] =  -curr_ori[0]
+    def GetStartIJForLevel(self,curr_level):
+        start_j = 0
+        found = False
+        while (start_j < len(curr_level[0])) and not found:
+            start_i = 0
+            while (start_i < len(curr_level)) and not found:
+                if (curr_level[start_i][start_j] != '#'):
+                    found = True
+                    start_i -= 1
+                    start_j -= 1
+                start_i += 1
+            start_j += 1
+        return (start_i,start_j)
 
-                        curr_outline.append(curr_outline[k] + xy_direction)
-                        k += 1
-                    else:
-                        #turn right on the spot
-                        curr_ori = self.__turnRight(curr_ori)
-                        #convert to cartesian cooridinate direction
-                        xy_direction = np.array([0,0])
-                        xy_direction[0] = curr_ori[1]
-                        xy_direction[1] =  -curr_ori[0]
-
-
-                        curr_outline.append(curr_outline[k] + xy_direction)
-                        k += 1
-                else:
-                    #turn left
-                    curr_node = curr_left
-                    curr_ori = left_ori
+    def GetOutlineForLevel(self,start_i,start_j):
+        #Trace the boundary
+        first_node = (start_i, start_j)
+        #find first curr node after first step
+        curr_node = np.array([start_i, start_j])
+        first = True
+        curr_ori = np.array([0,1])
+        curr_outline = [np.array([0,max_i-1-start_i]), np.array([1,max_i-1-start_i])]
+        k = 1
+        #Do a wall hug algorithm to find the outline, only search NESW in that order
+        while ((first == True) or ((first_node[0] != curr_node[0]) or (first_node[1] != curr_node[1]))):
+            #find which adjacent nodes are valid
+            left_ori = self.__turnLeft(curr_ori)
+            curr_left = curr_node + left_ori
+            curr_forward = curr_node + curr_ori
+            #if there is a wall on the left and the check index is valid
+            if ((self.__ifIndexIsValid(curr_left, max_i, max_j)) and (curr_level[curr_left[0]][curr_left[1]] == '#')):
+                #if there is no wall in front and check index is valid
+                if ((self.__ifIndexIsValid(curr_forward, max_i, max_j)) and (curr_level[curr_forward[0]][curr_forward[1]] != '#')):
+                    #move forward
+                    curr_node = curr_forward
                     first = False
                     #convert to cartesian cooridinate direction
                     xy_direction = np.array([0,0])
                     xy_direction[0] = curr_ori[1]
                     xy_direction[1] =  -curr_ori[0]
 
-                    curr_outline[k] = curr_outline[k-1] + xy_direction
-            #Convert GridMap into Binary Image
-            BI = np.zeros((max_i,max_j))
-            for p in range(max_i):
-                for q in range(max_j):
-                    if curr_level[p][q] == "#":
-                        BI[p][q] = 1
+                    curr_outline.append(curr_outline[k] + xy_direction)
+                    k += 1
+                else:
+                    #turn right on the spot
+                    curr_ori = self.__turnRight(curr_ori)
+                    #convert to cartesian cooridinate direction
+                    xy_direction = np.array([0,0])
+                    xy_direction[0] = curr_ori[1]
+                    xy_direction[1] =  -curr_ori[0]
+
+
+                    curr_outline.append(curr_outline[k] + xy_direction)
+                    k += 1
+            else:
+                #turn left
+                curr_node = curr_left
+                curr_ori = left_ori
+                first = False
+                #convert to cartesian cooridinate direction
+                xy_direction = np.array([0,0])
+                xy_direction[0] = curr_ori[1]
+                xy_direction[1] =  -curr_ori[0]
+
+                curr_outline[k] = curr_outline[k-1] + xy_direction
+        return curr_outline
+
+    def BinariseImage(self,max_i,max_j):
+        #Convert GridMap into Binary Image
+        BI = np.zeros((max_i,max_j))
+        for p in range(max_i):
+            for q in range(max_j):
+                if curr_level[p][q] == "#":
+                    BI[p][q] = 1
+        return BI
+
+    def GetObstaclesList(self,max_i,max_j,nb_components,output):
+        obs_list = []
+        if nb_components > 2:
+            for r in range(2,nb_components):
+                curr_obs = []
+                for p in range(max_i):
+                    for q in range(max_j):
+                        if output[p][q] == r:
+                            curr_obs.append([p,q])
+                obs_list.append(curr_obs)
+        return obs_list
+
+    def LoadTestMaps(self,raw_mb):
+        Levels = self.LoadLevels(raw_mb)
+        #now we have a list of 2d arrays with all the characters for each level
+
+        for curr_level in Levels:
+            start_i, start_j = self.GetStartIJForLevel(curr_level)
+            
+            
+            max_i = len(curr_level)
+            max_j = len(curr_level[0])
+            curr_outline = self.GetOutlineForlevel(start_i,start_j)
+            BI  = self.BinariseImage(max_i,max_j)
             #Find any obstacles inside the boundary
             BI = np.uint8(BI)
             # Perform the operation
             nb_components, output, _, _ = cv2.connectedComponentsWithStats(BI,connectivity=4)
-            obs_list = []
-            if nb_components > 2:
-                for r in range(2,nb_components):
-                    curr_obs = []
-                    for p in range(max_i):
-                        for q in range(max_j):
-                            if output[p][q] == r:
-                                curr_obs.append([p,q])
-                    obs_list.append(curr_obs)
+            obs_list = self.GetObstaclesList(max_i,max_j,nb_components,output)
             obstacles = []
             #setting up Outlines to fill later
             #Now find the outlines of the obstalces
@@ -315,27 +335,27 @@ class Maps:
             curr_map = Map(i+1, min_x, min_y, max_x, max_y, 1, curr_outline, obstacles, 0.45, 0.45, goal_pos_xy, initial_vehicle_pos_xy, initial_disk_pos_xy)
             self._test_maps.append(curr_map)
 
-        #for i in range(50): #len(test_maps)
-        #    print("Test Map: ",test_maps[i].number)
-        #    print("Range: [",test_maps[i].min_x, "->", test_maps[i].max_x, ", ",test_maps[i].min_y, "->", test_maps[i].max_y, "]")
-        #    print("Grid size: ",test_maps[i].grid_size)
-        #    print("Disk radius: ",test_maps[i].disk_radius)
-        #    print("Vehicle radius: ",test_maps[i].vehicle_radius)
-        #    print("Boundary")
-        #    for j in range(len(test_maps[i].boundary)):
-        #        print(test_maps[i].boundary[j])
-        #    print("Obstacles")
-        #    for j in range(len(test_maps[i].obstacles)):
-        #        print("Obstacle", j+1)
-        #        for k in range(len(test_maps[i].obstacles[j])):
-        #            print(test_maps[i].obstacles[j][k])
-        #    print("Vehicle Position: ", test_maps[i].initial_vehicle_pos_xy)
-        #    print("Goal Positions")
-        #    for j in range(len(test_maps[i].goal_pos_xy)):
-        #        print(test_maps[i].goal_pos_xy[j])
-        #    print("Disk Positions")
-        #    for j in range(len(test_maps[i].initial_disk_pos_xy)):
-        #        print(test_maps[i].initial_disk_pos_xy[j])
+            #for i in range(50): #len(test_maps)
+            #    print("Test Map: ",test_maps[i].number)
+            #    print("Range: [",test_maps[i].min_x, "->", test_maps[i].max_x, ", ",test_maps[i].min_y, "->", test_maps[i].max_y, "]")
+            #    print("Grid size: ",test_maps[i].grid_size)
+            #    print("Disk radius: ",test_maps[i].disk_radius)
+            #    print("Vehicle radius: ",test_maps[i].vehicle_radius)
+            #    print("Boundary")
+            #    for j in range(len(test_maps[i].boundary)):
+            #        print(test_maps[i].boundary[j])
+            #    print("Obstacles")
+            #    for j in range(len(test_maps[i].obstacles)):
+            #        print("Obstacle", j+1)
+            #        for k in range(len(test_maps[i].obstacles[j])):
+            #            print(test_maps[i].obstacles[j][k])
+            #    print("Vehicle Position: ", test_maps[i].initial_vehicle_pos_xy)
+            #    print("Goal Positions")
+            #    for j in range(len(test_maps[i].goal_pos_xy)):
+            #        print(test_maps[i].goal_pos_xy[j])
+            #    print("Disk Positions")
+            #    for j in range(len(test_maps[i].initial_disk_pos_xy)):
+            #        print(test_maps[i].initial_disk_pos_xy[j])
 
     @property
     def test_maps(self):
