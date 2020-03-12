@@ -48,8 +48,8 @@ class Maps:
         return in_path
 
 
-    def __init__(self):
-        raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Microban Levels.txt", "r")
+    def __init__(self,file_path):
+        raw_mb = open(file_path, "r")
         self._test_maps = []
         if raw_mb.readable():
             self._test_maps = self.LoadTestMaps(raw_mb)
