@@ -40,20 +40,19 @@ for mm in mapNums:
     curr_state = MapState(map)
     trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
     pq = queue.PriorityQueue()
-    curr_node = curr_state.getCurrentState()
-    pq = queue.PriorityQueue()
-    pq.put(curr_node)
+    currPQState = PQState(curr_state.GetHeuristicValue(),curr_state,0)
+    pq.put(currPQState)
     start_time = time.time()
 
     #fig, ax = plt.subplots(1, 1)
     #map.plotMap(ax, True)
 
     while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
-        curr_node = pq.get()
+        currPQState = pq.get()
+        curr_state = currPQState.GetState()
         #print("Current Node")
         #curr_node.printNode()
-        if (trans_table.isVisited(curr_node, True) == False):
-            curr_state.updateState(curr_node)
+        if (trans_table.isVisited(curr_state, True) == False):
             decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
             #print("\nList of Decisions")
             for decision in decisions:

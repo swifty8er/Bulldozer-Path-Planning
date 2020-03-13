@@ -2,6 +2,7 @@ import copy
 
 class PQNode():
     #All info required to keep track of each state
+    # At the moment using greedy search, f = h (no g)
     def __init__(self, vehicle_pos, vehicle_dest_pt, vehicle_decision_path, disk_poses, disk_num, travelled, vehicle_path, disk_path, dist2goal):
         if len(vehicle_path) > 0 and vehicle_dest_pt >= 0 and len(vehicle_decision_path) > 0:
             node_vehicle_path = vehicle_path.copy()
