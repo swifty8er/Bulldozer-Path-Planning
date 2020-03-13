@@ -49,11 +49,12 @@ for mm in mapNums:
 
     while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
         currPQState = pq.get()
-        curr_state = currPQState.GetState()
+        curr_state = currPQState.state #using property decorator/function
         #print("Current Node")
         #curr_node.printNode()
         if (trans_table.isVisited(curr_state, True) == False):
-            decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
+            #decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
+            decisions = curr_state.findReachablePushPoints() #push required variables into the state
             #print("\nList of Decisions")
             for decision in decisions:
                     status = trans_table.addToTable(decision)
