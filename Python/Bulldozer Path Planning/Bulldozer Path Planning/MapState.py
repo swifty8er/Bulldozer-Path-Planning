@@ -52,10 +52,16 @@ class MapState():
         return nodes
 
 
-    def __init__(self, map):
-        self._vehicle_pos = []
-        self._disk_poses = []
+
+    def __init__(self, map, vehicle_pos, vehicle_dest_pt, vehicle_decision_path, disk_poses, disk_num, vehicle_path, disk_path):
+        self._vehicle_pos = vehicle_pos
+        self._disk_poses = disk_poses
         self._goal_poses = []
+        self._vehicle_dest_pt = vehicle_dest_pt
+        self._disk_num = disk_num
+        self._vehicle_decision_path = vehicle_decision_path
+        self._vehicle_path = vehicle_path
+        self._disk_path = disk_path
         self._map = map
         self._nodes = self._findNodes(map)
 
@@ -267,6 +273,17 @@ class MapState():
         disk_num = self._disk_poses.index(self._pg.push_points[push_decision][2])
         new_disk_poses = self._disk_poses.copy()
         new_disk_poses[disk_num] = self._pg.dest_points[push_decision][2]
+        newState = MapState(self._map,vehicle_pos,vehicle_dest_pt,decision_path,new_disk_poses,disk_num,vehicle_path,disks_path)
+        #node = PQNode(vehicle_pos, vehicle_dest_pt, decision_path, new_disk_poses, disk_num, 0, vehicle_path, disks_path, cost)
+        #return Node
+        return newState
+
+
+
+    def GetHeuristicValue(self):
+        disk_num = self._disk_poses.index(self._pg.push_points[push_decision][2])
+        new_disk_poses = self._disk_poses.copy()
+        new_disk_poses[disk_num] = self._pg.dest_points[push_decision][2]
         #dest_pos = self._nodes[new_disk_pose[disk_num]]
         #start_pos = self._nodes[self._disk_poses[disk_num]]
         #travelled = BasicGeometry.ptDist(dest_pos, start_pos) #+curr_node.travelled
@@ -278,10 +295,8 @@ class MapState():
                 curr_cf = BasicGeometry.ptDist(disk_pos, goal_pos)
                 if (curr_cf < min_cf[i]):
                     min_cf[i] = curr_cf
-        cost = sum(min_cf)
-        node = PQNode(vehicle_pos, vehicle_dest_pt, decision_path, new_disk_poses, disk_num, 0, vehicle_path, disks_path, cost)
-
-        return node
+        hValue = sum(min_cf)
+        return hValue
 
 
     def addVehiclePositionsToStack(self):
@@ -492,7 +507,7 @@ class MapState():
                         decisions.append(self._getStateFromDecision(pp_index, point_path, vehicle_path, disks_path))
                         visited_nodes[pp_index+self._num_of_nodes] = True
 
-    def findReachablePushPoints(self, vehicle_path, disks_path):
+    def findReachablePushPoints(self):
         decisions = []
         stack = self.addVehiclePositionsToStack()
         visited_nodes = self.getVisitedNodesForDFS()
@@ -506,7 +521,7 @@ class MapState():
 
             self.addUnvisitedNodesToStackDFS(stack,curr_node,new_positions,visited_nodes)
             
-            self.addAllAccessiblePushPointsDFS(curr_node,decisions,vehicle_path,disks_path,index_ranges,visited_nodes,max_num_points)
+            self.addAllAccessiblePushPointsDFS(curr_node,decisions,self._vehicle_path,self._disk_path,index_ranges,visited_nodes,max_num_points)
         
 
         return decisions

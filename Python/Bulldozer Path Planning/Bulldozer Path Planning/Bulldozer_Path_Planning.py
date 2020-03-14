@@ -55,12 +55,13 @@ for mm in mapNums:
         if (trans_table.isVisited(curr_state, True) == False):
             #decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
             decisions = curr_state.findReachablePushPoints() #push required variables into the state
+            # decisions is a list of map states
             #print("\nList of Decisions")
             for decision in decisions:
-                    status = trans_table.addToTable(decision)
+                    status = trans_table.addToTable(decision) #check if state already explored
                     #decision.printNode()
                     if status == "E" or status == "R":
-                        pq.put(decision)
+                        pq.put(PQState(decision.GetHeuristicValue()+decision.g,decision,decision.g))
 
             curr_state.resetGraphs()
 
