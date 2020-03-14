@@ -31,13 +31,15 @@ num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(89,93))+list(range(94,97))+list(range(100,105))+[107,110,111,113,115,116]+list(range(118,122))
-mapNums = list(range(84,89))
+#mapNums = list(range(84,89))
+mapNums = [1,2,3]
 #for mm in range(num,num+10):
 #for mm in range(num,num+1):
 for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
-    curr_state = MapState(map)
+
+    curr_state = MapState(map,[],Null,[],[],Null,[],[])
     trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
     pq = queue.PriorityQueue()
     currPQState = PQState(curr_state.GetHeuristicValue(),curr_state,0)

@@ -95,7 +95,7 @@ class MapState():
 
 
 
-    #function from updating the visibility graph and the pushability graph
+    #function for updating the visibility graph and the pushability graph
     def updateState(self, node):
         self._vehicle_pos = [node.vehicle_pos]
         self._disk_poses = node.disk_poses.copy()
