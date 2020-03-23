@@ -48,6 +48,9 @@
     <Compile Include="simpleSynchronousTest.py" />
     <Compile Include="simpleTest.py" />
     <Compile Include="synchronousImageTransmission.py" />
+    <Compile Include="TestRRT.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TranspositionTable.py">
       <SubType>Code</SubType>
     </Compile>

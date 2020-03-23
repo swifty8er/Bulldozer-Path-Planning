@@ -1,3 +1,4 @@
+import math
 WIDTH = 1.0
 LENGTH = 1.0
 class Vehicle:
@@ -25,4 +26,5 @@ class Vehicle:
     def applyControl(self,radius,deltaTheta,direction):
         pass #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
 
-
+    def DistanceTo(self,otherVehicle):
+        return math.sqrt(math.pow(self._x-otherVehicle.getX(),2)+math.pow(self._y-otherVehicle.getY(),2))

@@ -1,3 +1,10 @@
+from enum import Enum
+
+class Status(Enum):
+    REACHED = 1
+    ADVANCED = 2
+    TRAPPED = 3
+
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
     def __init__(self,map,start_position,controls_list):
@@ -13,7 +20,7 @@ class RRT:
         return None #returns a random vehicle in the state space
 
     def extend(self,x_rand):
-        pass # returns an enum [reached, advanced, trapped]
+        return None # returns an enum [reached, advanced, trapped]
 
     def nearestNeighbour(self,x):
         pass # searches the tree for the nearest node to x by some distance metric
