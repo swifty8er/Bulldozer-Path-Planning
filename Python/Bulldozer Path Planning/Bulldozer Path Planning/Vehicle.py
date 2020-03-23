@@ -1,4 +1,5 @@
 WIDTH = 1.0
+LENGTH = 1.0
 class Vehicle:
     # initialise a vehicle, setting its x,y coord and heading
     def __init__(self,x,y,theta):
@@ -9,6 +10,7 @@ class Vehicle:
         self._boundaryRightX = self._x + 0.5*WIDTH
         self._boundaryTopY = self._y + 0.5*LENGTH
         self._boundaryBottomY = self._y - 0.5*LENGTH
+        print("Initalised vehicle (%.2f,%.2f,%.2f)" % (self._x,self._y,self._theta))
 
     @property
     def getX(self):

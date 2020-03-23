@@ -1,14 +1,16 @@
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
-    def __init__(self,start_position,controls_list):
+    def __init__(self,map,start_position,controls_list):
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
+        self._map = map
 
     def initaliseTree(self,start_position):
-        pass #returns a dictionary of dictionaries with the vertex start position inserted
+        tree = {}
+        return tree
 
     def generateRandomState(self):
-        pass #returns a random vehicle in the state space
+        return None #returns a random vehicle in the state space
 
     def extend(self,x_rand):
         pass # returns an enum [reached, advanced, trapped]

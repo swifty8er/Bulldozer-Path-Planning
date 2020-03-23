@@ -1,6 +1,10 @@
 import unittest
-import RRT as RRT
-import Vehicle as Vehicle
+from RRT import RRT
+from Vehicle import Vehicle
+from Maps import Maps
+
+MyMaps = Maps()
+map = MyMaps.test_maps[0]
 
 ControlsList = [
     (0.6,45),
@@ -14,10 +18,22 @@ ControlsList = [
     ]
 
 class Test_TestRRT(unittest.TestCase):
-    def RRTInit(self):
+    def test_init(self):
         StartVehiclePos = Vehicle(1,1,90)
-        MyRRT = RRT(StartVehiclePos,ControlsList)
-        self.assertEqual(MyRRT.HasVertex(StartVehiclePos),True,"Starting position should be a vertex in the tree")
+        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        self.assertTrue(MyRRT.hasVertex(StartVehiclePos))
+
+    def test_generate_random_state(self):
+        StartVehiclePos = Vehicle(1,1,90)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        self.assertNotEqual(MyRRT.generateRandomState(),None)
+        randomState = MyRRT.generateRandomState()
+        self.assertTrue(randomState.getX()>=map.min_x)
+        self.assertTrue(randomState.getX()<=map.max_x)
+        self.assertTrue(randomState.getY()>=map.min_y)
+        self.assertTrue(randomState.getY()<=map.max_y)
+        # also test that no collision with obstacle
+
 
 if __name__ == '__main__':
     unittest.main()
