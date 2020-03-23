@@ -23,6 +23,9 @@ class RRT:
     def addVertex(self,x_new):
         pass # adds the vertex to the tree, no return
 
+    def hasVertex(self,x):
+        return ( x in self._tree )
+
     def addEdge(self,x_new,x_near,u_new):
         pass # add the edge between x_near and x_new to the tree, denoted by u_new, no return
 
