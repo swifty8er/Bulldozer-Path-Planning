@@ -12,6 +12,7 @@
     <Name>Bulldozer Path Planning</Name>
     <RootNamespace>Bulldozer Path Planning</RootNamespace>
     <InterpreterId>CondaEnv|CondaEnv|Nature</InterpreterId>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

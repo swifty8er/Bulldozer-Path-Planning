@@ -1,4 +1,5 @@
 import unittest
+import math
 from RRT import RRT
 from RRT import Status
 from Vehicle import Vehicle
@@ -8,15 +9,40 @@ MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1,1,90)
 ControlsList = [
-    (0.6,45),
-    (0.739,36.5),
-    (0.928,29.09),
-    (1.204,22.42),
-    (1.634,16.44),
-    (2.42,11.15),
-    (4.027,6.706),
-    (8.157,3.31)
-    ]
+    (0.6,45,"FL"),
+    (0.739,36.5,"FL"),
+    (0.928,29.09,"FL"),
+    (1.204,22.42,"FL"),
+    (1.634,16.44,"FL"),
+    (2.42,11.15,"FL"),
+    (4.027,6.706,"FL"),
+    (8.157,3.31,"FL"),
+    ((0.6*math.pi)/4.0,0,"F"),
+    (0.6,45,"FR"),
+    (0.739,36.5,"FR"),
+    (0.928,29.09,"FR"),
+    (1.204,22.42,"FR"),
+    (1.634,16.44,"FR"),
+    (2.42,11.15,"FR"),
+    (4.027,6.706,"FR"),
+    (8.157,3.31,"FR"),
+    (0.6,45,"RL"),
+    (0.739,36.5,"RL"),
+    (0.928,29.09,"RL"),
+    (1.204,22.42,"RL"),
+    (1.634,16.44,"RL"),
+    (2.42,11.15,"RL"),
+    (4.027,6.706,"RL"),
+    (8.157,3.31,"RL"),
+    ((0.6*math.pi)/4.0,0,"R"),
+    (0.6,45,"RR"),
+    (0.739,36.5,"RR"),
+    (0.928,29.09,"RR"),
+    (1.204,22.42,"RR"),
+    (1.634,16.44,"RR"),
+    (2.42,11.15,"RR"),
+    (4.027,6.706,"RR"),
+    (8.157,3.31,"RR")]
 
 class Test_TestRRT(unittest.TestCase):
     def test_init(self):
@@ -47,6 +73,14 @@ class Test_TestRRT(unittest.TestCase):
         for node in MyRRT._tree.keys():
             self.assertTrue(randomState.DistanceTo(node) > randomState.DistanceTo(nn))
 
+    def test_generate_new_state(self):
+        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        randomState = MyRRT.generateRandomState()
+        nn = MyRRT.nearestNeighbour(randomState)
+        (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
+        self.assertIsInstance(result,bool)
+        self.assertIsInstance(x_new,Vehicle)
+        self.assertIsInstance(u_new,tuple)
 
 if __name__ == '__main__':
     unittest.main()
