@@ -81,6 +81,30 @@ class Test_TestRRT(unittest.TestCase):
         self.assertIsInstance(result,bool)
         self.assertIsInstance(x_new,Vehicle)
         self.assertIsInstance(u_new,tuple)
+        self.assertTrue(u_new in ControlsList)
+        self.assertTrue(x_new.getX()>=map.min_x)
+        self.assertTrue(x_new.getX()<=map.max_x)
+        self.assertTrue(x_new.getY()>=map.min_y)
+        self.assertTrue(x_new.getY()<=map.max_y)
+        # also test no collision
+
+    def test_add_vertex(self):
+        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        randomState = MyRRT.generateRandomState()
+        nn = MyRRT.nearestNeighbour(randomState)
+        (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
+        MyRRT.addVertex(x_new)
+        self.assertTrue(x_new in MyRRT._tree.keys())
+        self.assertTrue(x_new in MyRRT._tree[nn].keys())
+        for k in MyRRT._tree.keys():
+            self.assertEqual(MyRRT._tree[k][x_new],False)
+        self.assertEqual(MyRRT._tree[x_new][nn],False) # edge has not been inserted yet
+        self.assertEqual(MyRRT._tree[nn][x_new],False) # edge has not been inserted yet
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

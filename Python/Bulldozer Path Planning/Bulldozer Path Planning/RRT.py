@@ -26,7 +26,7 @@ class RRT:
         pass # searches the tree for the nearest node to x by some distance metric
 
     def generateNewState(self,x,x_near):
-        pass # generates a new state from x near in the direction towards x using the available controls
+        return (0,0,0) # generates a new state from x near in the direction towards x using the available controls
         # returns a bool if successful, and the new state and control used
 
     def addVertex(self,x_new):
