@@ -142,4 +142,8 @@ class Test_TestRRT(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
+    MyVehicle = Vehicle(1,1,90)
+    for c in ControlsList:
+        NewVehicle = MyVehicle.applyControl(c[0],c[1],c[2])
+        print("New vehicle is (%.2f,%.2f,%.2f)" % (NewVehicle.x,NewVehicle.y,NewVehicle.theta))

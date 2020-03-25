@@ -14,6 +14,8 @@ class RRT:
 
     def initaliseTree(self,start_position):
         tree = {}
+        tree[start_position] = {}
+        tree[start_position][start_position] = False
         return tree
 
     def generateRandomState(self):

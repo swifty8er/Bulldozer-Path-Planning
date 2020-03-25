@@ -11,20 +11,46 @@ class Vehicle:
         self._boundaryRightX = self._x + 0.5*WIDTH
         self._boundaryTopY = self._y + 0.5*LENGTH
         self._boundaryBottomY = self._y - 0.5*LENGTH
-        print("Initalised vehicle (%.2f,%.2f,%.2f)" % (self._x,self._y,self._theta))
 
     @property
-    def getX(self):
+    def x(self):
         return self._x
     @property
-    def getY(self):
+    def y(self):
         return self._y
     @property
-    def getTheta(self):
+    def theta(self):
         return self._theta
 
     def applyControl(self,radius,deltaTheta,direction):
-        pass #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
+        if direction == "F" or direction == "R":
+            a = 0
+            b = radius
+        else:
+            a = radius*(1-math.cos(math.radians(deltaTheta)))
+            b = radius*math.sin(math.radians(deltaTheta))
+        x2 = None
+        y2 = None
+        theta2 = None
+        if direction == "FL" or direction == "F":
+            x2 = self._x+math.cos(math.radians(self._theta)-math.pi/2)*(-1*a)-math.sin(math.radians(self._theta)-math.pi/2)*(b)
+            y2 = self._y+math.sin(math.radians(self._theta)-math.pi/2)*(-1*a)+math.cos(math.radians(self._theta)-math.pi/2)*(b)
+            theta2 = self._theta + deltaTheta
+        elif direction == "FR" or direction == "RL":
+            deltaTheta *= -1.0
+            x2 = self._x + math.cos(math.radians(self._theta)-math.pi/2)*(a)-math.sin(math.radians(self._theta)-math.pi/2)*(b)
+            y2 = self._y + math.sin(math.radians(self._theta)-math.pi/2)*(a)+math.cos(math.radians(self._theta)-math.pi/2)*(b)
+            theta2 = self._theta + deltaTheta
+        elif direction == "RR" or direction == "R":
+            x2 = self._x + math.cos(math.radians(self._theta)-math.pi/2)*(a) - math.sin(math.radians(self._theta)-math.pi/2)*(-1*b)
+            y2 = self._y + math.sin(math.radians(self._theta)-math.pi/2)*(a) + math.cos(math.radians(self._theta)-math.pi/2)*(-1*b)
+            theta2 = self._theta + deltaTheta
+        else:
+            raise Exception("Unknown direction passed to apply control function (%s)" % direction)
+
+
+
+        return Vehicle(x2,y2,theta2) #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
 
     def DistanceTo(self,otherVehicle):
         return math.sqrt(math.pow(self._x-otherVehicle.getX(),2)+math.pow(self._y-otherVehicle.getY(),2))
