@@ -46,14 +46,25 @@ ControlsList = [
 
 class Test_TestRRT(unittest.TestCase):
     def test_init(self):
+        #test initalising the RRT class
         MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        #expect the result to have the starting state inserted as a vertex
         self.assertTrue(MyRRT.hasVertex(StartVehiclePos))
+        # the structure is a symmetric matrix
+        self.assertTrue(StartVehiclePos in MyRRT._tree[StartVehiclePos].keys())
+        # edge between the starting state and itself should not exist (False)
+        self.assertEqual(MyRRT._tree[StartVehiclePos][StartVehiclePos],False)
+
+
 
     def test_generate_random_state(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        # Test the return value
         self.assertNotEqual(MyRRT.generateRandomState(),None)
         randomState = MyRRT.generateRandomState()
+        # test the return value
         self.assertIsInstance(randomState,Vehicle)
+        # check state in range of map boundary
         self.assertTrue(randomState.getX()>=map.min_x)
         self.assertTrue(randomState.getX()<=map.max_x)
         self.assertTrue(randomState.getY()>=map.min_y)
@@ -62,15 +73,19 @@ class Test_TestRRT(unittest.TestCase):
 
     def test_extend(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        # this function mostly just uses the other ones, so just check return type
         self.assertIsInstance(MyRRT.extend(MyRRT.generateRandomState()),Status)
 
     def test_nearest_neighbour(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList)
         randomState = MyRRT.generateRandomState()
+        # test random state
         self.assertIsInstance(randomState,Vehicle)
         nn = MyRRT.nearestNeighbour(randomState)
+        # test nearest neighbour state
         self.assertIsInstance(nn,Vehicle)
         for node in MyRRT._tree.keys():
+            # check there is no closer node to the random state
             self.assertTrue(randomState.DistanceTo(node) > randomState.DistanceTo(nn))
 
     def test_generate_new_state(self):
@@ -78,10 +93,13 @@ class Test_TestRRT(unittest.TestCase):
         randomState = MyRRT.generateRandomState()
         nn = MyRRT.nearestNeighbour(randomState)
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
+        # test the return types
         self.assertIsInstance(result,bool)
         self.assertIsInstance(x_new,Vehicle)
         self.assertIsInstance(u_new,tuple)
+        # test that the control is valid
         self.assertTrue(u_new in ControlsList)
+        # test in range of map boundary
         self.assertTrue(x_new.getX()>=map.min_x)
         self.assertTrue(x_new.getX()<=map.max_x)
         self.assertTrue(x_new.getY()>=map.min_y)
@@ -94,10 +112,13 @@ class Test_TestRRT(unittest.TestCase):
         nn = MyRRT.nearestNeighbour(randomState)
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
         MyRRT.addVertex(x_new)
+        # test key inserted in both levels
         self.assertTrue(x_new in MyRRT._tree.keys())
         self.assertTrue(x_new in MyRRT._tree[nn].keys())
         for k in MyRRT._tree.keys():
+            # test edge initalisation
             self.assertEqual(MyRRT._tree[k][x_new],False)
+        #test these specific edges
         self.assertEqual(MyRRT._tree[x_new][nn],False) # edge has not been inserted yet
         self.assertEqual(MyRRT._tree[nn][x_new],False) # edge has not been inserted yet
 
@@ -110,10 +131,12 @@ class Test_TestRRT(unittest.TestCase):
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
         MyRRT.addVertex(x_new)
         MyRRT.addEdge(x_new,nn,u_new)
+        # test vertex insertion
         self.assertTrue(x_new in MyRRT._tree.keys())
         self.assertTrue(nn in MyRRT._tree.keys())
         self.assertTrue(nn in MyRRT._tree[x_new].keys())
         self.assertTrue(x_new in MyRRT._tree[nn].keys())
+        # test edges set correctly
         self.assertEqual(MyRRT._tree[x_new][nn],u_new)
         self.assertEqual(MyRRT._tree[nn][x_new],u_new)
 
