@@ -103,7 +103,19 @@ class Test_TestRRT(unittest.TestCase):
 
 
 
-
+    def test_add_edge(self):
+        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        randomState = MyRRT.generateRandomState()
+        nn = MyRRT.nearestNeighbour(randomState)
+        (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
+        MyRRT.addVertex(x_new)
+        MyRRT.addEdge(x_new,nn,u_new)
+        self.assertTrue(x_new in MyRRT._tree.keys())
+        self.assertTrue(nn in MyRRT._tree.keys())
+        self.assertTrue(nn in MyRRT._tree[x_new].keys())
+        self.assertTrue(x_new in MyRRT._tree[nn].keys())
+        self.assertEqual(MyRRT._tree[x_new][nn],u_new)
+        self.assertEqual(MyRRT._tree[nn][x_new],u_new)
 
 
 if __name__ == '__main__':
