@@ -1,4 +1,5 @@
 from enum import Enum
+from Vehicle import Vehicle
 import random
 class Status(Enum):
     REACHED = 1
@@ -19,9 +20,9 @@ class RRT:
         return tree
 
     def generateRandomState(self):
-        randState = genRandState(self)
+        randState = self.genRandState()
         while (randState.IsCollidingWithMapBoundaryOrObstacles(self._map)):
-            randState = genRandState(self)
+            randState = self.genRandState()
 
         return randState #returns a random vehicle in the state space
 
@@ -32,7 +33,17 @@ class RRT:
         return Vehicle(new_x,new_y,new_theta)
 
     def extend(self,x_rand):
-        return None # returns an enum [reached, advanced, trapped]
+        nearest_neighbour = self.nearestNeighbour(x_rand)
+        (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
+        if result:
+            self.addVertex(x_new)
+            self.addEdge(x_new,nearest_neighbour,u_new)
+            if (x_new == x): #overwrite the equality function for vehicles
+                return Status.REACHED
+            else:
+                return Status.ADVANCED
+
+        return Status.TRAPPED # returns an enum [reached, advanced, trapped]
 
     def nearestNeighbour(self,x):
         pass # searches the tree for the nearest node to x by some distance metric

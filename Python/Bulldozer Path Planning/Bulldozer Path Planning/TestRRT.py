@@ -65,10 +65,12 @@ class Test_TestRRT(unittest.TestCase):
         # test the return value
         self.assertIsInstance(randomState,Vehicle)
         # check state in range of map boundary
-        self.assertTrue(randomState.getX()>=map.min_x)
-        self.assertTrue(randomState.getX()<=map.max_x)
-        self.assertTrue(randomState.getY()>=map.min_y)
-        self.assertTrue(randomState.getY()<=map.max_y)
+        self.assertTrue(randomState.x>=map.min_x)
+        self.assertTrue(randomState.x<=map.max_x)
+        self.assertTrue(randomState.y>=map.min_y)
+        self.assertTrue(randomState.y<=map.max_y)
+        self.assertTrue(randomState.theta>=0)
+        self.assertTrue(randomState.theta<=360)
         # also test that no collision with obstacle
 
     def test_extend(self):
