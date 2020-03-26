@@ -1,4 +1,6 @@
 import math
+import numpy as np
+from BasicGeometry import BasicGeometry
 WIDTH = 1.0
 LENGTH = 1.0
 class Vehicle:
@@ -55,7 +57,21 @@ class Vehicle:
 
 
 
-        return Vehicle(x2,y2,theta2) #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
+        return Vehicle(x2,y2,theta2%360) #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
 
     def DistanceTo(self,otherVehicle):
         return math.sqrt(math.pow(self._x-otherVehicle.getX(),2)+math.pow(self._y-otherVehicle.getY(),2))
+
+    def IsCollidingWithMapBoundaryOrObstacles(self,map):
+        edges = []
+        for obs in map.obstacles:
+            for pt_index in range(len(obs)-1):
+                edges.append([obs[pt_index], obs[pt_index+1]])
+        for bd_index in range(len(map.boundary)-1):
+            edges.append([map.boundary[bd_index], map.boundary[bd_index+1]])
+        point = (self._x,self._y)
+        for edge in edges:
+            if (map.disk_radius - BasicGeometry.point2LineDist(edge,point)) > np.finfo(np.float32).eps:
+                return True
+        return False
+

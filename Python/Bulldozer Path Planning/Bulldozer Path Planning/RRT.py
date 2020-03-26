@@ -1,5 +1,5 @@
 from enum import Enum
-
+import random
 class Status(Enum):
     REACHED = 1
     ADVANCED = 2
@@ -19,7 +19,17 @@ class RRT:
         return tree
 
     def generateRandomState(self):
-        return None #returns a random vehicle in the state space
+        randState = genRandState(self)
+        while (randState.IsCollidingWithMapBoundaryOrObstacles(self._map)):
+            randState = genRandState(self)
+
+        return randState #returns a random vehicle in the state space
+
+    def genRandState(self):
+        new_x = random.uniform(self._map.min_x,self._map.max_x)
+        new_y = random.uniform(self._map.min_y,self._map.max_y)
+        new_theta = random.uniform(0,360)
+        return Vehicle(new_x,new_y,new_theta)
 
     def extend(self,x_rand):
         return None # returns an enum [reached, advanced, trapped]
