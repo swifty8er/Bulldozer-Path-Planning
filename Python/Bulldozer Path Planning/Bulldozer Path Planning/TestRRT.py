@@ -87,6 +87,8 @@ class Test_TestRRT(unittest.TestCase):
         # test nearest neighbour state
         self.assertIsInstance(nn,Vehicle)
         for node in MyRRT._tree.keys():
+            if (node == nn):
+                continue
             # check there is no closer node to the random state
             self.assertTrue(randomState.DistanceTo(node) > randomState.DistanceTo(nn))
 
