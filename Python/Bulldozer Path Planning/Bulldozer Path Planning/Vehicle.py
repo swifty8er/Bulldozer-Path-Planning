@@ -60,7 +60,11 @@ class Vehicle:
         return Vehicle(x2,y2,theta2%360) #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
 
     def DistanceTo(self,otherVehicle):
-        return math.sqrt(math.pow(self._x-otherVehicle.getX(),2)+math.pow(self._y-otherVehicle.getY(),2))
+        p1 = (self._x,self._y)
+        p2 = (otherVehicle.x,otherVehicle.y)
+        euclidean_distance = BasicGeometry.ptDist(p1,p2)
+        cosine_distance = 1 - math.cos(math.radians(otherVehicle.theta)-math.radians(self._theta))
+        return euclidean_distance + cosine_distance
 
     def IsCollidingWithMapBoundaryOrObstacles(self,map):
         edges = []
