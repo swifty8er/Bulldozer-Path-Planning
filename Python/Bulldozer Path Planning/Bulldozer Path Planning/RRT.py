@@ -1,6 +1,7 @@
 from enum import Enum
 from Vehicle import Vehicle
 import random
+import math
 class Status(Enum):
     REACHED = 1
     ADVANCED = 2
@@ -45,8 +46,19 @@ class RRT:
 
         return Status.TRAPPED # returns an enum [reached, advanced, trapped]
 
+    # searches the tree for the nearest node to x by some distance metric
     def nearestNeighbour(self,x):
-        pass # searches the tree for the nearest node to x by some distance metric
+        min_dist = math.inf
+        min_node = None
+        for node in self._tree.keys():
+            dist = node.DistanceTo(x) #distance metric defined in this function
+            if dist < min_dist:
+                min_dist = dist
+                min_node = node
+
+        if min_node == None:
+            raise Exception("No nearest neighbour to (%.2f,%.2f,%.2f) found" % (x.x,x.y,x.theta))
+        return min_node 
 
     def generateNewState(self,x,x_near):
         return (0,0,0) # generates a new state from x near in the direction towards x using the available controls
