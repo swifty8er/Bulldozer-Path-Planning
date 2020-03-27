@@ -102,13 +102,14 @@ class Test_TestRRT(unittest.TestCase):
         self.assertIsInstance(x_new,Vehicle)
         self.assertIsInstance(u_new,tuple)
         # test that the control is valid
-        self.assertTrue(u_new in ControlsList)
-        # test in range of map boundary
-        self.assertTrue(x_new.getX()>=map.min_x)
-        self.assertTrue(x_new.getX()<=map.max_x)
-        self.assertTrue(x_new.getY()>=map.min_y)
-        self.assertTrue(x_new.getY()<=map.max_y)
-        # also test no collision
+        if result:
+            self.assertTrue(u_new in ControlsList)
+            # test in range of map boundary
+            self.assertTrue(x_new.x>=map.min_x)
+            self.assertTrue(x_new.x<=map.max_x)
+            self.assertTrue(x_new.y>=map.min_y)
+            self.assertTrue(x_new.y<=map.max_y)
+            # also test no collision
 
     def test_add_vertex(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList)

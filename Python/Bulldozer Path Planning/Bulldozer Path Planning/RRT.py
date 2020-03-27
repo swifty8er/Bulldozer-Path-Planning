@@ -39,7 +39,7 @@ class RRT:
         if result:
             self.addVertex(x_new)
             self.addEdge(x_new,nearest_neighbour,u_new)
-            if (x_new == x): #overwrite the equality function for vehicles
+            if (x_new == x_rand): #overwrite the equality function for vehicles
                 return Status.REACHED
             else:
                 return Status.ADVANCED
@@ -60,9 +60,30 @@ class RRT:
             raise Exception("No nearest neighbour to (%.2f,%.2f,%.2f) found" % (x.x,x.y,x.theta))
         return min_node 
 
+    # given a node and a control that describes following the path of a cirlce arc from the node
+    # test if doing so will cause a collision with the obstacles or boundary of the map
+    def isCollision(self,node,control):
+        return False
+
+
+    # generates a new state from x near in the direction towards x using the available controls
     def generateNewState(self,x,x_near):
-        return (0,0,0) # generates a new state from x near in the direction towards x using the available controls
-        # returns a bool if successful, and the new state and control used
+        min_dist = math.inf
+        x_new = None
+        u_new = None
+        for control in self._controls_list:
+            if (not self.isCollision(x_near,control)):
+                x_test = x_near.applyControl(control[0],control[1],control[2])
+                dist = x.DistanceTo(x_test)
+                if dist < min_dist:
+                    min_dist = dist
+                    x_new = x_test
+                    u_new = control
+
+        if (x_new == None):
+            return (False,Vehicle(0,0,0),(0,0,0)) #dummy second and third values
+        else:
+            return (True,x_new,u_new) # returns a bool if successful, and the new state and control used
 
     def addVertex(self,x_new):
         pass # adds the vertex to the tree, no return
