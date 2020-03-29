@@ -7,9 +7,9 @@ class BasicGeometry():
     @staticmethod
     def arcLineCollisionAlgorithm(start_position,control,line,disk_radius):
         direction = control[2]
+        end_position = start_position.applyControl(control[0],control[1],control[2])
         if direction == "F" or direction == "R":
             p1 = (start_position.x,start_position.y)
-            end_position = start_position.applyControl(control[0],control[1],control[2])
             p2 = (end_position.x,end_position.y)
             p3 = (line[0][0],line[0][1])
             p4 = (line[1][0],line[1][1])
@@ -63,7 +63,68 @@ class BasicGeometry():
             
 
         else:
-            pass #define arc collision here
+            y2 = line[1][1]
+            x2 = line[1][0]
+
+            y1 = line[0][1]
+            x1 = line[0][0]
+
+            m1 = (y2-y1)/(x2-x1)
+            b = y2 - m1*x2
+
+            m2 = -1/m1
+            
+            if direction == "FL" or direction == "RL":
+                a = start_position.x + control[0]*math.cos(math.radians(start_position.theta)+math.pi/2)
+                b = start_position.y + control[0]*math.sin(math.radians(start_position.theta)+math.pi/2)
+            else:
+                a = start_position.x + control[0]*math.cos(math.radians(start_position.theta)-math.pi/2)
+                b = start_position.y + control[0]*math.sin(math.radians(start_position.theta)-math.pi/2)
+
+            c = ((x2-x1)/(y2-y1))*a + b
+
+            x = ( ((x2-x1)/(y2-y1))*a + b - y2 + ((y2-y1)/(x2-x1))*x2 ) / ( ((y2-y1)/(x2-x1)) + ((x2-x1)/(y2-y1)) )
+
+            y = m2*x + c
+
+            test_y = m1*x + b
+
+            if (math.fabs(test_y-y) > np.finfo(np.float32).eps):
+                raise Exception("Error finding intersection point of perp bisector and line")
+
+            v_x = x-a
+            v_y = y-b
+
+            alpha = math.atan2(v_y,v_x)
+
+            gamma_1 = math.atan2(start_position.y,start_position.x)
+            gamma_2 = math.atan2(end_position.y,end_position.x)
+
+            start_point = (start_position.x,start_position.y)
+            end_point = (end_position.x,end_position.y)
+            circle_centre = (a,b)
+
+            if (alpha<0 and gamma_2<=alpha and alpha<=gamma_1) or (alpha>=0 and gamma_2>=alpha and alpha>= gamma_1):
+                D = math.sqrt(v_x**2 + v_y**2)
+                d = D - control[0]
+                if (disk_radius - d ) > np.finfo(np.float32).eps:
+                    return True
+                else:
+                    return False
+            elif (disk_radius - BasicGeometry.ptDist(line[0],start_point)) > np.finfo(np.float32).eps:
+                return True
+            elif (disk_radius - BasicGeometry.ptDist(line[1],start_point)) > np.finfo(np.float32).eps:
+                return True
+            elif (disk_radius - BasicGeometry.ptDist(line[0],end_point)) > np.finfo(np.float32).eps:
+                return True
+            elif (disk_radius - BasicGeometry.ptDist(line[1],end_point)) > np.finfo(np.float32).eps:
+                return True
+            elif (disk_radius - (BasicGeometry.ptDist(line[0],circle_centre) - control[0])) > np.finfo(np.float32).eps:
+                return True
+            elif (disk_radius - (BasicGeometry.ptDist(line[1],circle_centre) - control[0])) > np.finfo(np.float32).eps:
+                return True
+            else:
+                return False
 
 
     @staticmethod
