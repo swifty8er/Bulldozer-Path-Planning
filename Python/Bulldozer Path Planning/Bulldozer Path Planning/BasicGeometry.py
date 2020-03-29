@@ -5,6 +5,27 @@ import numpy as np
 class BasicGeometry():
     #functions for basic geometry and list finding
     @staticmethod
+    def arcLineCollisionAlgorithm(start_position,control,line,disk_radius):
+        direction = control[2]
+        if direction == "F" or direction == "R":
+            p1 = (start_position.x,start_position.y)
+            end_position = start_position.applyControl(control[0],control[1],control[2])
+            p2 = (end_position.x,end_position.y)
+            p3 = (line[0][0],line[0][1])
+            p4 = (line[1][0],line[1][1])
+            R1_2 = (p2[0]-p1[0])**2+(p2[1]-p1[1])**2
+            R2_2 = (p4[0]-p3[0])**2+(p4[1]-p3[1])**2
+            D_4321 = (p4[0]-p3[0])*(p2[0]-p1[0])+(p4[1]-p3[1])*(p2[1]-p1[1])
+            D_3121 = (p3[0]-p1[0])*(p2[0]-p1[0])+(p3[1]-p1[1])*(p2[1]-p1[1])
+            D_4331 = (p4[0]-p3[0])*(p3[0]-p1[0])+(p4[1]-p3[1])*(p3[1]-p1[1])
+
+            s = ((D_4321 * D_4331) + (D_3121 * R2_2))/(R1_2*R2_2 + D_4321**2)
+
+            t = ((D_4321 * D_3121) - (D_4331 * R1_2))/(R1_2*R2_2 + D_4321**2)
+
+
+
+    @staticmethod
     def arcLineCollisionIterative(start_position,control,line,num_steps,disk_radius):
         angle = control[1]
         delta_angle = angle/float(num_steps)

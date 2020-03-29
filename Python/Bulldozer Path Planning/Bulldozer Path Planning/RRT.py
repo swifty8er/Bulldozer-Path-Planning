@@ -65,6 +65,10 @@ class RRT:
     # given a node and a control that describes following the path of a cirlce arc from the node
     # test if doing so will cause a collision with the obstacles or boundary of the map
     def isCollision(self,node,control):
+        edges = self._map.getMapEdges()
+        for edge in edges:
+            if BasicGeometry.arcLineCollisionAlgorithm(node,control,edge,self._map.disk_radius):
+                return True
         return False
 
 
