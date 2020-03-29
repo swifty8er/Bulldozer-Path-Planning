@@ -24,6 +24,9 @@ class Vehicle:
     def theta(self):
         return self._theta
 
+    def __eq__(self, other):
+        return (self.x == other.x) and (self.y == other.y) and (self.theta == other.theta)
+
     def applyControl(self,radius,deltaTheta,direction):
         if direction == "F" or direction == "R":
             a = 0
