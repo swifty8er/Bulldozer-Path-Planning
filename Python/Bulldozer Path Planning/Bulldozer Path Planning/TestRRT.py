@@ -4,6 +4,7 @@ from RRT import RRT
 from RRT import Status
 from Vehicle import Vehicle
 from Maps import Maps
+from BasicGeometry import BasicGeometry
 
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
@@ -71,6 +72,7 @@ class Test_TestRRT(unittest.TestCase):
         self.assertTrue(randomState.y<=map.max_y)
         self.assertTrue(randomState.theta>=0)
         self.assertTrue(randomState.theta<=360)
+        self.assertFalse(MyRRT.testStateCollision(randomState))
         # also test that no collision with obstacle
 
     def test_extend(self):

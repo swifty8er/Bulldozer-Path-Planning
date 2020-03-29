@@ -1,5 +1,6 @@
 from enum import Enum
 from Vehicle import Vehicle
+from BasicGeometry import BasicGeometry
 import random
 import math
 class Status(Enum):
@@ -65,6 +66,20 @@ class RRT:
     def isCollision(self,node,control):
         return False
 
+
+    def testStateCollision(self,node):
+        edges = []
+        for obs in self._map.obstacles:
+            for pt_index in range(len(obs)-1):
+                edges.append([obs[pt_index], obs[pt_index+1]])
+        for bd_index in range(len(self._map.boundary)-1):
+            edges.append([self._map.boundary[bd_index], self._map.boundary[bd_index+1]])
+
+        point = (node.x,node.y)
+        for edge in edges:
+            if BasicGeometry.Point2LineDist(edge,point) < self._map.disk_radius:
+                return True
+        return False
 
     # generates a new state from x near in the direction towards x using the available controls
     def generateNewState(self,x,x_near):
