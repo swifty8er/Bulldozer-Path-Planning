@@ -66,16 +66,5 @@ class Vehicle:
         cosine_distance = 1 - math.cos(math.radians(otherVehicle.theta)-math.radians(self._theta))
         return euclidean_distance + cosine_distance
 
-    def IsCollidingWithMapBoundaryOrObstacles(self,map):
-        edges = []
-        for obs in map.obstacles:
-            for pt_index in range(len(obs)-1):
-                edges.append([obs[pt_index], obs[pt_index+1]])
-        for bd_index in range(len(map.boundary)-1):
-            edges.append([map.boundary[bd_index], map.boundary[bd_index+1]])
-        point = (self._x,self._y)
-        for edge in edges:
-            if (map.disk_radius - BasicGeometry.point2LineDist(edge,point)) > np.finfo(np.float32).eps:
-                return True
-        return False
+
 

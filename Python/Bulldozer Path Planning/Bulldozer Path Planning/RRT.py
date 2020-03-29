@@ -1,3 +1,4 @@
+import numpy as np
 from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
@@ -23,7 +24,7 @@ class RRT:
 
     def generateRandomState(self):
         randState = self.genRandState()
-        while (randState.IsCollidingWithMapBoundaryOrObstacles(self._map)):
+        while (self.testStateCollision(randState)):
             randState = self.genRandState()
 
         return randState #returns a random vehicle in the state space
@@ -69,10 +70,9 @@ class RRT:
 
     def testStateCollision(self,node):
         edges = self._map.getMapEdges()
-
         point = (node.x,node.y)
         for edge in edges:
-            if BasicGeometry.point2LineDist(edge,point) < self._map.disk_radius:
+            if (self._map.disk_radius - BasicGeometry.point2LineDist(edge,point)) > np.finfo(np.float32).eps:
                 return True
         return False
 
