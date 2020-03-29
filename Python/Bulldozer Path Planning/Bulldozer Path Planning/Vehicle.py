@@ -27,6 +27,10 @@ class Vehicle:
     def __eq__(self, other):
         return (self.x == other.x) and (self.y == other.y) and (self.theta == other.theta)
 
+    def __hash__(self):
+        t = (self._x,self._y,self._theta)
+        return hash(t)
+
     def applyControl(self,radius,deltaTheta,direction):
         if direction == "F" or direction == "R":
             a = 0
