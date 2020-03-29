@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from Vehicle import Vehicle
+
 
 class BasicGeometry():
     #functions for basic geometry and list finding

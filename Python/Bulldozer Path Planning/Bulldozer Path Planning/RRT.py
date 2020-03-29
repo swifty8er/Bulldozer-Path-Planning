@@ -68,16 +68,11 @@ class RRT:
 
 
     def testStateCollision(self,node):
-        edges = []
-        for obs in self._map.obstacles:
-            for pt_index in range(len(obs)-1):
-                edges.append([obs[pt_index], obs[pt_index+1]])
-        for bd_index in range(len(self._map.boundary)-1):
-            edges.append([self._map.boundary[bd_index], self._map.boundary[bd_index+1]])
+        edges = self._map.getMapEdges()
 
         point = (node.x,node.y)
         for edge in edges:
-            if BasicGeometry.Point2LineDist(edge,point) < self._map.disk_radius:
+            if BasicGeometry.point2LineDist(edge,point) < self._map.disk_radius:
                 return True
         return False
 

@@ -76,6 +76,16 @@ class Map:
     def initial_disk_pos_xy(self):
         return self._initial_disk_poses_xy
 
+
+    def getMapEdges(self):
+        edges = []
+        for obs in self._obstacles:
+            for pt_index in range(len(obs)-1):
+                edges.append([obs[pt_index], obs[pt_index+1]])
+        for bd_index in range(len(self._boundary)-1):
+            edges.append([self._boundary[bd_index], self._boundary[bd_index+1]])
+        return edges
+
     def plotMap(self, ax, show_plot, vehicle_pos = [], disk_poses = [], line_width = 2):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
         x_axis = []
