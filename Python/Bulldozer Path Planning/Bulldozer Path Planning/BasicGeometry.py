@@ -23,7 +23,56 @@ class BasicGeometry():
 
             t = ((D_4321 * D_3121) - (D_4331 * R1_2))/(R1_2*R2_2 + D_4321**2)
 
+            if 0 <= s and s <= 1 and 0 <= t and t <= 1:
+                L1_s_x = (1-s)*p1[0] + s*p2[0]
+                L1_s_y = (1-s)*p1[1] + s*p2[1]
 
+                L2_t_x = (1-t)*p3[0] + t*p4[0]
+                L2_t_y = (1-t)*p3[1] + t*p4[1]
+
+                if (disk_radius - BasicGeometry.ptDist((L1_s_x,L1_s_y),(L2_t_x,L2_t_y)) ) > np.finfo(np.float32).eps:
+                    return True
+                else:
+                    return False
+            else:
+                D_4121 = np.dot(BasicGeometry.tuple_sub(p4,p1),BasicGeometry.tuple_sub(p2,p1))
+                D_4332 = np.dot(BasicGeometry.tuple_sub(p4,p3),BasicGeometry.tuple_sub(p3,p2))
+                #others could be converted to dot product form too
+
+                s_p3 = (D_3121/R1_2)
+
+                s_p4 = (D_4121/R1_2)
+
+                t_p1 = (-1*D_4331/R2_2)
+
+                t_p2 = (-1*D_4332/R2_2)
+                distances = []
+
+                P_3 = BasicGeometry.GetPointOnLine(p1,p2,s_p3)
+                distances.append(BasicGeometry.ptDist(P_3,p3))
+                P_4 = BasicGeometry.GetPointOnLine(p1,p2,s_p4)
+                distances.append(BasicGeometry.ptDist(P_4,p4))
+                P_1 = BasicGeometry.GetPointOnLine(p3,p4,t_p1)
+                distances.append(BasicGeometry.ptDist(P_1,p1))
+                P_2 = BasicGeometry.GetPointOnLine(p3,p4,t_p2)
+                distances.append(BasicGeometry.ptDist(P_2,p2))
+                if (disk_radius - min(distances) ) > np.finfo(np.float32).eps:
+                    return True
+                else:
+                    return False
+            
+
+        else:
+            pass #define arc collision here
+
+
+    @staticmethod
+    def GetPointOnLine(p1,p2,param):
+        return ((1-param)*p1[0] + param*p2[0] , (1-param)*p1[1] + param*p2[1])
+
+    @staticmethod
+    def tuple_sub(t1,t2):
+        return (t1[0]-t2[0],t1[1]-t2[1])
 
     @staticmethod
     def arcLineCollisionIterative(start_position,control,line,num_steps,disk_radius):
