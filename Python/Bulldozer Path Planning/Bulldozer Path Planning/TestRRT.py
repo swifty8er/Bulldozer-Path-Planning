@@ -112,6 +112,7 @@ class Test_TestRRT(unittest.TestCase):
             self.assertTrue(x_new.y>=map.min_y)
             self.assertTrue(x_new.y<=map.max_y)
             # also test no collision
+            self.assertFalse(MyRRT.testMoveCollision(nn,u_new))
 
     def test_add_vertex(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList)

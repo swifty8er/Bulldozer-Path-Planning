@@ -11,7 +11,7 @@ class BasicGeometry():
         for i in range(num_steps+1):
             new_position = start_position.applyControl(control[0],delta_angle,control[2])
             point = (new_position.x,new_position.y)
-            dist = point2LineDist(line,point)
+            dist = BasicGeometry.point2LineDist(line,point)
             if dist < disk_radius:
                 return True
             delta_angle *= 2.0

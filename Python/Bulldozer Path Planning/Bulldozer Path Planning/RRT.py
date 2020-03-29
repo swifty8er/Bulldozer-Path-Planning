@@ -76,6 +76,14 @@ class RRT:
                 return True
         return False
 
+
+    def testMoveCollision(self,node,control):
+        edges = self._map.getMapEdges()
+        for edge in edges:
+            if BasicGeometry.arcLineCollisionIterative(node,control,edge,100,self._map.disk_radius):
+                return True
+        return False
+
     # generates a new state from x near in the direction towards x using the available controls
     def generateNewState(self,x,x_near):
         min_dist = math.inf
@@ -85,7 +93,7 @@ class RRT:
             if (not self.isCollision(x_near,control)):
                 x_test = x_near.applyControl(control[0],control[1],control[2])
                 dist = x.DistanceTo(x_test)
-                if dist < min_dist:
+                if dist < min_dist: 
                     min_dist = dist
                     x_new = x_test
                     u_new = control
