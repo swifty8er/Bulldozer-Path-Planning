@@ -18,6 +18,10 @@ class RRT:
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
 
+    @property
+    def tree(self):
+        return self._tree
+    
     def initaliseTree(self,start_position):
         tree = {}
         tree[start_position] = {}
@@ -70,7 +74,7 @@ class RRT:
         edges = self._map.getMapEdges()
         for edge in edges:
             if BasicGeometry.arcLineCollisionAlgorithm(node,control,edge,self._map.disk_radius):
-                print("Collision found between (x,y,theta) = (%.2f,%.2f,%.2f) (r,deltaTheta,direction) = (%.2f,%.2f,%s) edge = (%.2f,%2.f,%.2f,%.2f)" % (node.x,node.y,node.theta,control[0],control[1],control[2],edge[0][0],edge[0][1],edge[1][0],edge[1][1]) )
+                #print("Collision found between (x,y,theta) = (%.2f,%.2f,%.2f) (r,deltaTheta,direction) = (%.2f,%.2f,%s) edge = (%.2f,%2.f,%.2f,%.2f)" % (node.x,node.y,node.theta,control[0],control[1],control[2],edge[0][0],edge[0][1],edge[1][0],edge[1][1]) )
                 return True
         return False
 
@@ -113,12 +117,12 @@ class RRT:
     # Add the vertex to the tree, no return
     def addVertex(self,x_new):
         if x_new in self._tree.keys():
-            raise Exception("Adding vertex to tree that already exists")
-
-        self._tree[x_new] = {}
-        for key in self._tree.keys():
-            self._tree[x_new][key] = False
-            self._tree[key][x_new] = False
+            print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
+        else:
+            self._tree[x_new] = {}
+            for key in self._tree.keys():
+                self._tree[x_new][key] = False
+                self._tree[key][x_new] = False
 
     def hasVertex(self,x):
         return ( x in self._tree )
@@ -128,8 +132,10 @@ class RRT:
             if x_near in self._tree[x_new].keys():
                 if (self._tree[x_new][x_near] == False):
                     self._tree[x_new][x_near] = u_new
+                elif (self._tree[x_new][x_near] == u_new):
+                    print("Edge already exists")
                 else:
-                    raise Exception("Edge already exists between x_new and x_near")
+                    print("New edge between states?? (should overwrite?)")
             else:
                 raise Exception("x_near not in tree under key x_new")
         else:
@@ -139,8 +145,10 @@ class RRT:
             if x_new in self._tree[x_near].keys():
                 if (self._tree[x_near][x_new] == False):
                     self._tree[x_near][x_new] = u_new
+                elif (self._tree[x_near][x_new] == u_new):
+                    print("Edge already exists")
                 else:
-                    raise Exception("Edge already exists between x_near and x_new")
+                    print("New edge between states?? (should overwrite?)")
             else:
                 raise Exception("x_new not in tree under key x_near")
         else:
