@@ -190,13 +190,14 @@ class BasicGeometry():
     def arcLineCollisionIterative(start_position,control,line,num_steps,disk_radius):
         angle = control[1]
         delta_angle = angle/float(num_steps)
+        the_angle = delta_angle
         for i in range(num_steps+1):
             new_position = start_position.applyControl(control[0],delta_angle,control[2])
             point = (new_position.x,new_position.y)
             dist = BasicGeometry.point2LineDist(line,point)
             if (disk_radius - dist) > np.finfo(np.float32).eps:
                 return True
-            delta_angle *= 2.0
+            the_angle += delta_angle
         return False
 
     @staticmethod
