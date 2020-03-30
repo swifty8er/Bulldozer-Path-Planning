@@ -68,6 +68,7 @@ class RRT:
         edges = self._map.getMapEdges()
         for edge in edges:
             if BasicGeometry.arcLineCollisionAlgorithm(node,control,edge,self._map.disk_radius):
+                print("Collision found between (x,y,theta) = (%.2f,%.2f,%.2f) (r,deltaTheta,direction) = (%.2f,%.2f,%s) edge = (%.2f,%2.f,%.2f,%.2f)" % (node.x,node.y,node.theta,control[0],control[1],control[2],edge[0][0],edge[0][1],edge[1][0],edge[1][1]) )
                 return True
         return False
 

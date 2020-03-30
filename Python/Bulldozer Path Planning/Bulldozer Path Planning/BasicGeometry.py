@@ -47,14 +47,33 @@ class BasicGeometry():
 
                 t_p2 = (-1*D_4332/R2_2)
                 distances = []
-
-                P_3 = BasicGeometry.GetPointOnLine(p1,p2,s_p3)
+                if (0<= s_p3 and s_p3 <= 1):
+                    P_3 = BasicGeometry.GetPointOnLine(p1,p2,s_p3)
+                elif s_p3>1:
+                    P_3 = p2
+                else:
+                    P_3 = p1
                 distances.append(BasicGeometry.ptDist(P_3,p3))
-                P_4 = BasicGeometry.GetPointOnLine(p1,p2,s_p4)
+                if (0 <= s_p4 and s_p4 <= 1):
+                    P_4 = BasicGeometry.GetPointOnLine(p1,p2,s_p4)
+                elif s_p4>1:
+                    P_4 = p2
+                else:
+                    P_4 = p1
                 distances.append(BasicGeometry.ptDist(P_4,p4))
-                P_1 = BasicGeometry.GetPointOnLine(p3,p4,t_p1)
+                if (0<=t_p1 and t_p1<=1):
+                    P_1 = BasicGeometry.GetPointOnLine(p3,p4,t_p1)
+                elif t_p1>1:
+                    P_1 = p4
+                else:
+                    P_1 = p3
                 distances.append(BasicGeometry.ptDist(P_1,p1))
-                P_2 = BasicGeometry.GetPointOnLine(p3,p4,t_p2)
+                if (0<=t_p2 and t_p2 <=1):
+                    P_2 = BasicGeometry.GetPointOnLine(p3,p4,t_p2)
+                elif t_p2>1:
+                    P_2 = p4
+                else:
+                    P_2 = p3
                 distances.append(BasicGeometry.ptDist(P_2,p2))
                 if (disk_radius - min(distances) ) > np.finfo(np.float32).eps:
                     return True
@@ -68,11 +87,16 @@ class BasicGeometry():
 
             y1 = line[0][1]
             x1 = line[0][0]
-
-            m1 = (y2-y1)/(x2-x1)
-            b = y2 - m1*x2
-
-            m2 = -1/m1
+            if (x2-x1 == 0):
+                m1 = None
+                m2 = 0
+            else:
+                m1 = (y2-y1)/(x2-x1)
+                b_1 = y2 - m1*x2
+                if m1 == 0:
+                    m2 = None
+                else:
+                    m2 = -1/m1
             
             if direction == "FL" or direction == "RL":
                 a = start_position.x + control[0]*math.cos(math.radians(start_position.theta)+math.pi/2)
@@ -81,16 +105,24 @@ class BasicGeometry():
                 a = start_position.x + control[0]*math.cos(math.radians(start_position.theta)-math.pi/2)
                 b = start_position.y + control[0]*math.sin(math.radians(start_position.theta)-math.pi/2)
 
-            c = ((x2-x1)/(y2-y1))*a + b
 
-            x = ( ((x2-x1)/(y2-y1))*a + b - y2 + ((y2-y1)/(x2-x1))*x2 ) / ( ((y2-y1)/(x2-x1)) + ((x2-x1)/(y2-y1)) )
+            if m2 == None:
+                x = a
+                y = b_1
+            elif m2 == 0 and m1 == None:
+                y = b
+                x = x1
+            else:
+                c = ((x2-x1)/(y2-y1))*a + b
 
-            y = m2*x + c
+                x = ( ((x2-x1)/(y2-y1))*a + b - y2 + ((y2-y1)/(x2-x1))*x2 ) / ( ((y2-y1)/(x2-x1)) + ((x2-x1)/(y2-y1)) )
 
-            test_y = m1*x + b
+                y = m2*x + c
 
-            if (math.fabs(test_y-y) > np.finfo(np.float32).eps):
-                raise Exception("Error finding intersection point of perp bisector and line")
+                test_y = m1*x + b_1
+
+                if (math.fabs(test_y-y) > np.finfo(np.float32).eps):
+                    raise Exception("Error finding intersection point of perp bisector and line")
 
             v_x = x-a
             v_y = y-b
@@ -119,13 +151,32 @@ class BasicGeometry():
                 return True
             elif (disk_radius - BasicGeometry.ptDist(line[1],end_point)) > np.finfo(np.float32).eps:
                 return True
-            elif (disk_radius - (BasicGeometry.ptDist(line[0],circle_centre) - control[0])) > np.finfo(np.float32).eps:
-                return True
-            elif (disk_radius - (BasicGeometry.ptDist(line[1],circle_centre) - control[0])) > np.finfo(np.float32).eps:
-                return True
             else:
+                vec_between_points = BasicGeometry.vec_from_points(line[0],circle_centre)
+                beta = math.atan2(vec_between_points[1],vec_between_points[0])
+                radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
+                if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
+                    return True
+                vec_between_points = BasicGeometry.vec_from_points(line[1],circle_centre)
+                beta = math.atan2(vec_between_points[1],vec_between_points[0])
+                radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
+                if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
+                    return True
+              
                 return False
 
+    @staticmethod
+    def vec_from_points(p1,p2):
+        return (p2[0]-p1[0],p2[1]-p1[1])
+
+
+    @staticmethod
+    def vec_mag(vector):
+        return math.sqrt(vector[0]**2+vector[1]**2)
+
+    @staticmethod
+    def vec_sub(v1,v2):
+        return (v1[0]-v2[0],v1[1]-v2[1])
 
     @staticmethod
     def GetPointOnLine(p1,p2,param):
@@ -143,7 +194,7 @@ class BasicGeometry():
             new_position = start_position.applyControl(control[0],delta_angle,control[2])
             point = (new_position.x,new_position.y)
             dist = BasicGeometry.point2LineDist(line,point)
-            if dist < disk_radius:
+            if (disk_radius - dist) > np.finfo(np.float32).eps:
                 return True
             delta_angle *= 2.0
         return False

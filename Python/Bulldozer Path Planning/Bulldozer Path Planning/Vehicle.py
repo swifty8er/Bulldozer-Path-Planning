@@ -25,7 +25,10 @@ class Vehicle:
         return self._theta
 
     def __eq__(self, other):
-        return (self.x == other.x) and (self.y == other.y) and (self.theta == other.theta)
+        if other == None:
+            return False
+        else:
+            return (self.x == other.x) and (self.y == other.y) and (self.theta == other.theta)
 
     def __hash__(self):
         t = (self._x,self._y,self._theta)
