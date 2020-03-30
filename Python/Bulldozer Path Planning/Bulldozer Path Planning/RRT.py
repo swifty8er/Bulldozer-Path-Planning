@@ -12,9 +12,11 @@ class Status(Enum):
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
     def __init__(self,map,start_position,controls_list):
+        self._map = map
+        if self.testStateCollision(start_position):
+            raise Exception("Attempted to initialise the RRT with a colliding state")
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
-        self._map = map
 
     def initaliseTree(self,start_position):
         tree = {}
