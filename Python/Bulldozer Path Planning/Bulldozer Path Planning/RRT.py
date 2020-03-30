@@ -110,14 +110,41 @@ class RRT:
         else:
             return (True,x_new,u_new) # returns a bool if successful, and the new state and control used
 
+    # Add the vertex to the tree, no return
     def addVertex(self,x_new):
-        pass # adds the vertex to the tree, no return
+        if x_new in self._tree.keys():
+            raise Exception("Adding vertex to tree that already exists")
+
+        self._tree[x_new] = {}
+        for key in self._tree.keys():
+            self._tree[x_new][key] = False
+            self._tree[key][x_new] = False
 
     def hasVertex(self,x):
         return ( x in self._tree )
 
     def addEdge(self,x_new,x_near,u_new):
-        pass # add the edge between x_near and x_new to the tree, denoted by u_new, no return
+        if x_new in self._tree.keys():
+            if x_near in self._tree[x_new].keys():
+                if (self._tree[x_new][x_near] == False):
+                    self._tree[x_new][x_near] = u_new
+                else:
+                    raise Exception("Edge already exists between x_new and x_near")
+            else:
+                raise Exception("x_near not in tree under key x_new")
+        else:
+            raise Exception("x_new not in tree")
+
+        if x_near in self._tree.keys():
+            if x_new in self._tree[x_near].keys():
+                if (self._tree[x_near][x_new] == False):
+                    self._tree[x_near][x_new] = u_new
+                else:
+                    raise Exception("Edge already exists between x_near and x_new")
+            else:
+                raise Exception("x_new not in tree under key x_near")
+        else:
+            raise Exception("x_near not in tree")
 
 
 
