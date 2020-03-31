@@ -143,13 +143,11 @@ class BasicGeometry():
                     return True
                 else:
                     return False
-            elif (disk_radius - BasicGeometry.ptDist(line[0],start_point)) > np.finfo(np.float32).eps:
+            elif BasicGeometry.circleArcIntersectsLine(circle_centre,control[0],line):
                 return True
-            elif (disk_radius - BasicGeometry.ptDist(line[1],start_point)) > np.finfo(np.float32).eps:
+            elif (disk_radius - BasicGeometry.point2LineDist(line,start_point)) > np.finfo(np.float32).eps:
                 return True
-            elif (disk_radius - BasicGeometry.ptDist(line[0],end_point)) > np.finfo(np.float32).eps:
-                return True
-            elif (disk_radius - BasicGeometry.ptDist(line[1],end_point)) > np.finfo(np.float32).eps:
+            elif (disk_radius - BasicGeometry.point2LineDist(line,end_point)) > np.finfo(np.float32).eps:
                 return True
             else:
                 vec_between_points = BasicGeometry.vec_from_points(line[0],circle_centre)
@@ -164,6 +162,44 @@ class BasicGeometry():
                     return True
               
                 return False
+
+
+    @staticmethod
+    def circleArcIntersectsLine(circle_centre,radius,line):
+        y2 = line[1][1]
+        x2 = line[1][0]
+        y1 = line[0][1]
+        x1 = line[0][0]
+        if (y2-y1 == 0):
+            y = y1
+            if (x1<x2):
+                x_range = [x1,x2]
+            else:
+                x_range = [x2,x1]
+            delta = radius**2 - (y-circle_centre[1])**2
+            if (delta<0):
+                return False
+            the_x = math.sqrt(delta) + circle_centre[0]
+            if (the_x >= x_range[0] and the_x <= x_range[1]):
+                return True
+            else:
+                return False
+        elif (x2-x1==0):
+            x = x1
+            if (y1 < y2):
+                y_range = [y1,y2]
+            else:
+                y_range = [y2,y1]
+            delta = radius**2 - (x-circle_centre[0])**2
+            if (delta<0):
+                return False
+            the_y = math.sqrt(delta) + circle_centre[1]
+            if (the_y >= y_range[0] and the_y <= y_range[1]):
+                return True
+            else:
+                return False
+        else:
+            return False #work for any line y=mx+c
 
     @staticmethod
     def vec_from_points(p1,p2):

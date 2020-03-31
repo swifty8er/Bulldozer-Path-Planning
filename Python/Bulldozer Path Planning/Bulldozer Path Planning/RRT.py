@@ -8,6 +8,7 @@ class Status(Enum):
     REACHED = 1
     ADVANCED = 2
     TRAPPED = 3
+    EXISTS = 4
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -46,8 +47,9 @@ class RRT:
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         if result:
             self.addVertex(x_new)
-            self.addEdge(x_new,nearest_neighbour,u_new)
-            if (x_new == x_rand): #overwrite the equality function for vehicles
+            if (self.addEdge(x_new,nearest_neighbour,u_new)):
+                return Status.EXISTS
+            elif (x_new == x_rand): #overwrite the equality function for vehicles
                 return Status.REACHED
             else:
                 return Status.ADVANCED
@@ -91,7 +93,7 @@ class RRT:
     def testMoveCollision(self,node,control):
         edges = self._map.getMapEdges()
         for edge in edges:
-            if BasicGeometry.arcLineCollisionIterative(node,control,edge,100,self._map.disk_radius):
+            if BasicGeometry.arcLineCollisionIterative(node,control,edge,8,self._map.disk_radius):
                 return True
         return False
 
@@ -102,6 +104,8 @@ class RRT:
         u_new = None
         for control in self._controls_list:
             if (not self.isCollision(x_near,control)):
+                #if self.testMoveCollision(x_near,control):
+                #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
                 x_test = x_near.applyControl(control[0],control[1],control[2])
                 dist = x.DistanceTo(x_test)
                 if dist < min_dist: 
@@ -132,10 +136,12 @@ class RRT:
             if x_near in self._tree[x_new].keys():
                 if (self._tree[x_new][x_near] == False):
                     self._tree[x_new][x_near] = u_new
+                    return False
                 elif (self._tree[x_new][x_near] == u_new):
-                    print("Edge already exists")
+                    return True
                 else:
                     print("New edge between states?? (should overwrite?)")
+                    return False
             else:
                 raise Exception("x_near not in tree under key x_new")
         else:
@@ -145,10 +151,12 @@ class RRT:
             if x_new in self._tree[x_near].keys():
                 if (self._tree[x_near][x_new] == False):
                     self._tree[x_near][x_new] = u_new
+                    return False
                 elif (self._tree[x_near][x_new] == u_new):
-                    print("Edge already exists")
+                    return True
                 else:
                     print("New edge between states?? (should overwrite?)")
+                    return False
             else:
                 raise Exception("x_new not in tree under key x_near")
         else:
