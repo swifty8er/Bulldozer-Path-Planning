@@ -47,7 +47,8 @@ class RRT:
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         if result:
             self.addVertex(x_new)
-            if (self.addEdge(x_new,nearest_neighbour,u_new)):
+            (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new)
+            if bool1 or bool2:
                 return Status.EXISTS
             elif (x_new == x_rand): #overwrite the equality function for vehicles
                 return Status.REACHED
@@ -132,16 +133,16 @@ class RRT:
         return ( x in self._tree )
 
     def addEdge(self,x_new,x_near,u_new):
+        bool1 = False
+        bool2 = False
         if x_new in self._tree.keys():
             if x_near in self._tree[x_new].keys():
                 if (self._tree[x_new][x_near] == False):
                     self._tree[x_new][x_near] = u_new
-                    return False
                 elif (self._tree[x_new][x_near] == u_new):
-                    return True
+                    bool1 = True
                 else:
                     print("New edge between states?? (should overwrite?)")
-                    return False
             else:
                 raise Exception("x_near not in tree under key x_new")
         else:
@@ -151,16 +152,16 @@ class RRT:
             if x_new in self._tree[x_near].keys():
                 if (self._tree[x_near][x_new] == False):
                     self._tree[x_near][x_new] = u_new
-                    return False
                 elif (self._tree[x_near][x_new] == u_new):
-                    return True
+                    bool2 = True
                 else:
                     print("New edge between states?? (should overwrite?)")
-                    return False
             else:
                 raise Exception("x_new not in tree under key x_near")
         else:
             raise Exception("x_near not in tree")
+
+        return (bool1,bool2)
 
 
 
