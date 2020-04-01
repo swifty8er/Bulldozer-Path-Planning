@@ -77,12 +77,26 @@ turtle.tracer(False,5)
 for node in MyRRT.tree.keys():
     t.up()
     t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
+    t.setheading(node.theta)
     t.down()
     for n2 in MyRRT.tree[node].keys():
         if (MyRRT.tree[node][n2] != False):
-            t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
+            (radius,dTheta,direction) = MyRRT.tree[node][n2]
+            if direction == "F" or direction == "R":
+                t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
+            elif (direction == "FL"):
+                t.circle(radius*SCALING,dTheta)
+            elif (direction == "RL"):
+                t.circle(radius*SCALING,-1*dTheta)
+            else:
+                t.left(180)
+                if (direction == "RR"):
+                    t.circle(radius*SCALING,dTheta)
+                else:
+                    t.circle(radius*SCALING,-1*dTheta)
             t.up()
             t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
+            t.setheading(node.theta)
             t.down()
 
 
