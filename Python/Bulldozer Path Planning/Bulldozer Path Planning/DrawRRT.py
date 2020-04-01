@@ -48,7 +48,7 @@ ControlsList = [
     (8.157,3.31,"RR")]
 
 
-InverseControlMappings = [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+InverseControlMappings = [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 
 
 t = turtle.Pen()
@@ -103,7 +103,7 @@ while i < NUM_NODES:
         i+=1
 
 
-#turtle.tracer(False,5)
+turtle.tracer(False,5)
 
 for node in MyRRT.tree.keys():
     t.up()
@@ -112,8 +112,6 @@ for node in MyRRT.tree.keys():
     t.down()
     for n2 in MyRRT.tree[node].keys():
         if (MyRRT.tree[node][n2] in ControlsList):
-            print(node.x,node.y,node.theta)
-            print(n2.x,n2.y,n2.theta)
             t.up()
             t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
             t.down()
