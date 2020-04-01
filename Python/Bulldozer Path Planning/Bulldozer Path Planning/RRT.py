@@ -12,12 +12,13 @@ class Status(Enum):
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
-    def __init__(self,map,start_position,controls_list):
+    def __init__(self,map,start_position,controls_list,inverse_control_mappings):
         self._map = map
         if self.testStateCollision(start_position):
             raise Exception("Attempted to initialise the RRT with a colliding state")
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
+        self._inverse_control_mappings = inverse_control_mappings
 
     @property
     def tree(self):
@@ -45,9 +46,10 @@ class RRT:
     def extend(self,x_rand):
         nearest_neighbour = self.nearestNeighbour(x_rand)
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
+        u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(u_new)]]
         if result:
             self.addVertex(x_new)
-            (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new)
+            (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
             if bool1 or bool2:
                 return Status.EXISTS
             elif (x_new == x_rand): #overwrite the equality function for vehicles
@@ -132,14 +134,19 @@ class RRT:
     def hasVertex(self,x):
         return ( x in self._tree )
 
-    def addEdge(self,x_new,x_near,u_new):
+    #u_new from x_near to x_new
+    #u_inv from x_new to x_near
+    def addEdge(self,x_new,x_near,u_new,u_inv):
         bool1 = False
         bool2 = False
+        if (x_new == x_near):
+            print("Cannot insert an edge from a node to itself")
+            return (True,True)
         if x_new in self._tree.keys():
             if x_near in self._tree[x_new].keys():
                 if (self._tree[x_new][x_near] == False):
-                    self._tree[x_new][x_near] = u_new
-                elif (self._tree[x_new][x_near] == u_new):
+                    self._tree[x_new][x_near] = u_inv
+                elif (self._tree[x_new][x_near] == u_inv):
                     bool1 = True
                 else:
                     print("New edge between states?? (should overwrite?)")
