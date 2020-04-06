@@ -7,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 500
+NUM_NODES = 1000
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1,1,90)
@@ -112,6 +112,7 @@ for node in MyRRT.tree.keys():
     t.down()
     for n2 in MyRRT.tree[node].keys():
         if (MyRRT.tree[node][n2] in ControlsList):
+            print(MyRRT.tree[node][n2])
             t.up()
             t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
             t.down()
@@ -123,9 +124,9 @@ for node in MyRRT.tree.keys():
             t.dot(4)
             (radius,dTheta,direction) = MyRRT.tree[node][n2]
             if direction == "F":
-                t.forward(radius)
+                t.forward(radius*SCALING)
             elif direction == "R":
-                t.back(radius)
+                t.back(radius*SCALING)
             elif (direction == "FL"):
                 t.circle(radius*SCALING,dTheta)
             elif (direction == "RL"):
