@@ -104,7 +104,7 @@ while i < NUM_NODES:
 
 
 turtle.tracer(False,5)
-
+#t.speed("fastest")
 for node in MyRRT.tree.keys():
     t.up()
     t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
@@ -112,16 +112,36 @@ for node in MyRRT.tree.keys():
     t.down()
     for n2 in MyRRT.tree[node].keys():
         if (MyRRT.tree[node][n2] in ControlsList):
-            print(MyRRT.tree[node][n2])
             t.up()
             t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
             t.down()
             t.dot(4)
+            t.setheading(n2.theta)
+            t.forward(SCALING/10)
+            t.left(145)
+            t.forward(SCALING/20)
+            t.back(SCALING/20)
+            t.right(145)
+            t.right(145)
+            t.forward(SCALING/20)
+            t.back(SCALING/20)
+            t.left(145)
+            t.back(SCALING/10)
             t.up()
             t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
             t.setheading(node.theta)
             t.down()
             t.dot(4)
+            t.forward(SCALING/10)
+            t.left(145)
+            t.forward(SCALING/20)
+            t.back(SCALING/20)
+            t.right(145)
+            t.right(145)
+            t.forward(SCALING/20)
+            t.back(SCALING/20)
+            t.left(145)
+            t.back(SCALING/10)
             (radius,dTheta,direction) = MyRRT.tree[node][n2]
             if direction == "F":
                 t.forward(radius*SCALING)
