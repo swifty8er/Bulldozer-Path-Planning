@@ -1,9 +1,13 @@
 import numpy as np
+import turtle
 from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
 import random
 import math
+
+SCALING = 100.0
+
 class Status(Enum):
     REACHED = 1
     ADVANCED = 2
@@ -43,13 +47,51 @@ class RRT:
         new_theta = random.uniform(0,360)
         return Vehicle(new_x,new_y,new_theta)
 
-    def extend(self,x_rand):
+    def extend(self,x_rand,pen):
+        pen.up()
+        pen.goto(x_rand.x,x_rand.y)
+        pen.setheading(x_rand.theta)
+        pen.down()
+        rand_stamp = pen.stamp()
         nearest_neighbour = self.nearestNeighbour(x_rand)
+        pen.up()
+        pen.goto(nearest_neighbour.x,nearest_neighbour.y)
+        pen.setheading(nearest_neighbour.theta)
+        pen.down()
+        pen.color("green")
+        pen.dot(4)
+        pen.forward(SCALING/10)
+        pen.left(145)
+        pen.forward(SCALING/20)
+        pen.back(SCALING/20)
+        pen.right(145)
+        pen.right(145)
+        pen.forward(SCALING/20)
+        pen.back(SCALING/20)
+        pen.left(145)
+        pen.back(SCALING/10)
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(u_new)]]
         if result:
             self.addVertex(x_new)
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
+            (radius,dTheta,direction) = u_new
+            if direction == "F":
+                pen.forward(radius*SCALING)
+            elif direction == "R":
+                pen.back(radius*SCALING)
+            elif (direction == "FL"):
+                pen.circle(radius*SCALING,dTheta)
+            elif (direction == "RL"):
+                pen.circle(radius*SCALING,-1*dTheta)
+            else:
+                pen.left(180)
+                if (direction == "RR"):
+                    pen.circle(radius*SCALING,dTheta)
+                else:
+                    pen.circle(radius*SCALING,-1*dTheta)
+            pen.up()
+            pen.clearstamp(rand_stamp)
             if bool1 or bool2:
                 return Status.EXISTS
             elif (x_new == x_rand): #overwrite the equality function for vehicles

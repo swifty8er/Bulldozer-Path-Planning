@@ -103,8 +103,8 @@ while i < NUM_NODES:
         i+=1
 
 
-turtle.tracer(False,5)
-#t.speed("fastest")
+#turtle.tracer(False,5)
+t.speed("fastest")
 for node in MyRRT.tree.keys():
     t.up()
     t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
