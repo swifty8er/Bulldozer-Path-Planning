@@ -1,4 +1,3 @@
-
 import turtle
 import math
 from RRT import RRT
@@ -8,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 1000
+NUM_NODES = 100
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1,1,90)
@@ -68,7 +67,7 @@ for edge in edges:
 #t.speed("slowest")
 
 
-t.speed("fast")
+t.speed(3)
 
 MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
 i = 0
@@ -78,68 +77,6 @@ while i < NUM_NODES:
     status = MyRRT.extend(x_rand,t)
     if (status == Status.ADVANCED or status == Status.REACHED):
         i+=1
-
-
-#turtle.tracer(False,5)
-#t.speed("fastest")
-#for node in MyRRT.tree.keys():
-#    t.up()
-#    t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
-#    t.setheading(node.theta)
-#    t.down()
-#    for n2 in MyRRT.tree[node].keys():
-#        if (MyRRT.tree[node][n2] in ControlsList):
-#            t.up()
-#            t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
-#            t.down()
-#            t.dot(4)
-#            t.setheading(n2.theta)
-#            t.forward(SCALING/10)
-#            t.left(145)
-#            t.forward(SCALING/20)
-#            t.back(SCALING/20)
-#            t.right(145)
-#            t.right(145)
-#            t.forward(SCALING/20)
-#            t.back(SCALING/20)
-#            t.left(145)
-#            t.back(SCALING/10)
-#            t.up()
-#            t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
-#            t.setheading(node.theta)
-#            t.down()
-#            t.dot(4)
-#            t.forward(SCALING/10)
-#            t.left(145)
-#            t.forward(SCALING/20)
-#            t.back(SCALING/20)
-#            t.right(145)
-#            t.right(145)
-#            t.forward(SCALING/20)
-#            t.back(SCALING/20)
-#            t.left(145)
-#            t.back(SCALING/10)
-#            (radius,dTheta,direction) = MyRRT.tree[node][n2]
-#            if direction == "F":
-#                t.forward(radius*SCALING)
-#            elif direction == "R":
-#                t.back(radius*SCALING)
-#            elif (direction == "FL"):
-#                t.circle(radius*SCALING,dTheta)
-#            elif (direction == "RL"):
-#                t.circle(radius*SCALING,-1*dTheta)
-#            else:
-#                t.left(180)
-#                if (direction == "RR"):
-#                    t.circle(radius*SCALING,dTheta)
-#                else:
-#                    t.circle(radius*SCALING,-1*dTheta)
-#            t.up()
-#            t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
-#            t.setheading(node.theta)
-#            t.down()
-#        elif (MyRRT.tree[node][n2] != False):
-#            print(MyRRT.tree[node][n2])
 
 
 

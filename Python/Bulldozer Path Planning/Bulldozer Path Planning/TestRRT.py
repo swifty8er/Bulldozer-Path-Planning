@@ -78,7 +78,7 @@ class Test_TestRRT(unittest.TestCase):
     def test_extend(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         # this function mostly just uses the other ones, so just check return type
-        self.assertIsInstance(MyRRT.extend(MyRRT.generateRandomState()),Status)
+        self.assertIsInstance(MyRRT.extend(MyRRT.generateRandomState(),None),Status)
 
     def test_nearest_neighbour(self):
         MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
@@ -156,7 +156,7 @@ class Test_TestRRT(unittest.TestCase):
             x_rand = MyRRT.generateRandomState()
             self.assertNotEqual(x_rand,None)
             self.assertFalse(MyRRT.testStateCollision(x_rand))
-            status = MyRRT.extend(x_rand)
+            status = MyRRT.extend(x_rand,None)
             self.assertIsInstance(status,Status)
             if (status == Status.ADVANCED or status == Status.REACHED):
                 for n1 in MyRRT.tree.keys():
