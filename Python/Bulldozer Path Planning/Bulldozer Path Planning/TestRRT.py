@@ -5,10 +5,11 @@ from RRT import Status
 from Vehicle import Vehicle
 from Maps import Maps
 from BasicGeometry import BasicGeometry
-
+NUM_NODES = 500
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1,1,90)
+InverseControlMappings = [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 ControlsList = [
     (0.6,45,"FL"),
     (0.739,36.5,"FL"),
@@ -48,7 +49,7 @@ ControlsList = [
 class Test_TestRRT(unittest.TestCase):
     def test_init(self):
         #test initalising the RRT class
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         #expect the result to have the starting state inserted as a vertex
         self.assertTrue(MyRRT.hasVertex(StartVehiclePos))
         # the structure is a symmetric matrix
@@ -59,7 +60,7 @@ class Test_TestRRT(unittest.TestCase):
 
 
     def test_generate_random_state(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         # Test the return value
         self.assertNotEqual(MyRRT.generateRandomState(),None)
         randomState = MyRRT.generateRandomState()
@@ -73,15 +74,14 @@ class Test_TestRRT(unittest.TestCase):
         self.assertTrue(randomState.theta>=0)
         self.assertTrue(randomState.theta<=360)
         self.assertFalse(MyRRT.testStateCollision(randomState))
-        # also test that no collision with obstacle
 
     def test_extend(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         # this function mostly just uses the other ones, so just check return type
         self.assertIsInstance(MyRRT.extend(MyRRT.generateRandomState()),Status)
 
     def test_nearest_neighbour(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         randomState = MyRRT.generateRandomState()
         # test random state
         self.assertIsInstance(randomState,Vehicle)
@@ -95,7 +95,7 @@ class Test_TestRRT(unittest.TestCase):
             self.assertTrue(randomState.DistanceTo(node) > randomState.DistanceTo(nn))
 
     def test_generate_new_state(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         randomState = MyRRT.generateRandomState()
         nn = MyRRT.nearestNeighbour(randomState)
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
@@ -115,7 +115,7 @@ class Test_TestRRT(unittest.TestCase):
             self.assertFalse(MyRRT.testMoveCollision(nn,u_new))
 
     def test_add_vertex(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         randomState = MyRRT.generateRandomState()
         nn = MyRRT.nearestNeighbour(randomState)
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
@@ -133,20 +133,43 @@ class Test_TestRRT(unittest.TestCase):
 
 
     def test_add_edge(self):
-        MyRRT = RRT(map,StartVehiclePos,ControlsList)
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
         randomState = MyRRT.generateRandomState()
         nn = MyRRT.nearestNeighbour(randomState)
         (result,x_new,u_new) = MyRRT.generateNewState(randomState,nn)
+        u_inv = ControlsList[InverseControlMappings[ControlsList.index(u_new)]]
         MyRRT.addVertex(x_new)
-        MyRRT.addEdge(x_new,nn,u_new)
+        MyRRT.addEdge(x_new,nn,u_new,u_inv)
         # test vertex insertion
         self.assertTrue(x_new in MyRRT._tree.keys())
         self.assertTrue(nn in MyRRT._tree.keys())
         self.assertTrue(nn in MyRRT._tree[x_new].keys())
         self.assertTrue(x_new in MyRRT._tree[nn].keys())
         # test edges set correctly
-        self.assertEqual(MyRRT._tree[x_new][nn],u_new)
+        self.assertEqual(MyRRT._tree[x_new][nn],u_inv)
         self.assertEqual(MyRRT._tree[nn][x_new],u_new)
+
+    def test_grow_tree(self):
+        MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
+        i = 0
+        while i < NUM_NODES:
+            x_rand = MyRRT.generateRandomState()
+            self.assertNotEqual(x_rand,None)
+            self.assertFalse(MyRRT.testStateCollision(x_rand))
+            status = MyRRT.extend(x_rand)
+            self.assertIsInstance(status,Status)
+            if (status == Status.ADVANCED or status == Status.REACHED):
+                for n1 in MyRRT.tree.keys():
+                    for n2 in MyRRT.tree[n1].keys():
+                        u1 = MyRRT.tree[n1][n2]
+                        u2 = MyRRT.tree[n2][n1]
+                        if (u1 != False and u2 != False):
+                            test_n2 = n1.applyControl(u1[0],u1[1],u1[2])
+                            test_n1 = n2.applyControl(u2[0],u2[1],u2[2])
+                            self.assertEqual(test_n2,n2)
+                            self.assertEqual(test_n1,n1)
+                i+=1
+
 
 
 if __name__ == '__main__':

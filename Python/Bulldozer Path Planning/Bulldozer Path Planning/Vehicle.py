@@ -28,7 +28,10 @@ class Vehicle:
         if other == None:
             return False
         else:
-            return (self.x == other.x) and (self.y == other.y) and (self.theta == other.theta)
+            return (round(self.x,4) == round(other.x,4)) and (round(self.y,4) == round(other.y,4)) and (round(self.theta,2) == round(other.theta,2))
+
+    def __str__(self):
+        return "Vehicle at (%.5f,%.5f) heading [%.5f]" % (self.x,self.y,self.theta)
 
     def __hash__(self):
         t = (self._x,self._y,self._theta)
