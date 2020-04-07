@@ -19,7 +19,8 @@ class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
     def __init__(self,map,start_position,controls_list,inverse_control_mappings):
         self._map = map
-        if self.testStateCollision(start_position):
+        self._start_position = start_position
+        if self.testStateCollision(start_position): #this test is flawed
             raise Exception("Attempted to initialise the RRT with a colliding state")
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
@@ -97,6 +98,7 @@ class RRT:
                         pen.circle(radius*SCALING,dTheta)
                     else:
                         pen.circle(radius*SCALING,-1*dTheta)
+                    pen.left(180)
                 pen.dot(4)
                 pen.forward(SCALING/10)
                 pen.left(145)
@@ -148,8 +150,11 @@ class RRT:
     def testStateCollision(self,node):
         edges = self._map.getMapEdges()
         point = (node.x,node.y)
+        line = [(self._start_position.x,self._start_position.y),point]
         for edge in edges:
             if (self._map.disk_radius - BasicGeometry.point2LineDist(edge,point)) > np.finfo(np.float32).eps:
+                return True
+            elif (BasicGeometry.doLinesIntersect(edge,line)):
                 return True
         return False
 

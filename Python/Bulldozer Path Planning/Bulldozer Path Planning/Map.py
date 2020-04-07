@@ -79,11 +79,15 @@ class Map:
 
     def getMapEdges(self):
         edges = []
+        for bd_index in range(len(self._boundary)-1):
+            edges.append([self._boundary[bd_index], self._boundary[bd_index+1]])
+        return edges
+
+    def getMapObstacles(self):
+        edges = []
         for obs in self._obstacles:
             for pt_index in range(len(obs)-1):
                 edges.append([obs[pt_index], obs[pt_index+1]])
-        for bd_index in range(len(self._boundary)-1):
-            edges.append([self._boundary[bd_index], self._boundary[bd_index+1]])
         return edges
 
     def plotMap(self, ax, show_plot, vehicle_pos = [], disk_poses = [], line_width = 2):

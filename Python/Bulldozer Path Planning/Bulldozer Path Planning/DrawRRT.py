@@ -98,13 +98,13 @@ i = 0
 while i < NUM_NODES:
     print("i = ",i)
     x_rand = MyRRT.generateRandomState()
-    status = MyRRT.extend(x_rand)
+    status = MyRRT.extend(x_rand,None)
     if (status == Status.ADVANCED or status == Status.REACHED):
         i+=1
 
 
-#turtle.tracer(False,5)
-t.speed("fastest")
+turtle.tracer(False,5)
+#t.speed("fastest")
 for node in MyRRT.tree.keys():
     t.up()
     t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)

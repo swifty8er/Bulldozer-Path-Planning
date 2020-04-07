@@ -7,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 100
+NUM_NODES = 1000
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1,1,90)
@@ -67,8 +67,8 @@ for edge in edges:
 #t.speed("slowest")
 
 
-t.speed(3)
-
+#t.speed(3)
+turtle.tracer(False,5)
 MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
 i = 0
 while i < NUM_NODES:

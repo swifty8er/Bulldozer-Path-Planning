@@ -47,6 +47,9 @@
     <Compile Include="sendMovementSequence-mov.py" />
     <Compile Include="sendMovementSequence-pts.py" />
     <Compile Include="sendSimultan2MovementSequences-mov.py" />
+    <Compile Include="ShowRRTExpansion.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="sim.py" />
     <Compile Include="simConst.py" />
     <Compile Include="simpleSynchronousTest.py" />
