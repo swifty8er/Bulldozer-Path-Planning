@@ -13,7 +13,8 @@ class Status(Enum):
     REACHED = 1
     ADVANCED = 2
     TRAPPED = 3
-    EXISTS = 4
+    NODE_EXISTS = 4
+    EDGE_EXISTS = 5
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -80,7 +81,7 @@ class RRT:
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(u_new)]]
         if result:
-            self.addVertex(x_new)
+            nodeExists = self.addVertex(x_new)
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
             if pen != None:
                 (radius,dTheta,direction) = u_new
@@ -113,8 +114,10 @@ class RRT:
                 pen.up()
                 pen.clearstamp(rand_stamp)
                 pen.clearstamp(nn_stamp)
-            if bool1 or bool2:
-                return Status.EXISTS
+            if nodeExists:
+                return Status.NODE_EXISTS
+            elif bool1 or bool2:
+                return Status.EDGE_EXISTS
             elif (x_new == x_rand): #overwrite the equality function for vehicles
                 return Status.REACHED
             else:
@@ -127,7 +130,7 @@ class RRT:
         min_dist = math.inf
         min_node = None
         for node in self._tree.keys():
-            dist = node.DistanceTo(x) #distance metric defined in this function
+            dist = node.EuclideanDistance(x)
             if dist < min_dist:
                 min_dist = dist
                 min_node = node
@@ -176,7 +179,7 @@ class RRT:
                 #if self.testMoveCollision(x_near,control):
                 #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
                 x_test = x_near.applyControl(control[0],control[1],control[2])
-                dist = x.DistanceTo(x_test)
+                dist = x.DistanceMetric(x_test)
                 if dist < min_dist: 
                     min_dist = dist
                     x_new = x_test
@@ -191,11 +194,13 @@ class RRT:
     def addVertex(self,x_new):
         if x_new in self._tree.keys():
             print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
+            return True
         else:
             self._tree[x_new] = {}
             for key in self._tree.keys():
                 self._tree[x_new][key] = False
                 self._tree[key][x_new] = False
+            return False
 
     def hasVertex(self,x):
         return ( x in self._tree )

@@ -44,7 +44,7 @@ t.down()
 t.dot(2)
 turtle.tracer(True)
 
-radius = 60
+radius = 40
 inc = 1.025
 add = 1.01
 theta = math.pi/4.0
@@ -65,57 +65,57 @@ while i<15:
 	i+=1
 	
 
-t.forward(length)
-t.back(length)
-t.up()
-t.forward(100)
-t.down()
-print("Hello")
+# t.forward(length)
+# t.back(length)
+# t.up()
+# t.forward(100)
+# t.down()
+# print("Hello")
 
-for x in range(len(Curves)):
+# for x in range(len(Curves)):
 
-	car = (150,150,90)
-	t.up()
-	t.goto(car[0],car[1])
-	t.setheading(car[2])
-	t.down()
+# 	car = (150,150,90)
+# 	t.up()
+# 	t.goto(car[0],car[1])
+# 	t.setheading(car[2])
+# 	t.down()
 
-	radius = Curves[x][0]
-	dtheta = Curves[x][1]
-	radTheta = math.radians(car[2])
-	deltaTheta = math.radians(dtheta)
-	length = radius*deltaTheta
-	t.forward(25)
-	t.back(25)
-	# if (x==1 or x == 2):
-	# 	deltaTheta = -1*deltaTheta
-	for i in range(2):
-		a = radius*(1-math.cos(deltaTheta))
-		b = radius*math.sin(deltaTheta)
-		# if (x==0):
-		# 	a *= -1
-		# if (x==3):
-		# 	b *= -1
-		newX = car[0] + math.cos(radTheta - math.pi/2) * (-1*a) - math.sin(radTheta - math.pi/2) *b
-		newY = car[1] + math.sin(radTheta - math.pi/2) * (-1*a) + math.cos(radTheta - math.pi/2) *b
-		car = (newX,newY,car[2]+math.degrees(deltaTheta))
-		radTheta = math.radians(car[2])
-		print("New car is:")
-		print(car[0],car[1],car[2])
-		t.up()
-		t.goto(car[0],car[1])
-		t.setheading(car[2])
-		t.down()
-		t.forward(25)
-		t.back(25)
+# 	radius = Curves[x][0]
+# 	dtheta = Curves[x][1]
+# 	radTheta = math.radians(car[2])
+# 	deltaTheta = math.radians(dtheta)
+# 	length = radius*deltaTheta
+# 	t.forward(25)
+# 	t.back(25)
+# 	# if (x==1 or x == 2):
+# 	# 	deltaTheta = -1*deltaTheta
+# 	for i in range(2):
+# 		a = radius*(1-math.cos(deltaTheta))
+# 		b = radius*math.sin(deltaTheta)
+# 		# if (x==0):
+# 		# 	a *= -1
+# 		# if (x==3):
+# 		# 	b *= -1
+# 		newX = car[0] + math.cos(radTheta - math.pi/2) * (-1*a) - math.sin(radTheta - math.pi/2) *b
+# 		newY = car[1] + math.sin(radTheta - math.pi/2) * (-1*a) + math.cos(radTheta - math.pi/2) *b
+# 		car = (newX,newY,car[2]+math.degrees(deltaTheta))
+# 		radTheta = math.radians(car[2])
+# 		print("New car is:")
+# 		print(car[0],car[1],car[2])
+# 		t.up()
+# 		t.goto(car[0],car[1])
+# 		t.setheading(car[2])
+# 		t.down()
+# 		t.forward(25)
+# 		t.back(25)
 
-t.up()
-t.goto(150,150)
-t.setheading(90)
-t.down()
-for x in range(len(Curves)):
-	t.circle(Curves[x][0],Curves[x][1]*2)
-	t.circle(Curves[x][0],-Curves[x][1]*2)
+# t.up()
+# t.goto(150,150)
+# t.setheading(90)
+# t.down()
+# for x in range(len(Curves)):
+# 	t.circle(Curves[x][0],Curves[x][1]*2)
+# 	t.circle(Curves[x][0],-Curves[x][1]*2)
 
 # radius = 60
 # theta = math.pi/4.0
