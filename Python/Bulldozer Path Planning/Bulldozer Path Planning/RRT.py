@@ -177,24 +177,26 @@ class RRT:
             if direction == "F" or direction == "R":
                 line = [[n1.x,n1.y],[n2.x,n2.y]]
                 for pos in self._map.initial_disk_pos_xy:
-                    if BasicGeometry.doesCircleIntersectLine(pos,disk_radius,line):
+                    if BasicGeometry.doesCircleIntersectLine(pos,self._map.disk_radius,line):
                         return True
             else:
                 if direction == "FL" or direction == "RL":
-                    a = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
-                    b = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
+                    p = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
+                    q = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
                 else:
-                    a = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
-                    b = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
-                circle_2_centre = (a,b)
+                    p = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
+                    q = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
+                circle_2_centre = (p,q)
                 for pos in self._map.initial_disk_pos_xy:
                     (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
-                    if (p1 != None and p2 != None):
-                        theta_1 = math.acos((p1[0]-p)/radius)
+                    (x1,y1) = p1
+                    (x2,y2) = p2
+                    if (x1 != None and x2 != None and y1 != None and y2 !=None):
+                        theta_1 = math.acos((x1-p)/radius)
                         if theta_1<0:
                             theta_1 = 2*math.pi - theta_1
 
-                        theta_2 = math.acos((p2[0]-p)/radius)
+                        theta_2 = math.acos((x2-p)/radius)
                         if theta_2 < 0:
                             theta_2 = 2*math.pi - theta_2
 

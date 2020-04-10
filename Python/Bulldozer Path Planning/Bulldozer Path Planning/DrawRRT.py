@@ -8,6 +8,9 @@ from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
 NUM_NODES = 100
+
+#(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.5,(0.5,2.5),0.6,(0.9,2.5))
+#exit(1)
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1.5,2.5,270)
@@ -84,6 +87,7 @@ for pos in goal_pos:
     t.color("green")
     t.circle(map.disk_radius*SCALING*1.05)
 
+t.color("black")
 #t.speed("slowest")
 
 #t.up()
