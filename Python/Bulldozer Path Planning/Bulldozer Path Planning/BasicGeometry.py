@@ -358,13 +358,9 @@ class BasicGeometry():
         (p,q) = circle_2_centre
         r1 = circle_1_radius
         r2 = circle_2_radius
-        print("Testing two circles intersection")
-        print("First circle",r1,a,b)
-        print("Second circle",r2,p,q)
         D_1 = (r2**2 - r1**2) - (p**2 - a**2) - (q**2 - b**2)
         D_2 = 2*(b-q)
         D_3 = 2*(a-p)
-        print(D_1,D_2,D_3)
         if D_2 == 0:
             x1 = D_1/D_3
             desc = r1**2 - (x1-a)**2
@@ -377,44 +373,22 @@ class BasicGeometry():
         A = D_2**2 + D_3**2
         B = 2*D_2*D_3*a - 2*D_1*D_2 - 2*D_3**2*b
         C = D_1**2 - 2*D_1*D_3*a + D_3**2*(a**2 + b**2 - r1**2)
-        print(A,B,C)
         desc = B**2 - 4*A*C
-        print("desc = ",desc)
         if desc >= 0:
             y1 = (-B+math.sqrt(desc))/(2*A)
             y2 = (-B-math.sqrt(desc))/(2*A)
             print(y1,y2)
-            dee_1 = r1**2 - (y1-b)**2
-            if dee_1>=0:
-                x1 = a + math.sqrt(dee_1)
-                if x1<0:
-                    x1 = a - math.sqrt(dee_1)
-            else:
-                x1 = None
-            dee_2 = r1**2 - (y2-b)**2
-            if dee_2>=0:
-                x2 = a + math.sqrt(dee_2) 
-                if x2<0:
-                    x2 = a - math.sqrt(dee_2)
-            else:
-                x2 = None
-            if x1 != None:
-                #x1_test = math.sqrt(r2**2 - (y1-q)**2) + p
-                #if abs(x1 - x1_test) > np.finfo(np.float32).eps:
-                #    print(x1,x1_test,y1)
-                #    raise Exception("Error finding two circles intersection points")
-                p1 = (x1,y1)
-            else:
+            x1 = (D_1-D_2*y1)/(D_3)
+            x2 = (D_1-D_2*y2)/(D_3)
+
+            if (x1<0 or y1<0):
                 p1 = (None,None)
-            if x2 != None:
-                #x2_test = math.sqrt(r2**2 - (y2-q)**2) + p
-                #if abs(x2 - x2_test) > np.finfo(np.float32).eps:
-                #    print(x1,y1,x2,x2_test,y2)
-                #    raise Exception("Error finding two circles intersection points")
-            
-                p2 = (x2,y2)
             else:
+                p1 = (x1,y1)
+            if (x2<0 or y2<0):
                 p2 = (None,None)
+            else:
+                p2 = (x2,y2)
 
             return (p1,p2)
         else:

@@ -202,10 +202,12 @@ class RRT:
                         if theta_2 < 0:
                             theta_2 = 2*math.pi - theta_2
 
-                        theta_3_deg = n1.theta + 90
-                        theta_4_deg = n2.theta + 90
+                        theta_3_deg = (n1.theta + 90)%360
+                        theta_4_deg = (n2.theta + 90)%360
                         theta_3 = math.radians(theta_3_deg)
                         theta_4 = math.radians(theta_4_deg)
+
+                        print(math.degrees(theta_1),math.degrees(theta_2),theta_3_deg,theta_4_deg)
                         if (theta_1 < theta_2):
                             if (theta_1 <= theta_3 and theta_3 <= theta_2):
                                 return True

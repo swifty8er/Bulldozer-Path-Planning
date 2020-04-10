@@ -9,7 +9,7 @@ SCALING = 100.0
 OFFSET = 300.0
 NUM_NODES = 200
 
-#(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.5,(0.5,2.5),0.6,(0.9,2.5))
+#(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.45,(2.5,1.5),0.4826,(1.79,1.915))
 #print(p1,p2)
 #exit(1)
 MyMaps = Maps()
