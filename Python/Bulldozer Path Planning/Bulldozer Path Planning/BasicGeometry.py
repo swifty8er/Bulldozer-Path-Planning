@@ -207,6 +207,15 @@ class BasicGeometry():
 
 
     @staticmethod
+    #return the angle of a vector from the x-axis in radians
+    def vector_angle(vector):
+        alpha = math.atan2(vector[1],vector[0])
+        if alpha < 0:
+            return 2*math.pi + alpha
+        else:
+            return alpha
+
+    @staticmethod
     def vec_mag(vector):
         return math.sqrt(vector[0]**2+vector[1]**2)
 
@@ -377,7 +386,6 @@ class BasicGeometry():
         if desc >= 0:
             y1 = (-B+math.sqrt(desc))/(2*A)
             y2 = (-B-math.sqrt(desc))/(2*A)
-            print(y1,y2)
             x1 = (D_1-D_2*y1)/(D_3)
             x2 = (D_1-D_2*y2)/(D_3)
 

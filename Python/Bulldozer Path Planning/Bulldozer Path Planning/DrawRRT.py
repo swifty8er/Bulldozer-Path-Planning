@@ -7,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 200
+NUM_NODES = 500
 
 #(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.45,(2.5,1.5),0.4826,(1.79,1.915))
 #print(p1,p2)
@@ -129,15 +129,16 @@ while i < NUM_NODES:
 
 
 
-turtle.tracer(False,5)
-#t.speed("fastest")
+#turtle.tracer(False,5)
+t.speed(4)
+flag = False
 for node in MyRRT.tree.keys():
     t.up()
     t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
     t.setheading(node.theta)
     t.down()
     for n2 in MyRRT.tree[node].keys():
-        if (MyRRT.tree[node][n2] in ControlsList and not MyRRT.edgeCollidesWithDirtPile(node,n2)):
+        if (MyRRT.tree[node][n2] in ControlsList):
             t.up()
             t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
             t.down()
@@ -178,6 +179,7 @@ for node in MyRRT.tree.keys():
             elif (direction == "RL"):
                 t.circle(radius*SCALING,-1*dTheta)
             else:
+                flag = True
                 t.left(180)
                 if (direction == "RR"):
                     t.circle(radius*SCALING,dTheta)
@@ -189,6 +191,14 @@ for node in MyRRT.tree.keys():
             t.down()
         elif (MyRRT.tree[node][n2] != False):
             print(MyRRT.tree[node][n2])
+
+        if (MyRRT.edgeCollidesWithDirtPile(node,n2)):
+            for x in range(35):
+                t.undo()
+            if flag:
+                t.undo()
+
+        flag = False
 
 
 

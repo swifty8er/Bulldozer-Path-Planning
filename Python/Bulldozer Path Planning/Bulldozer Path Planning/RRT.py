@@ -189,35 +189,57 @@ class RRT:
                 circle_2_centre = (p,q)
                 for pos in self._map.initial_disk_pos_xy:
                     (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
-                    print("Intersection points of",pos,self._map.disk_radius,"and ",circle_2_centre,radius)
-                    print("Are:",p1,p2)
                     (x1,y1) = p1
                     (x2,y2) = p2
-                    if (x1 != None and x2 != None and y1 != None and y2 !=None):
-                        theta_1 = math.acos((x1-p)/radius)
-                        if theta_1<0:
-                            theta_1 = 2*math.pi - theta_1
+                    if (x1 != None and y1 != None):
+                        v1 = BasicGeometry.vec_from_points(circle_2_centre,p1)
+                        theta_1 = BasicGeometry.vector_angle(v1)
+                    else:
+                        theta_1 = None
+                    if (x2 != None and y2 != None):
+                        v2 = BasicGeometry.vec_from_points(circle_2_centre,p2)
+                        theta_2 = BasicGeometry.vector_angle(v2)
+                    else:
+                        theta_2 = None
 
-                        theta_2 = math.acos((x2-p)/radius)
-                        if theta_2 < 0:
-                            theta_2 = 2*math.pi - theta_2
 
-                        theta_3_deg = (n1.theta + 90)%360
-                        theta_4_deg = (n2.theta + 90)%360
-                        theta_3 = math.radians(theta_3_deg)
-                        theta_4 = math.radians(theta_4_deg)
 
-                        print(math.degrees(theta_1),math.degrees(theta_2),theta_3_deg,theta_4_deg)
-                        if (theta_1 < theta_2):
-                            if (theta_1 <= theta_3 and theta_3 <= theta_2):
-                                return True
-                            elif (theta_1 <= theta_4 and theta_4 <= theta_2):
-                                return True
-                        else:
-                            if (theta_2 <= theta_3 and theta_3 <= theta_1):
-                                return True
-                            elif (theta_2 <= theta_4 and theta_3 <= theta_1):
-                                return True
+                    v3 = BasicGeometry.vec_from_points(circle_2_centre,(n1.x,n1.y))
+                    v4 = BasicGeometry.vec_from_points(circle_2_centre,(n2.x,n2.y))
+
+                    theta_3 = BasicGeometry.vector_angle(v3)
+                    theta_4 = BasicGeometry.vector_angle(v4)
+
+                    if (theta_4 < theta_3):
+                        if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
+                            print("COLLISION")
+                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                            print("Intersection points are",x1,y1,x2,y2)
+                            print(math.degrees(theta_4),math.degrees(theta_1),math.degrees(theta_3))
+                            return True
+                        elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
+                            print("COLLISION")
+                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                            print("Intersection points are",x1,y1,x2,y2)
+                            print(math.degrees(theta_4),math.degrees(theta_2),math.degrees(theta_3))
+                            return True
+                    else:
+                        if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
+                            print("COLLISION")
+                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                            print("Intersection points are",x1,y1,x2,y2)
+                            print(math.degrees(theta_3),math.degrees(theta_1),math.degrees(theta_4))
+                            return True
+                        elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
+                            print("COLLISION")
+                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                            print("Intersection points are",x1,y1,x2,y2)
+                            print(math.degrees(theta_3),math.degrees(theta_2),math.degrees(theta_4))
+                            return True
 
         return False
 
