@@ -189,6 +189,8 @@ class RRT:
                 circle_2_centre = (p,q)
                 for pos in self._map.initial_disk_pos_xy:
                     (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
+                    print("Intersection points of",pos,self._map.disk_radius,"and ",circle_2_centre,radius)
+                    print("Are:",p1,p2)
                     (x1,y1) = p1
                     (x2,y2) = p2
                     if (x1 != None and x2 != None and y1 != None and y2 !=None):
@@ -204,7 +206,6 @@ class RRT:
                         theta_4_deg = n2.theta + 90
                         theta_3 = math.radians(theta_3_deg)
                         theta_4 = math.radians(theta_4_deg)
-
                         if (theta_1 < theta_2):
                             if (theta_1 <= theta_3 and theta_3 <= theta_2):
                                 return True

@@ -365,9 +365,18 @@ class BasicGeometry():
         D_2 = 2*(b-q)
         D_3 = 2*(a-p)
         print(D_1,D_2,D_3)
-        A = D_2**2 + D_3
-        B = 2*D_2*a - 2*D_1*D_2 - 2*D_3*b
-        C = D_1**2 - 2*a*D_1 + D_3*a**2 + D_3*b**2 - D_3*r1**2
+        if D_2 == 0:
+            x1 = D_1/D_3
+            desc = r1**2 - (x1-a)**2
+            if desc>=0:
+                y1 = b + math.sqrt(desc)
+                y2 = b - math.sqrt(desc)
+                return ((x1,y1),(x1,y2))
+            else:
+                return ((None,None),(None,None))
+        A = D_2**2 + D_3**2
+        B = 2*D_2*D_3*a - 2*D_1*D_2 - 2*D_3**2*b
+        C = D_1**2 - 2*D_1*D_3*a + D_3**2*(a**2 + b**2 - r1**2)
         print(A,B,C)
         desc = B**2 - 4*A*C
         print("desc = ",desc)
@@ -377,12 +386,16 @@ class BasicGeometry():
             print(y1,y2)
             dee_1 = r1**2 - (y1-b)**2
             if dee_1>=0:
-                x1 = math.sqrt(dee_1) + a
+                x1 = a + math.sqrt(dee_1)
+                if x1<0:
+                    x1 = a - math.sqrt(dee_1)
             else:
                 x1 = None
             dee_2 = r1**2 - (y2-b)**2
             if dee_2>=0:
-                x2 = math.sqrt(dee_2) + a
+                x2 = a + math.sqrt(dee_2) 
+                if x2<0:
+                    x2 = a - math.sqrt(dee_2)
             else:
                 x2 = None
             if x1 != None:

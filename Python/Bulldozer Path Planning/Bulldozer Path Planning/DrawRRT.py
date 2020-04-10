@@ -7,9 +7,10 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 100
+NUM_NODES = 200
 
 #(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.5,(0.5,2.5),0.6,(0.9,2.5))
+#print(p1,p2)
 #exit(1)
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
