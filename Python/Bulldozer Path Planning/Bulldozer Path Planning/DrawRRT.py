@@ -122,6 +122,8 @@ while i < NUM_NODES:
     if (status == Status.ADVANCED or status == Status.REACHED):
         i+=1
 
+MyRRT.removeCollidingEdgesWithDirtPiles()
+
 
 turtle.tracer(False,5)
 #t.speed("fastest")
