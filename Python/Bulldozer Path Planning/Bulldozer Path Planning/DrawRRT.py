@@ -7,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 500
+NUM_NODES = 1000
 
 #(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.45,(2.5,1.5),0.4826,(1.79,1.915))
 #print(p1,p2)
@@ -189,8 +189,6 @@ for node in MyRRT.tree.keys():
             t.goto(node.x*SCALING-OFFSET,node.y*SCALING-OFFSET)
             t.setheading(node.theta)
             t.down()
-        elif (MyRRT.tree[node][n2] != False):
-            print(MyRRT.tree[node][n2])
 
         #if (MyRRT.edgeCollidesWithDirtPile(node,n2)):
         #    for x in range(35):
