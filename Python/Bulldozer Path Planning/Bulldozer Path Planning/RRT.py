@@ -169,9 +169,18 @@ class RRT:
                 return True
         return False
 
+    def nodeWithinRadiusOfDirtPile(self,node):
+        for pos in self._map.initial_disk_pos_xy:
+            if self._map.disk_radius - BasicGeometry.ptDist(pos,(node.x,node.y)) > np.finfo(np.float32).eps:
+                return True
+        return False
 
     def edgeCollidesWithDirtPile(self,n1,n2):
         edge_arc = self.tree[n1][n2]
+        if self.nodeWithinRadiusOfDirtPile(n1):
+            return True
+        if self.nodeWithinRadiusOfDirtPile(n2):
+            return True
         if (edge_arc != False):
             (radius,deltaTheta,direction) = edge_arc
             if direction == "F" or direction == "R":
@@ -211,35 +220,66 @@ class RRT:
                     theta_4 = BasicGeometry.vector_angle(v4)
 
                     if (theta_4 < theta_3):
-                        if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
-                            print("COLLISION")
-                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                            print("Intersection points are",x1,y1,x2,y2)
-                            print(math.degrees(theta_4),math.degrees(theta_1),math.degrees(theta_3))
-                            return True
-                        elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
-                            print("COLLISION")
-                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                            print("Intersection points are",x1,y1,x2,y2)
-                            print(math.degrees(theta_4),math.degrees(theta_2),math.degrees(theta_3))
-                            return True
+                        if (abs(math.degrees(theta_3-theta_4)-deltaTheta)<1):
+
+                            if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
+                                print("COLLISION")
+                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                                #print("Intersection points are",x1,y1,x2,y2)
+                                #print(math.degrees(theta_4),math.degrees(theta_1),math.degrees(theta_3))
+                                return True
+                            elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
+                                print("COLLISION")
+                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                                #print("Intersection points are",x1,y1,x2,y2)
+                                #print(math.degrees(theta_4),math.degrees(theta_2),math.degrees(theta_3))
+                                return True
+                        elif (abs(math.degrees(2*math.pi - (theta_3-theta_4))-deltaTheta)<1):
+                            if (theta_1 != None and 0<=theta_1 and theta_1<=theta_4):
+                                print("COLLISION")
+                                return True
+                            elif (theta_2 != None and 0<=theta_2 and theta_2<=theta_4):
+                                print("COLLISION")
+                                return True
+                            elif (theta_1 != None and 2*math.pi >= theta_1 and theta_1 >= theta_3):
+                                print("COLLISION")
+                                return True
+                            elif (theta_2 != None and 2*math.pi >= theta_2 and theta_2 >= theta_3):
+                                print("COLLISION")
+                                return True
+                                  
                     else:
-                        if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
-                            print("COLLISION")
-                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                            print("Intersection points are",x1,y1,x2,y2)
-                            print(math.degrees(theta_3),math.degrees(theta_1),math.degrees(theta_4))
-                            return True
-                        elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
-                            print("COLLISION")
-                            print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                            print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                            print("Intersection points are",x1,y1,x2,y2)
-                            print(math.degrees(theta_3),math.degrees(theta_2),math.degrees(theta_4))
-                            return True
+                        if (abs(math.degrees(theta_4-theta_3)-deltaTheta)<1):
+                            if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
+                                print("COLLISION")
+                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                                #print("Intersection points are",x1,y1,x2,y2)
+                                #print(math.degrees(theta_3),math.degrees(theta_1),math.degrees(theta_4))
+                                return True
+                            elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
+                                print("COLLISION")
+                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
+                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
+                                #print("Intersection points are",x1,y1,x2,y2)
+                                #print(math.degrees(theta_3),math.degrees(theta_2),math.degrees(theta_4))
+                                return True
+                        elif (abs(math.degrees(2*math.pi - (theta_4-theta_3))-deltaTheta)<0.1):
+                            if (theta_1 != None and 0<= theta_1 and theta_1 <= theta_3):
+                                print("COLLISION")
+                                return True
+                            elif (theta_2 != None and 0<= theta_2 and theta_2 <= theta_3):
+                                print("COLLISION")
+                                return True
+                            elif (theta_1 != None and 2*math.pi>=theta_1 and theta_1 >= theta_4):
+                                print("COLLISION")
+                                return True
+                            elif (theta_2 != None and 2*math.pi>=theta_2 and theta_2 >= theta_4):
+                                print("COLLISION")
+                                return True
+
 
         return False
 
