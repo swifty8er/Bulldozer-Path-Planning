@@ -10,7 +10,7 @@ OFFSET = 300.0
 NUM_NODES = 1000
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
-StartVehiclePos = Vehicle(1,1,90)
+StartVehiclePos = Vehicle(1.5,2.5,270)
 ControlsList = [
     (0.4,45,"FL"),
     (0.4826,37.3,"FL"),
@@ -57,7 +57,7 @@ t.up()
 t.goto(300,300)
 t.down()
 t.speed("fastest")
-edges = map.getMapEdges()
+edges = map.getMapEdgesAndObstacles()
 for edge in edges:
     t.up()
     t.goto(edge[0][0]*SCALING-OFFSET,edge[0][1]*SCALING-OFFSET)

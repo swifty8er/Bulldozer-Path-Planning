@@ -142,7 +142,7 @@ class RRT:
     # given a node and a control that describes following the path of a cirlce arc from the node
     # test if doing so will cause a collision with the obstacles or boundary of the map
     def isCollision(self,node,control):
-        edges = self._map.getMapEdges()
+        edges = self._map.getMapEdgesAndObstacles()
         for edge in edges:
             if BasicGeometry.arcLineCollisionAlgorithm(node,control,edge,self._map.disk_radius):
                 #print("Collision found between (x,y,theta) = (%.2f,%.2f,%.2f) (r,deltaTheta,direction) = (%.2f,%.2f,%s) edge = (%.2f,%2.f,%.2f,%.2f)" % (node.x,node.y,node.theta,control[0],control[1],control[2],edge[0][0],edge[0][1],edge[1][0],edge[1][1]) )
@@ -151,7 +151,7 @@ class RRT:
 
 
     def testStateCollision(self,node):
-        edges = self._map.getMapEdges()
+        edges = self._map.getMapEdgesAndObstacles()
         point = (node.x,node.y)
         line = [(self._start_position.x,self._start_position.y),point]
         for edge in edges:
@@ -163,7 +163,7 @@ class RRT:
 
 
     def testMoveCollision(self,node,control):
-        edges = self._map.getMapEdges()
+        edges = self._map.getMapEdgesAndObstacles()
         for edge in edges:
             if BasicGeometry.arcLineCollisionIterative(node,control,edge,8,self._map.disk_radius):
                 return True
