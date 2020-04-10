@@ -64,8 +64,25 @@ for edge in edges:
     t.down()
     t.goto(edge[1][0]*SCALING-OFFSET,edge[1][1]*SCALING-OFFSET)
 
-print(map.initial_disk_pos_xy)
-exit(1)
+starting_disk_pos = map.initial_disk_pos_xy
+for pos in starting_disk_pos:
+    t.up()
+    t.goto(pos[0]*SCALING-OFFSET,pos[1]*SCALING-OFFSET)
+    t.forward(map.disk_radius*SCALING)
+    t.left(90)
+    t.down()
+    t.color("blue")
+    t.circle(map.disk_radius*SCALING)
+
+goal_pos = map.goal_pos_xy
+for pos in goal_pos:
+    t.up()
+    t.goto(pos[0]*SCALING-OFFSET,pos[1]*SCALING-OFFSET)
+    t.forward(map.disk_radius*SCALING*1.05)
+    t.left(90)
+    t.down()
+    t.color("green")
+    t.circle(map.disk_radius*SCALING*1.05)
 
 #t.speed("slowest")
 
