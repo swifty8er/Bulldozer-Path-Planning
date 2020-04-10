@@ -351,3 +351,54 @@ class BasicGeometry():
                 closest_point = i
             i += 1
         return closest_point
+
+    @staticmethod
+    def twoCirclesIntersectionPoints(circle_1_radius,circle_1_centre,circle_2_radius,circle_2_centre):
+        (a,b) = circle_1_centre
+        (p,q) = circle_2_centre
+        r1 = circle_1_radius
+        r2 = circle_2_radius
+        D_1 = (r2**2 - r1**2) - (p**2 - a**2) - (q**2 - b**2)
+        D_2 = 2*(b-q)
+        D_3 = 2*(a-p)
+
+        A = D_2**2 + D_3
+        B = 2*D_2*a - 2*D_1*D_2 - 2*D_3*b
+        C = D_1**2 - 2*a*D_1 + D_3*a**2 + D_3*b**2 - D_3*r1**2
+
+        desc = B**2 - 4*A*C
+        if desc >= 0:
+            y1 = (-B+math.sqrt(desc))/2*A
+            y2 = (-B-math.sqrt(desc))/2*A
+
+            dee_1 = r1**2 - (y1-b)**2
+            if dee_1>=0:
+                x1 = math.sqrt(dee_1) + a
+            else:
+                x1 = None
+            dee_2 = r1**2 - (y2-b)**2
+            if dee_2>=0:
+                x2 = math.sqrt(dee_2) + a
+            else:
+                x2 = None
+            if x1 != None:
+                x1_test = math.sqrt(r2**2 - (y1-q)**2) + p
+                if abs(x1 - x1_test) > np.finfo(np.float32).eps:
+                    raise Exception("Error finding two circles intersection points")
+                p1 = (x1,y1)
+            else:
+                p1 = (None,None)
+            if x2 != None:
+                x2_test = math.sqrt(r2**2 - (y2-q)**2) + p
+                if abs(x2 - x2_test) > np.finfo(np.float32).eps:
+                    raise Exception("Error finding two circles intersection points")
+            
+                p2 = (x2,y2)
+            else:
+                p2 = (None,None)
+
+            return (p1,p2)
+        else:
+            return (None,None) #complex roots
+
+        

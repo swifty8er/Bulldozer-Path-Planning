@@ -7,7 +7,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 1000
+NUM_NODES = 100
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 StartVehiclePos = Vehicle(1.5,2.5,270)
@@ -122,7 +122,6 @@ while i < NUM_NODES:
     if (status == Status.ADVANCED or status == Status.REACHED):
         i+=1
 
-MyRRT.removeCollidingEdgesWithDirtPiles()
 
 
 turtle.tracer(False,5)
@@ -133,7 +132,7 @@ for node in MyRRT.tree.keys():
     t.setheading(node.theta)
     t.down()
     for n2 in MyRRT.tree[node].keys():
-        if (MyRRT.tree[node][n2] in ControlsList):
+        if (MyRRT.tree[node][n2] in ControlsList and not MyRRT.edgeCollidesWithDirtPile(node,n2)):
             t.up()
             t.goto(n2.x*SCALING-OFFSET,n2.y*SCALING-OFFSET)
             t.down()

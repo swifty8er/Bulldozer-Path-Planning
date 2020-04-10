@@ -169,6 +169,53 @@ class RRT:
                 return True
         return False
 
+
+    def edgeCollidesWithDirtPile(self,n1,n2):
+        edge_arc = self.tree[n1][n2]
+        if (edge_arc != False):
+            (radius,deltaTheta,direction) = edge_arc
+            if direction == "F" or direction == "R":
+                line = [[n1.x,n1.y],[n2.x,n2.y]]
+                for pos in self._map.initial_disk_pos_xy:
+                    if BasicGeometry.doesCircleIntersectLine(pos,disk_radius,line):
+                        return True
+            else:
+                if direction == "FL" or direction == "RL":
+                    a = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
+                    b = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
+                else:
+                    a = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
+                    b = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
+                circle_2_centre = (a,b)
+                for pos in self._map.initial_disk_pos_xy:
+                    (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
+                    if (p1 != None and p2 != None):
+                        theta_1 = math.acos((p1[0]-p)/radius)
+                        if theta_1<0:
+                            theta_1 = 2*math.pi - theta_1
+
+                        theta_2 = math.acos((p2[0]-p)/radius)
+                        if theta_2 < 0:
+                            theta_2 = 2*math.pi - theta_2
+
+                        theta_3_deg = n1.theta + 90
+                        theta_4_deg = n2.theta + 90
+                        theta_3 = math.radians(theta_3_deg)
+                        theta_4 = math.radians(theta_4_deg)
+
+                        if (theta_1 < theta_2):
+                            if (theta_1 <= theta_3 and theta_3 <= theta_2):
+                                return True
+                            elif (theta_1 <= theta_4 and theta_4 <= theta_2):
+                                return True
+                        else:
+                            if (theta_2 <= theta_3 and theta_3 <= theta_1):
+                                return True
+                            elif (theta_2 <= theta_4 and theta_3 <= theta_1):
+                                return True
+
+        return False
+
     # generates a new state from x near in the direction towards x using the available controls
     def generateNewState(self,x,x_near):
         min_dist = math.inf
