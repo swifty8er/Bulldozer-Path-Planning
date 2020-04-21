@@ -124,44 +124,52 @@ class BasicGeometry():
                 if (math.fabs(test_y-y) > np.finfo(np.float32).eps):
                     raise Exception("Error finding intersection point of perp bisector and line")
 
+
+           
             v_x = x-a
             v_y = y-b
-
-            alpha = math.atan2(v_y,v_x)
-
-            gamma_1 = math.atan2(start_position.y,start_position.x)
-            gamma_2 = math.atan2(end_position.y,end_position.x)
-
+            circle_centre = (a,b)
             start_point = (start_position.x,start_position.y)
             end_point = (end_position.x,end_position.y)
-            circle_centre = (a,b)
+            #check that x,y are on the LINE SEGMENT...
+            s_1 = (x-x1)/(x2-x1)
+            s_2 = (y-y1)/(y2-y1)
 
-            if (alpha<0 and gamma_2<=alpha and alpha<=gamma_1) or (alpha>=0 and gamma_2>=alpha and alpha>= gamma_1):
-                D = math.sqrt(v_x**2 + v_y**2)
-                d = D - control[0]
-                if (disk_radius - d ) > np.finfo(np.float32).eps:
+            if (0<= s_1 and s_1 <= 1 and 0<= s_2 and s_2 <=1 and s_1 == s_2):
+
+                alpha = math.atan2(v_y,v_x)
+
+                gamma_1 = math.atan2(start_position.y,start_position.x)
+                gamma_2 = math.atan2(end_position.y,end_position.x)
+
+
+                if (alpha<0 and gamma_2<=alpha and alpha<=gamma_1) or (alpha>=0 and gamma_2>=alpha and alpha>= gamma_1):
+                    D = math.sqrt(v_x**2 + v_y**2)
+                    d = D - control[0]
+                    if (disk_radius - d ) > np.finfo(np.float32).eps:
+                        return True
+                    else:
+                        return False
+            else:
+                if BasicGeometry.circleArcIntersectsLine(circle_centre,control[0],line):
+                    return True
+                elif (disk_radius - BasicGeometry.point2LineDist(line,start_point)) > np.finfo(np.float32).eps:
+                    return True
+                elif (disk_radius - BasicGeometry.point2LineDist(line,end_point)) > np.finfo(np.float32).eps:
                     return True
                 else:
-                    return False
-            elif BasicGeometry.circleArcIntersectsLine(circle_centre,control[0],line):
-                return True
-            elif (disk_radius - BasicGeometry.point2LineDist(line,start_point)) > np.finfo(np.float32).eps:
-                return True
-            elif (disk_radius - BasicGeometry.point2LineDist(line,end_point)) > np.finfo(np.float32).eps:
-                return True
-            else:
-                vec_between_points = BasicGeometry.vec_from_points(line[0],circle_centre)
-                beta = math.atan2(vec_between_points[1],vec_between_points[0])
-                radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
-                if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
-                    return True
-                vec_between_points = BasicGeometry.vec_from_points(line[1],circle_centre)
-                beta = math.atan2(vec_between_points[1],vec_between_points[0])
-                radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
-                if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
-                    return True
+                    vec_between_points = BasicGeometry.vec_from_points(line[0],circle_centre)
+                    beta = math.atan2(vec_between_points[1],vec_between_points[0])
+                    radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
+                    if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
+                        return True
+                    vec_between_points = BasicGeometry.vec_from_points(line[1],circle_centre)
+                    beta = math.atan2(vec_between_points[1],vec_between_points[0])
+                    radial_vec = (a+control[0]*math.cos(beta),b+control[0]*math.sin(beta))
+                    if (disk_radius - BasicGeometry.vec_mag(BasicGeometry.vec_sub(vec_between_points,radial_vec))) > np.finfo(np.float32).eps:
+                        return True
               
-                return False
+                    return False
 
 
     @staticmethod
