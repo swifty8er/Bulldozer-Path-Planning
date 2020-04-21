@@ -41,6 +41,9 @@
     <Compile Include="MapState.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Push_RRT.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RRT.py">
       <SubType>Code</SubType>
     </Compile>
