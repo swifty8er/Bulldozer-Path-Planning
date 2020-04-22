@@ -15,6 +15,7 @@ class Status(Enum):
     TRAPPED = 3
     NODE_EXISTS = 4
     EDGE_EXISTS = 5
+    COLLIDING = 6
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -114,7 +115,9 @@ class RRT:
                 pen.up()
                 pen.clearstamp(rand_stamp)
                 pen.clearstamp(nn_stamp)
-            if nodeExists:
+            if self.edgeCollidesWithDirtPile(nearest_neighbour,x_new):
+                return Status.COLLIDING
+            elif nodeExists:
                 return Status.NODE_EXISTS
             elif bool1 or bool2:
                 return Status.EDGE_EXISTS
@@ -354,6 +357,49 @@ class RRT:
             raise Exception("x_near not in tree")
 
         return (bool1,bool2)
+
+
+    def bidirectionalExtend(self,x_rand,x_nn,backwardsDict):
+        (result,x_new,u_new) = self.generateNewState(x_rand,x_nn)
+        u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(u_new)]]
+        # could not find new state
+        if not result:
+            return (False,False)
+        # edge to new state collides with dirt pile
+        if self.edgeCollidesWithDirtPile(x_nn,x_new):
+            return (False,False)
+        # insert new edge
+        backwardsDict[x_new][x_nn] = u_inv
+        backwardsDict[x_nn][x_new] = u_new
+        if x_new in self._tree:
+            return (True,True) #bidirectional growth meets old RRT
+        else:
+            return (True,False) #worked but algorithm not finished
+
+    def growBidirectional(self,startingNode,num_steps):
+        backwardsDict = {}
+        backwardsDict[startingNode] = {}
+        backwardsDict[startingNode][startingNode] = False
+        i = 0
+        finished = False
+        while i < num_steps:
+            worked = False
+            while not worked:
+                x_rand = self.generateRandomState()
+                x_nn = self.findNearestNeighbour(x_rand,backwardsDict)
+                (worked,finished) = self.bidrectionalExtend(x_rand,x_nn,backwardsDict)
+            if finished:
+                break
+            i+=1
+
+            x_rand = random.choice(backwardsDict.keys())
+            status = self.extend(x_rand,None)
+            if (status != Status.COLLIDING and status != Status.TRAPPED):
+                i+=1
+
+
+
+
 
 
 

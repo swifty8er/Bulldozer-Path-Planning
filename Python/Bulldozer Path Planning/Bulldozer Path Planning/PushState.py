@@ -14,4 +14,10 @@ class PushState:
     def getG(self):
         return self._g
 
+    def diskAtGoal(self,goalPositions):
+        for pos in goalPositions:
+            if (pos[0] == self._disk_pos[0]) and (pos[1] == self._disk_pos[1]):
+                return True
+        return False
+
 

@@ -6,9 +6,10 @@ from RRT import Status
 from Vehicle import Vehicle
 
 class Push_RRT:
-    def __init__(self,map):
+    def __init__(self,map,rrt):
         self._map = map
         self._graph = {}
+        self._RRT = rrt
 
     def getPushPoints(self,disk_pos):
         push_points = []
@@ -24,14 +25,22 @@ class Push_RRT:
     def addEdge(self,node1,node2,push_point,tree):
         pass
 
+
+    def getPushingActions(self,state):
+        push_points = self.getPushPoints(state.getDiskPos())
+        for push_point in push_points:
+            if self._RRT.growBidirectional(push_point,200):
+                #create pushing action and add to list
+                pass
+
     def PushToGoals(self,disk_num,disk_pos):
         pq = queue.PriorityQueue()
         firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)
         pq.put(firstState)
         currState = pq.get()
         while (False in currState.getStatuses()) and (not pq.empty()):
-            if not currState.diskAtGoal():
-                pushingActions = currState.getPushingActions()
+            if not currState.diskAtGoal(self._map.goal_pos_xy):
+                pushingActions = self.getPushingActions(currState)
                 for action in pushingActions:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]
