@@ -71,5 +71,8 @@ for pos in goal_pos:
 
 t.color("black")
 
+for d in range(len(starting_disk_pos)):
+    disk_pos = starting_disk_pos[d]
+    My_Push.PushToGoals(d,disk_pos)
 
 turtle.done()
