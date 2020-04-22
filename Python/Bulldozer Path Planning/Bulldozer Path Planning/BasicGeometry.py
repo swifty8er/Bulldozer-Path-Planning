@@ -370,6 +370,24 @@ class BasicGeometry():
         return closest_point
 
     @staticmethod
+    def getPerpLine(line):
+        (x1,y1) = line[0]
+        (x2,y2) = line[1]
+        print("Getting perpendicular line to [%.2f,%.2f] [%.2f,%.2f]" % (x1,y1,x2,y2))
+       
+        if round((x2-x1),3) == 0:
+            return (0,y1,0)
+        elif round((y2-y1),3) == 0:
+            return (None,0,x1)
+        else:
+            m1 = (y2-y1)/(x2-x1)
+            perp_m = -1/m1
+            # (x1,y1) is a point on the perp line
+            c = y1 - perp_m*x1
+            return (perp_m,c,0)
+
+
+    @staticmethod
     def twoCirclesIntersectionPoints(circle_1_radius,circle_1_centre,circle_2_radius,circle_2_centre):
         (a,b) = circle_1_centre
         (p,q) = circle_2_centre
@@ -409,5 +427,8 @@ class BasicGeometry():
             return (p1,p2)
         else:
             return ((None,None),(None,None)) #complex roots
+
+
+   
 
         

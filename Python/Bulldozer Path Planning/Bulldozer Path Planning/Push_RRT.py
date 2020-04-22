@@ -1,14 +1,23 @@
 import math
 import queue
+import time
+import turtle
 from BasicGeometry import BasicGeometry
 from RRT import RRT
 from RRT import Status
 from Vehicle import Vehicle
+from PushState import PushState
+
+SCALING = 100.0
+OFFSET = 300.0
 
 class Push_RRT:
-    def __init__(self,map,rrt):
+    def __init__(self,map):
         self._map = map
         self._graph = {}
+        self._RRT = None
+
+    def setRRT(self,rrt):
         self._RRT = rrt
 
     def getPushPoints(self,disk_pos):
@@ -26,21 +35,23 @@ class Push_RRT:
         pass
 
 
-    def getPushingActions(self,state):
+    def getPushingActions(self,state,pen):
         push_points = self.getPushPoints(state.getDiskPos())
         for push_point in push_points:
-            if self._RRT.growBidirectional(push_point,200):
+            if self._RRT.growBidirectional(push_point,200,pen):
                 #create pushing action and add to list
                 pass
 
-    def PushToGoals(self,disk_num,disk_pos):
+    def PushToGoals(self,disk_num,disk_pos,pen):
         pq = queue.PriorityQueue()
         firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)
         pq.put(firstState)
-        currState = pq.get()
-        while (False in currState.getStatuses()) and (not pq.empty()):
+        while not pq.empty():
+            currState = pq.get()
+            if not (False in currState.getStatuses()):
+                break
             if not currState.diskAtGoal(self._map.goal_pos_xy):
-                pushingActions = self.getPushingActions(currState)
+                pushingActions = self.getPushingActions(currState,pen)
                 for action in pushingActions:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]
