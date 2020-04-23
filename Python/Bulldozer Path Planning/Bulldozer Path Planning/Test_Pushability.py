@@ -9,7 +9,7 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 300
+NUM_NODES = 1000
 
 #(p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(0.45,(2.5,1.5),0.4826,(1.79,1.915))
 #print(p1,p2)
@@ -98,7 +98,7 @@ i = 0
 while i < NUM_NODES:
     print("i = ",i)
     x_rand = MyRRT.generateRandomState()
-    status = MyRRT.extend(x_rand,None)
+    status = MyRRT.extend(x_rand,None,[])
     if (status == Status.ADVANCED or status == Status.REACHED or status == Status.COLLIDING):
         i+=1
 
@@ -108,7 +108,7 @@ turtle.tracer(False,5)
 #flag = False
 MyRRT.draw(t,SCALING,OFFSET)
 turtle.update()
-turtle.tracer(True)
+#turtle.tracer(True)
 for i in range(len(starting_disk_pos)):
     disk_pos = starting_disk_pos[i]
     My_Push.PushToGoals(i,disk_pos,t)

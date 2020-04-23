@@ -373,7 +373,6 @@ class BasicGeometry():
     def getPerpLine(line):
         (x1,y1) = line[0]
         (x2,y2) = line[1]
-        print("Getting perpendicular line to [%.2f,%.2f] [%.2f,%.2f]" % (x1,y1,x2,y2))
        
         if round((x2-x1),3) == 0:
             return (0,y1,0)

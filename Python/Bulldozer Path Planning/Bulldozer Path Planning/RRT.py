@@ -1,5 +1,6 @@
 import numpy as np
 import turtle
+import time
 from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
@@ -16,6 +17,7 @@ class Status(Enum):
     NODE_EXISTS = 4
     EDGE_EXISTS = 5
     COLLIDING = 6
+    BIDIRECTIONAL_SUCCESS = 7
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -51,7 +53,7 @@ class RRT:
         new_theta = random.uniform(0,360)
         return Vehicle(new_x,new_y,new_theta)
 
-    def extend(self,x_rand,pen):
+    def extend(self,x_rand,pen,back_nodes):
         nearest_neighbour = self.nearestNeighbour(x_rand)
         if pen != None:
             pen.up()
@@ -115,7 +117,9 @@ class RRT:
                 pen.up()
                 pen.clearstamp(rand_stamp)
                 pen.clearstamp(nn_stamp)
-            if (x_new == x_rand):
+            if (x_new in back_nodes):
+                return Status.BIDIRECTIONAL_SUCCESS
+            elif (x_new == x_rand):
                 return Status.REACHED
             elif self.edgeCollidesWithDirtPile(nearest_neighbour,x_new,u_new):
                 return Status.COLLIDING
@@ -306,9 +310,16 @@ class RRT:
         else:
             return (True,x_new,u_new) # returns a bool if successful, and the new state and control used
 
-    # Add the vertex to the tree, no return
+    def addBackwardsVertex(self,x_new,tree):
+        if not x_new in tree:
+            tree[x_new] = {}
+        for key in tree.keys():
+            tree[x_new][key] = False
+            tree[key][x_new] = False
+
+    # Add the vertex to the tree
     def addVertex(self,x_new):
-        if x_new in self._tree.keys():
+        if x_new in self._tree:
             print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
             return True
         else:
@@ -320,6 +331,13 @@ class RRT:
 
     def hasVertex(self,x):
         return ( x in self._tree )
+
+    def addBackwardsEdge(self,x_new,x_near,u_new,u_inv,tree):
+        if tree[x_new][x_near] == u_inv or tree[x_near][x_new] == u_new:
+            return True
+        tree[x_new][x_near] = u_inv
+        tree[x_near][x_new] = u_new
+        return False
 
     #u_new from x_near to x_new
     #u_inv from x_new to x_near
@@ -425,22 +443,10 @@ class RRT:
             pen.up()
             pen.clearstamp(rand_stamp)
             pen.clearstamp(nn_stamp)
-        if x_new in backwardsDict.keys():
-            if x_nn in backwardsDict[x_new].keys() and backwardsDict[x_new][x_nn] == u_inv:
-                return (False,False)
-            backwardsDict[x_new][x_nn] = u_inv
-        else:
-            backwardsDict[x_new] = {}
-            backwardsDict[x_new][x_nn] = u_inv
-
-        if x_nn in backwardsDict.keys():
-            if x_new in backwardsDict[x_nn].keys() and backwardsDict[x_nn][x_new] == u_new:
-                return (False,False)
-            backwardsDict[x_nn][x_new] = u_new
-        else:
-            backwardsDict[x_nn] = {}
-            backwardsDict[x_nn][x_new] = u_new
-        if x_new in self._tree:
+        self.addBackwardsVertex(x_new,backwardsDict)
+        if self.addBackwardsEdge(x_new,x_nn,u_new,u_inv,backwardsDict):
+            return (False,False)
+        elif x_new in self._tree:
             return (True,True) #bidirectional growth meets old RRT
         else:
             return (True,False) #worked but algorithm not finished
@@ -475,7 +481,6 @@ class RRT:
         line = [[startingNode.x,startingNode.y],[startingNode.x+math.cos(math.radians(startingNode.theta)),startingNode.y+math.sin(math.radians(startingNode.theta))]]
         perp_line = BasicGeometry.getPerpLine(line)
         (m,c,x) = perp_line
-        print(m,c,x)
         if m == None:
             # line is of form x = 5
             if (startingNode.theta < 180):
@@ -487,7 +492,6 @@ class RRT:
             new_y = random.uniform(self._map.min_y,self._map.max_y)
             new_theta = random.uniform(0,360)
             newVehicle = Vehicle(new_x,new_y,new_theta)
-            print("Generated new vehicle (%.2f,%.2f,%.2f)" % (new_x,new_y,new_theta))
             if self.testStateCollision(newVehicle):
                 return self.generateBehindState(startingNode)
             else:
@@ -501,7 +505,6 @@ class RRT:
             new_x = random.uniform(self._map.min_x,self._map.max_x)
             new_theta = random.uniform(0,360)
             newVehicle = Vehicle(new_x,new_y,new_theta)
-            print("Generated new vehicle (%.2f,%.2f,%.2f)" % (new_x,new_y,new_theta))
             if self.testStateCollision(newVehicle):
                 return self.generateBehindState(startingNode)
             else:
@@ -512,25 +515,24 @@ class RRT:
             if (startingNode.theta<180):
                 upperBoundY = m*new_x+c
                 if upperBoundY<=self._map.min_y:
-                    self.generateBehindState(startingNode)
+                    return self.generateBehindState(startingNode)
                 else:
                     new_y = random.uniform(self._map.min_y,upperBoundY)
             else:
                 lowerBoundY = m*new_x+c
                 if lowerBoundY >= self._map.max_y:
-                    self.generateBehindState(startingNode)
+                    return self.generateBehindState(startingNode)
                 else:
                     new_y = random.uniform(lowerBoundY,self._map.max_y)
 
             new_theta = random.uniform(0,360)
             newVehicle = Vehicle(new_x,new_y,new_theta)
-            print("Generated new vehicle (%.2f,%.2f,%.2f)" % (new_x,new_y,new_theta))
             if self.testStateCollision(newVehicle):
                 return self.generateBehindState(startingNode)
             else:
                 return newVehicle
 
-    def populateBackwardsDict(self,startingNode):
+    def populateBackwardsDict(self,startingNode,pen):
         backwardsDict = {}
         backwardsDict[startingNode] = {}
         backwardsDict[startingNode][startingNode] = False
@@ -540,17 +542,85 @@ class RRT:
                 if not (self.isCollision(startingNode,control)):
                     newNode = startingNode.applyControl(radius,deltaTheta,direction)
                     u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(control)]]
-                    if not self.edgeCollidesWithDirtPile(startingNode,newNode,control):
-                        if newNode not in backwardsDict:
-                            backwardsDict[newNode] = {}
-                        backwardsDict[newNode][startingNode] = u_inv
-                        backwardsDict[startingNode][newNode] = control
+                    pen.up()
+                    pen.goto(startingNode.x*SCALING-OFFSET,startingNode.y*SCALING-OFFSET)
+                    pen.setheading(startingNode.theta)
+                    pen.down()
+                    pen.color("orange")
+                    if direction == "R":
+                        pen.back(radius*SCALING)
+                    elif (direction == "RL"):
+                        pen.circle(radius*SCALING,-1*deltaTheta)
+                    else:
+                        pen.left(180)
+                        pen.circle(radius*SCALING,deltaTheta)
+                       
+                    if newNode not in backwardsDict:
+                        backwardsDict[newNode] = {}
+                    backwardsDict[newNode][startingNode] = u_inv
+                    backwardsDict[startingNode][newNode] = control
 
         return backwardsDict
-                
+    
+    def connectNodesStraightLinePath(self,n1,n2):
+        edge = False
+        if (math.cos(math.radians(n1.theta)) == 0):
+            if round(n1.x,2) == round(n2.x,2):
+                if n1.theta == 90:
+                    if n2.y > n1.y:
+                        edge = (n2.y-n1.y,0,'F')
+                    else:
+                        edge = (n1.y-n2.y,0,'R')
+                elif n1.theta == 270:
+                    if n2.y>n1.y:
+                        edge = (n2.y-n1.y,0,'R')
+                    else:
+                        edge = (n1.y-n2.y,0,'F')
+                else:
+                    raise Exception("Cosine was zero but angle did not match")
+        elif (math.sin(math.radians(n1.theta)) == 0):
+            if round(n1.y,2) == round(n2.y,2):
+                if n1.theta == 0:
+                    if n2.x > n1.x:
+                        edge = (n2.x-n1.x,0,'F')
+                    else:
+                        edge = (n1.x-n2.x,0,'R')
+                elif n1.theta == 180:
+                    if n2.x > n1.x:
+                        edge = (n2.x-n1.x,0,'R')
+                    else:
+                        edge = (n1.x-n2.x,0,'F')
+                else:
+                    raise Exception("Sine was zero but angle did not match")
+        else:
+            k_alpha = (n2.x-n1.x)/math.cos(math.radians(n1.theta))
+            k_beta = (n2.y-n1.y)/math.sin(math.radians(n1.theta))
+
+            if (k_alpha == k_beta):
+                if k_alpha >= 0:
+                    edge = (BasicGeometry.ptDist([n1.x,n1.y],[n2.x,n2.y]),0,'F')
+                else:
+                    edge = (BasicGeometry.ptDist([n1.x,n1.y],[n2.x,n2.y]),0,'R')
+
+        return edge
+
+
+    def connectBidirectionalRRT(self,backwardsTree):
+        for node in backwardsTree:
+            for otherNode in self.tree:
+                print(node.theta,otherNode.theta)
+                if (round(node.theta,1) == round(otherNode.theta,1)):
+                    print("Headings match")
+                    newEdge = self.connectNodesStraightLinePath(node,otherNode)
+                    if newEdge != False:
+                        #insert node and edge into backwards dict
+                        print("Edge found from (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) is (%.2f,%.2f,%s)" % (node.x,node.y,node.theta,otherNode.x,otherNode.y,otherNode.theta,newEdge[0],newEdge[1],newEdge[2]))
+                        exit(1)
+                        return True
+        return False
 
     def growBidirectional(self,startingNode,num_steps,pen):
-        backwardsDict = self.populateBackwardDict(startingNode)
+        backwardsDict = self.populateBackwardsDict(startingNode,pen)
         i = 0
         finished = False
         completed = False
@@ -570,17 +640,27 @@ class RRT:
                 completed = True
                 break
             i+=1
-
             print("Growing forwards from old RRT towards new nodes...")
-
-            x_rand = random.choice(list(backwardsDict.keys()))
-            status = self.extend(x_rand,pen)
-            if (status == Status.REACHED):
+            back_nodes = list(backwardsDict.keys())
+            if (random.random() < 0.5):
+                x_rand = self.generateRandomState()
+            else:
+                x_rand = random.choice(back_nodes)
+            status = self.extend(x_rand,pen,back_nodes)
+            if (status == Status.BIDIRECTIONAL_SUCCESS):
                 completed = True
                 break
+         
             if (status != Status.COLLIDING and status != Status.TRAPPED):
                 i+=1
-           
+
+            if (self.connectBidirectionalRRT(backwardsDict)):
+                completed = True
+                break
+        
+
+
+        
         self.tree.update(backwardsDict)
         return completed
 

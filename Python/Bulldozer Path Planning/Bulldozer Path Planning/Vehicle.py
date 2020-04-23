@@ -28,7 +28,7 @@ class Vehicle:
         if other == None:
             return False
         else:
-            return (round(self.x,4) == round(other.x,4)) and (round(self.y,4) == round(other.y,4)) and (round(self.theta,2) == round(other.theta,2))
+            return (round(self.x,2) == round(other.x,2)) and (round(self.y,2) == round(other.y,2)) and (round(self.theta,0) == round(other.theta,0))
 
     def __str__(self):
         return "Vehicle at (%.5f,%.5f) heading [%.5f]" % (self.x,self.y,self.theta)

@@ -38,9 +38,13 @@ class Push_RRT:
     def getPushingActions(self,state,pen):
         push_points = self.getPushPoints(state.getDiskPos())
         for push_point in push_points:
-            if self._RRT.growBidirectional(push_point,200,pen):
+            if self._RRT.growBidirectional(push_point,1000,pen):
+                print("Push point is accessible")
                 #create pushing action and add to list
-                pass
+            else:
+                print("Push point is not accessible")
+            turtle.update()
+            time.sleep(15)
 
     def PushToGoals(self,disk_num,disk_pos,pen):
         pq = queue.PriorityQueue()
