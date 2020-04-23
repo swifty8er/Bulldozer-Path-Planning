@@ -530,19 +530,40 @@ class RRT:
             else:
                 return newVehicle
 
-    def growBidirectional(self,startingNode,num_steps,pen):
+    def populateBackwardsDict(self,startingNode):
         backwardsDict = {}
         backwardsDict[startingNode] = {}
         backwardsDict[startingNode][startingNode] = False
+        for control in self._controls_list:
+            (radius,deltaTheta,direction) = control
+            if direction == "RL" or direction == "RR" or direction == "R":
+                if not (self.isCollision(startingNode,control)):
+                    newNode = startingNode.applyControl(radius,deltaTheta,direction)
+                    u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(control)]]
+                    if not self.edgeCollidesWithDirtPile(startingNode,newNode,control):
+                        if newNode not in backwardsDict:
+                            backwardsDict[newNode] = {}
+                        backwardsDict[newNode][startingNode] = u_inv
+                        backwardsDict[startingNode][newNode] = control
+
+        return backwardsDict
+                
+
+    def growBidirectional(self,startingNode,num_steps,pen):
+        backwardsDict = self.populateBackwardDict(startingNode)
         i = 0
         finished = False
         completed = False
         while i < num_steps:
             print("Grow bi-directional loop i=%d" % i)
             print("Growing backwards from push_point...")
+            # pre-load the backwards dict with all edges from the startingNode in the reverse gear
             worked = False
             while not worked:
-                x_rand = self.generateBehindState(startingNode)
+                if i<15:
+                    x_rand = self.generateBehindState(startingNode)
+                else:
+                    x_rand = self.generateRandomState()
                 x_nn = self.findNearestNeighbour(x_rand,backwardsDict)
                 (worked,finished) = self.bidirectionalExtend(x_rand,x_nn,backwardsDict,pen)
             if finished:
