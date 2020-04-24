@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import bezier
 
 
 class BasicGeometry():
@@ -277,6 +278,27 @@ class BasicGeometry():
             intersect = False
 
         return intersect
+
+    @staticmethod
+    def getGradientOfLine(p1,p2):
+        (x1,y1) = p1
+        (x2,y2) = p2
+        if (x2-x1) == 0:
+            return math.inf
+        else:
+            return (y2-y1)/(x2-x1)
+
+    @staticmethod
+    def getKappa(t,bezierCurve,secondDerivative):
+        print("Second derivative is = ",secondDerivative)
+        first_derivative_point_array = bezierCurve.evaluate_hodograph(t)
+        first_derivative_point = [i[0] for i in first_derivative_point_array]
+        (dx,dy) = first_derivative_point
+        print(dx,dy)
+        numerator = dx * secondDerivative - secondDerivative * dy
+        denominator = pow(dx*dx + dy*dy, 1.5)
+        return abs(numerator / denominator)
+        
 
 
     @staticmethod

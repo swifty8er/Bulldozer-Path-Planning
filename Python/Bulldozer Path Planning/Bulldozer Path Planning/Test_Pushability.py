@@ -10,9 +10,10 @@ from BasicGeometry import BasicGeometry
 import matplotlib.pyplot as plt
 fig = plt.figure()
 axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
-
-v1 = Vehicle(1,1,0)
-v2 = Vehicle(2,2,30)
+plt.xlim(0,5)
+plt.ylim(0,5)
+v1 = Vehicle(1,1,90)
+v2 = Vehicle(1.5,2,70)
 curve = v1.createBezierCurveControl(v2)
 print(curve.evaluate(0.0))
 print(curve.evaluate(1.0))

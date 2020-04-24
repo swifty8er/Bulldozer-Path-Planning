@@ -97,5 +97,43 @@ class Vehicle:
         y_points = [self.y,intersectionPoint[1],otherVehicle.y]
         nodes = np.asfortranarray([x_points,y_points])
         curve = bezier.Curve(nodes,degree=2)
+
+        s = 0.0
+        dist = math.inf
+        t = None
+        while s <= 1.0:
+            point_array = curve.evaluate(s).tolist()
+            point = [i[0] for i in point_array]
+            d = BasicGeometry.ptDist(intersectionPoint,point)
+            if d < dist:
+                dist = d
+                t = s
+            s += 0.1
+
+        if t == None:
+            raise Exception("No t value found")
+        interval = 0.2
+        # Binary search to find the closest point on the bezier curve to the intersection point
+        # This is where the radius of curvature will be smallest
+        while interval > 0.01:
+            p1_array = curve.evaluate(t+interval/2.0).tolist()
+            p1 = [i[0] for i in p1_array]
+            p2_array = curve.evaluate(t-interval/2.0).tolist()
+            p2 = [i[0] for i in p2_array]
+            point_array = curve.evaluate(t).tolist()
+            point = [i[0] for i in point_array]
+            if BasicGeometry.ptDist(p1,intersectionPoint) < BasicGeometry.ptDist(point,intersectionPoint):
+                t = t+interval/2.0
+            elif BasicGeometry.ptDist(p2,intersectionPoint) < BasicGeometry.ptDist(point,intersectionPoint):
+                t = t-interval/2.0
+            else:
+                interval = interval/2.0
+
+        print("Closest point on beizer curve to")
+        print(intersectionPoint)
+        print("Is",curve.evaluate(t))
+        kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
+        radiusOfCurvature = 1.0/kappa
+        print("The radius of curvature is =",radiusOfCurvature)
         return curve
 
