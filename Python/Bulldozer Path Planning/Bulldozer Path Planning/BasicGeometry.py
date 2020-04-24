@@ -278,6 +278,33 @@ class BasicGeometry():
 
         return intersect
 
+
+    @staticmethod
+    def findVectorLinesIntersectionPoint(x1,y1,theta1,x2,y2,theta2):
+        if math.cos(math.radians(theta1)) == 0:
+            if math.cos(math.radians(theta2)) == 0:
+                if (x1 == x2):
+                    return (None,math.inf)
+                else:
+                    return None
+            else:
+                t2 = (x1-x2)/math.cos(math.radians(theta2))
+        elif math.tan(math.radians(theta1)) == 0:
+            if math.tan(math.radians(theta2)) == 0:
+                if (y1 == y2):
+                    return (math.inf,None)
+                else:
+                    return None
+            else:
+                t2 = (y1-y2)/math.sin(math.radians(theta2))
+        else:
+            t2 = (math.sin(math.radians(theta2)) - math.cos(math.radians(theta2))* math.tan(math.radians(theta1)))/( (y1-y2) + (x2-x1)*math.tan(math.radians(theta1)))
+        
+        x = x2 + t2*math.cos(math.radians(theta2))
+        y = y2 + t2*math.sin(math.radians(theta2))
+        return (x,y)
+
+
     @staticmethod
     #find the perpendicuar distance between a point and a line if within the
     #bounds of the line (line is not extended) otherwise find the distance to the closest point

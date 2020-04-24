@@ -1,18 +1,15 @@
 import math
+import bezier
 import numpy as np
 from BasicGeometry import BasicGeometry
-WIDTH = 1.0
-LENGTH = 1.0
+
 class Vehicle:
     # initialise a vehicle, setting its x,y coord and heading
     def __init__(self,x,y,theta):
         self._x = x
         self._y = y
         self._theta = theta
-        self._boundaryLeftX = self._x - 0.5*WIDTH
-        self._boundaryRightX = self._x + 0.5*WIDTH
-        self._boundaryTopY = self._y + 0.5*LENGTH
-        self._boundaryBottomY = self._y - 0.5*LENGTH
+      
 
     @property
     def x(self):
@@ -85,4 +82,20 @@ class Vehicle:
         euclidean_distance = BasicGeometry.ptDist(p1,p2)
         return euclidean_distance
 
+    def createBezierCurveControl(self,otherVehicle):
+        intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)
+        if intersectionPoint == None:
+            return False
+        if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
+            #deal with straight line case
+            pass
+        elif intersectionPoint[0] == None and intersectionPoint[1] == math.inf:
+            #deal with straight line case
+            pass
+        print(intersectionPoint)
+        x_points = [self.x,intersectionPoint[0],otherVehicle.x]
+        y_points = [self.y,intersectionPoint[1],otherVehicle.y]
+        nodes = np.asfortranarray([x_points,y_points])
+        curve = bezier.Curve(nodes,degree=2)
+        return curve
 

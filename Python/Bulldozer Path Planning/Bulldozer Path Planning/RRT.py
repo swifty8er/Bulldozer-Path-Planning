@@ -608,14 +608,13 @@ class RRT:
     def connectBidirectionalRRT(self,backwardsTree):
         for node in backwardsTree:
             for otherNode in self.tree:
-                print(node.theta,otherNode.theta)
                 if (round(node.theta,1) == round(otherNode.theta,1)):
                     print("Headings match")
                     newEdge = self.connectNodesStraightLinePath(node,otherNode)
                     if newEdge != False:
                         #insert node and edge into backwards dict
-                        print("Edge found from (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) is (%.2f,%.2f,%s)" % (node.x,node.y,node.theta,otherNode.x,otherNode.y,otherNode.theta,newEdge[0],newEdge[1],newEdge[2]))
-                        exit(1)
+                        #print("Edge found from (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) is (%.2f,%.2f,%s)" % (node.x,node.y,node.theta,otherNode.x,otherNode.y,otherNode.theta,newEdge[0],newEdge[1],newEdge[2]))
+                        #exit(1)
                         return True
         return False
 
