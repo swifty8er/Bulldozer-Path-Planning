@@ -13,7 +13,7 @@ axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
 plt.xlim(0,5)
 plt.ylim(0,5)
 v1 = Vehicle(1,1,90)
-v2 = Vehicle(1.5,2,70)
+v2 = Vehicle(2,4,70)
 curve = v1.createBezierCurveControl(v2)
 print("Tangent angle of starting path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0))
 print("Tangent angle of ending path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0))

@@ -289,16 +289,30 @@ class RRT:
 
         return False
 
+    def randomiseControlPathLength(self,control):
+        (radius,theta,direction) = control
+        if direction == 'F' or direction == 'R':
+            arcLength = radius
+        else:
+            arcLength = radius*math.radians(theta)
+        newArcLength = random.uniform(arcLength*0.4,arcLength)
+        if direction == 'F' or direction == 'R':
+            return (newArcLength,theta,direction)
+        else:
+            newTheta = math.degrees(newArcLength/radius)
+            return (radius,newTheta,direction)
+
     # generates a new state from x near in the direction towards x using the available controls
     def generateNewState(self,x,x_near):
         min_dist = math.inf
         x_new = None
         u_new = None
         for control in self._controls_list:
-            if (not self.isCollision(x_near,control)):
+            newControl = self.randomiseControlPathLength(control)
+            if (not self.isCollision(x_near,newControl)):
                 #if self.testMoveCollision(x_near,control):
                 #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
-                x_test = x_near.applyControl(control[0],control[1],control[2])
+                x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
                 dist = x.DistanceMetric(x_test)
                 if dist < min_dist: 
                     min_dist = dist
