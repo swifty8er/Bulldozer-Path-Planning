@@ -279,6 +279,18 @@ class BasicGeometry():
 
         return intersect
 
+
+    @staticmethod
+    #return the tangent angle of a bezier curve at a point along the curve in degrees
+    def getTangentAngleOfBezierCurveAtPoint(bezierCurve,s):
+        point_array = bezierCurve.evaluate(s).tolist()
+        point = [i[0] for i in point_array]
+        d_points = bezierCurve.evaluate_hodograph(s).tolist()
+        d_list = [i[0] for i in d_points]
+        (dx,dy) = (d_list[0],d_list[1])
+        angle = BasicGeometry.vector_angle(BasicGeometry.vec_from_points((point[0],point[1]),(point[0]+dx,point[1]+dy)))
+        return math.degrees(angle)
+
     @staticmethod
     def getGradientOfLine(p1,p2):
         (x1,y1) = p1
@@ -303,7 +315,7 @@ class BasicGeometry():
 
     @staticmethod
     def findVectorLinesIntersectionPoint(x1,y1,theta1,x2,y2,theta2):
-        if math.cos(math.radians(theta1)) == 0:
+        if round(math.cos(math.radians(theta1)),4) == 0:
             if math.cos(math.radians(theta2)) == 0:
                 if (x1 == x2):
                     return (None,math.inf)
@@ -311,7 +323,7 @@ class BasicGeometry():
                     return None
             else:
                 t2 = (x1-x2)/math.cos(math.radians(theta2))
-        elif math.tan(math.radians(theta1)) == 0:
+        elif round(math.tan(math.radians(theta1)),4) == 0:
             if math.tan(math.radians(theta2)) == 0:
                 if (y1 == y2):
                     return (math.inf,None)
