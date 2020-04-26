@@ -27,7 +27,7 @@ class Push_RRT:
         while (angle<=2*math.pi):
             push_point = (disk_pos[0]+self._map.disk_radius*math.cos(angle),disk_pos[1]+self._map.disk_radius*math.sin(angle))
             heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(push_point,disk_pos)))
-            push_pose = Vehicle(push_point[0],push_point[1],heading)
+            push_pose = Vehicle(push_point[0],push_point[1],heading%360)
             push_points.append(push_pose)
             angle += (math.pi/6.0)
         return push_points
@@ -39,6 +39,7 @@ class Push_RRT:
     def getPushingActions(self,state,axis):
         push_points = self.getPushPoints(state.getDiskPos())
         for push_point in push_points:
+            print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
             if self._RRT.connectPushPoint(push_point):
                 print("Push point is accessible")
                 self._RRT.draw(axis)

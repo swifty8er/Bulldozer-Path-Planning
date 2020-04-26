@@ -305,7 +305,6 @@ class BasicGeometry():
         first_derivative_point_array = bezierCurve.evaluate_hodograph(t)
         first_derivative_point = [i[0] for i in first_derivative_point_array]
         (dx,dy) = first_derivative_point
-        print(dx,dy)
         numerator = dx * secondDerivative - secondDerivative * dy
         denominator = pow(dx*dx + dy*dy, 1.5)
         return abs(numerator / denominator)

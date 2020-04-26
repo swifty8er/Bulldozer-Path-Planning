@@ -143,7 +143,7 @@ class RRT:
     def getKNearestNeighbours(self,x,k):
         k_nn = []
         for node in self.tree:
-            dist = node.EuclideanDistance(x)
+            dist = node.DistanceMetric(x,5)
             if len(k_nn)< k:
                 k_nn.append((dist,node))
             elif dist<max(k_nn)[0]:
@@ -333,7 +333,7 @@ class RRT:
                 #if self.testMoveCollision(x_near,control):
                 #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
                 x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
-                dist = x.DistanceMetric(x_test)
+                dist = x.DistanceMetric(x_test,1)
                 if dist < min_dist: 
                     min_dist = dist
                     x_new = x_test
@@ -416,17 +416,17 @@ class RRT:
         backwardsDict = self.populateBackwardsDict(push_point)
         for node in backwardsDict:
             nearest_neighbours = self.getKNearestNeighbours(node,10)
+            print("Nearest neighbours to node (%.2f,%.2f,%.2f) are" % (node.x,node.y,node.theta))
             for nn in nearest_neighbours:
+                print(nn)
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
-                    bezier_inv = node.createBezierCurveControl(nn)
-                    if bezier_inv != False:
-                        if nn not in backwardsDict:
-                            backwardsDict[nn] = {}
-                        backwardsDict[nn][node] = bezier_new
-                        backwardsDict[node][nn] = bezier_inv
-                        self.tree.update(backwardsDict)
-                        return True
+                    if nn not in backwardsDict:
+                        backwardsDict[nn] = {}
+                    backwardsDict[nn][node] = bezier_new
+                    backwardsDict[node][nn] = False
+                    self.tree.update(backwardsDict)
+                    return True
         return False
                    
 
@@ -660,7 +660,7 @@ class RRT:
             for n2 in self.tree[n1].keys():
                 edge = self.tree[n1][n2]
                 if isinstance(edge,bezier.curve.Curve):
-                    edge.plot(100,color=[235,131,52],ax=ax)
+                    edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
                 elif edge != False:
                     try:
                         (radius,theta,direction) = edge
