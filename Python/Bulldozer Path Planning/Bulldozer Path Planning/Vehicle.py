@@ -84,6 +84,19 @@ class Vehicle:
         return euclidean_distance
 
 
+    def getCircleArcPoints(self,control,num_steps):
+        angle = control[1]
+        delta_angle = angle/float(num_steps)
+        the_angle = delta_angle
+        x_points = []
+        y_points = []
+        for i in range(num_steps+1):
+            new_position = self.applyControl(control[0],the_angle,control[2])
+            x_points.append(new_position.x)
+            y_points.append(new_position.y)
+            the_angle += delta_angle
+        return (x_points,y_points)
+
     # Create a bezier control curve between the two vehicle, if a valid control exists
     def createBezierCurveControl(self,otherVehicle):
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)

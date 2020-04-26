@@ -1,11 +1,13 @@
 import numpy as np
 import turtle
+import bezier
 import time
 from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
 import random
 import math
+from matplotlib import pyplot as plt
 
 SCALING = 100.0
 OFFSET = 300.0
@@ -679,68 +681,85 @@ class RRT:
 
 
 
-    def draw(self,pen,scaling,offset):
-        for node in self.tree.keys():
-            pen.up()
-            pen.goto(node.x*scaling-offset,node.y*scaling-offset)
-            pen.setheading(node.theta)
-            pen.down()
-            for n2 in self.tree[node].keys():
-                if (self.tree[node][n2] in self._controls_list):
-                    #if (MyRRT.edgeCollidesWithDirtPile(node,n2,self.tree[node][n2])):
-                    #    pen.color("red")
-                    #else:
-                    #    pen.color("black")
-                    pen.up()
-                    pen.goto(n2.x*scaling-offset,n2.y*scaling-offset)
-                    pen.down()
-                    pen.dot(4)
-                    pen.setheading(n2.theta)
-                    pen.forward(scaling/10)
-                    pen.left(145)
-                    pen.forward(scaling/20)
-                    pen.back(scaling/20)
-                    pen.right(145)
-                    pen.right(145)
-                    pen.forward(scaling/20)
-                    pen.back(scaling/20)
-                    pen.left(145)
-                    pen.back(scaling/10)
-                    pen.up()
-                    pen.goto(node.x*scaling-offset,node.y*scaling-offset)
-                    pen.setheading(node.theta)
-                    pen.down()
-                    pen.dot(4)
-                    pen.forward(scaling/10)
-                    pen.left(145)
-                    pen.forward(scaling/20)
-                    pen.back(scaling/20)
-                    pen.right(145)
-                    pen.right(145)
-                    pen.forward(scaling/20)
-                    pen.back(scaling/20)
-                    pen.left(145)
-                    pen.back(scaling/10)
-                    (radius,dTheta,direction) = self.tree[node][n2]
-                    if direction == "F":
-                        pen.forward(radius*scaling)
-                    elif direction == "R":
-                        pen.back(radius*scaling)
-                    elif (direction == "FL"):
-                        pen.circle(radius*scaling,dTheta)
-                    elif (direction == "RL"):
-                        pen.circle(radius*scaling,-1*dTheta)
+    def draw(self,ax):
+        for n1 in self.tree.keys():
+            for n2 in self.tree[n1].keys():
+                edge = self.tree[n1][n2]
+                if edge in self._controls_list:
+                    (radius,theta,direction) = edge
+                    if direction == 'F' or direction == 'R':
+                        ax.plot([n1.x,n2.x],[n1.y,n2.y],'k-',linewidth=1)
                     else:
-                        #flag = True
-                        pen.left(180)
-                        if (direction == "RR"):
-                            pen.circle(radius*scaling,dTheta)
-                        else:
-                            pen.circle(radius*scaling,-1*dTheta)
-                    pen.up()
-                    pen.goto(node.x*scaling-offset,node.y*scaling-offset)
-                    pen.setheading(node.theta)
-                    pen.down()
+                        (x_points,y_points) = n1.getCircleArcPoints(edge,25)
+                        ax.plot(x_points,y_points,'k-',linewidth=1)
+                    # Draw circle arc
+                elif isinstance(edge,bezier.curve.Curve):
+                    # draw bezier curve
+                    edge.plot(100,color=[235,131,52],ax=ax)
+
+
+    #def draw(self,pen,scaling,offset):
+    #    for node in self.tree.keys():
+    #        pen.up()
+    #        pen.goto(node.x*scaling-offset,node.y*scaling-offset)
+    #        pen.setheading(node.theta)
+    #        pen.down()
+    #        for n2 in self.tree[node].keys():
+    #            if (self.tree[node][n2] in self._controls_list):
+    #                #if (MyRRT.edgeCollidesWithDirtPile(node,n2,self.tree[node][n2])):
+    #                #    pen.color("red")
+    #                #else:
+    #                #    pen.color("black")
+    #                pen.up()
+    #                pen.goto(n2.x*scaling-offset,n2.y*scaling-offset)
+    #                pen.down()
+    #                pen.dot(4)
+    #                pen.setheading(n2.theta)
+    #                pen.forward(scaling/10)
+    #                pen.left(145)
+    #                pen.forward(scaling/20)
+    #                pen.back(scaling/20)
+    #                pen.right(145)
+    #                pen.right(145)
+    #                pen.forward(scaling/20)
+    #                pen.back(scaling/20)
+    #                pen.left(145)
+    #                pen.back(scaling/10)
+    #                pen.up()
+    #                pen.goto(node.x*scaling-offset,node.y*scaling-offset)
+    #                pen.setheading(node.theta)
+    #                pen.down()
+    #                pen.dot(4)
+    #                pen.forward(scaling/10)
+    #                pen.left(145)
+    #                pen.forward(scaling/20)
+    #                pen.back(scaling/20)
+    #                pen.right(145)
+    #                pen.right(145)
+    #                pen.forward(scaling/20)
+    #                pen.back(scaling/20)
+    #                pen.left(145)
+    #                pen.back(scaling/10)
+    #                (radius,dTheta,direction) = self.tree[node][n2]
+    #                if direction == "F":
+    #                    pen.forward(radius*scaling)
+    #                elif direction == "R":
+    #                    pen.back(radius*scaling)
+    #                elif (direction == "FL"):
+    #                    pen.circle(radius*scaling,dTheta)
+    #                elif (direction == "RL"):
+    #                    pen.circle(radius*scaling,-1*dTheta)
+    #                else:
+    #                    #flag = True
+    #                    pen.left(180)
+    #                    if (direction == "RR"):
+    #                        pen.circle(radius*scaling,dTheta)
+    #                    else:
+    #                        pen.circle(radius*scaling,-1*dTheta)
+    #                pen.up()
+    #                pen.goto(node.x*scaling-offset,node.y*scaling-offset)
+    #                pen.setheading(node.theta)
+    #                pen.down()
 
 
 
