@@ -139,6 +139,19 @@ class RRT:
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
 
+
+    def getKNearestNeighbours(self,x,k):
+        k_nn = []
+        for node in self.tree:
+            dist = node.EuclideanDistance(x)
+            if len(k_nn)< k:
+                k_nn.append((dist,node))
+            elif dist<max(k_nn)[0]:
+                k_nn.remove(max(k_nn))
+                k_nn.append((dist,node))
+        nearest_neighbours = [i[1] for i in k_nn]
+        return nearest_neighbours
+
     # searches the tree for the nearest node to x by some distance metric
     def nearestNeighbour(self,x):
         min_dist = math.inf
@@ -397,6 +410,28 @@ class RRT:
         return (bool1,bool2)
 
 
+
+
+    def connectPushPoint(self,push_point):
+        backwardsDict = self.populateBackwardsDict(push_point)
+        for node in backwardsDict:
+            nearest_neighbours = self.getKNearestNeighbours(node,10)
+            for nn in nearest_neighbours:
+                bezier_new = nn.createBezierCurveControl(node)
+                if bezier_new != False:
+                    bezier_inv = node.createBezierCurveControl(nn)
+                    if bezier_inv != False:
+                        if nn not in backwardsDict:
+                            backwardsDict[nn] = {}
+                        backwardsDict[nn][node] = bezier_new
+                        backwardsDict[node][nn] = bezier_inv
+                        self.tree.update(backwardsDict)
+                        return True
+        return False
+                   
+
+
+
     #def bidirectionalExtend(self,x_rand,x_nn,backwardsDict,pen):
     #    (result,x_new,u_new) = self.generateNewState(x_rand,x_nn)
     #    u_inv = self._controls_list[self._inverse_control_mappings[self._controls_list.index(u_new)]]
@@ -553,7 +588,7 @@ class RRT:
     #        else:
     #            return newVehicle
 
-    def populateBackwardsDict(self,startingNod):
+    def populateBackwardsDict(self,startingNode):
         backwardsDict = {}
         backwardsDict[startingNode] = {}
         backwardsDict[startingNode][startingNode] = False
@@ -624,17 +659,22 @@ class RRT:
         for n1 in self.tree.keys():
             for n2 in self.tree[n1].keys():
                 edge = self.tree[n1][n2]
-                if edge in self._controls_list:
-                    (radius,theta,direction) = edge
+                if isinstance(edge,bezier.curve.Curve):
+                    edge.plot(100,color=[235,131,52],ax=ax)
+                elif edge != False:
+                    try:
+                        (radius,theta,direction) = edge
+                    except:
+                        raise Exception("Invalid RRT edge found")
                     if direction == 'F' or direction == 'R':
                         ax.plot([n1.x,n2.x],[n1.y,n2.y],'k-',linewidth=1)
+                        #print("Plotted line")
+                        #plt.show(block=False)
                     else:
                         (x_points,y_points) = n1.getCircleArcPoints(edge,25)
                         ax.plot(x_points,y_points,'k-',linewidth=1)
-                    # Draw circle arc
-                elif isinstance(edge,bezier.curve.Curve):
-                    # draw bezier curve
-                    edge.plot(100,color=[235,131,52],ax=ax)
+                        #print("Plotted other control")
+                        #plt.show(block=False)
 
 
     #def draw(self,pen,scaling,offset):

@@ -63,14 +63,13 @@ ControlsList = [
     (4.199,4.286,"RR")]
 
 
-InverseControlMappings = [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 My_Push = Push_RRT(map)
 starting_xy = map.initial_vehicle_pos_xy[0].tolist()
 StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
-MyRRT = RRT(map,StartVehiclePos,ControlsList,InverseControlMappings)
+MyRRT = RRT(map,StartVehiclePos,ControlsList)
 
 map.plotStartingMap(axis,True)
 plt.draw()
@@ -80,21 +79,24 @@ i = 0
 while i < NUM_NODES:
     print("i = ",i)
     x_rand = MyRRT.generateRandomState()
-    status = MyRRT.extend(x_rand,None,[])
+    status = MyRRT.extend(x_rand,None)
     if (status == Status.ADVANCED or status == Status.REACHED or status == Status.COLLIDING):
         i+=1
 
+
+MyRRT.draw(axis)
+plt.draw()
+plt.pause(1)
+plt.show(block=False)
 My_Push.setRRT(MyRRT)
 ##t.speed(4)
 ##flag = False
-MyRRT.draw(axis)
-plt.draw()
-plt.show()
 #turtle.update()
 ##turtle.tracer(True)
-#for i in range(len(starting_disk_pos)):
-#    disk_pos = starting_disk_pos[i]
-#    My_Push.PushToGoals(i,disk_pos,t)
+starting_disk_pos = map.initial_disk_pos_xy
+for i in range(len(starting_disk_pos)):
+    disk_pos = starting_disk_pos[i]
+    My_Push.PushToGoals(i,disk_pos,axis)
 
 
 

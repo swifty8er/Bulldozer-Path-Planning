@@ -2,6 +2,7 @@ import math
 import queue
 import time
 import turtle
+import matplotlib.pyplot as plt
 from BasicGeometry import BasicGeometry
 from RRT import RRT
 from RRT import Status
@@ -35,18 +36,21 @@ class Push_RRT:
         pass
 
 
-    def getPushingActions(self,state,pen):
+    def getPushingActions(self,state,axis):
         push_points = self.getPushPoints(state.getDiskPos())
         for push_point in push_points:
-            if self._RRT.growBidirectional(push_point,1000,pen):
+            if self._RRT.connectPushPoint(push_point):
                 print("Push point is accessible")
+                self._RRT.draw(axis)
+                plt.draw()
+                plt.pause(10)
+                plt.show(block=False)
+                plt.pause(30)
                 #create pushing action and add to list
             else:
                 print("Push point is not accessible")
-            turtle.update()
-            time.sleep(15)
 
-    def PushToGoals(self,disk_num,disk_pos,pen):
+    def PushToGoals(self,disk_num,disk_pos,ax):
         pq = queue.PriorityQueue()
         firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)
         pq.put(firstState)
@@ -55,7 +59,7 @@ class Push_RRT:
             if not (False in currState.getStatuses()):
                 break
             if not currState.diskAtGoal(self._map.goal_pos_xy):
-                pushingActions = self.getPushingActions(currState,pen)
+                pushingActions = self.getPushingActions(currState,ax)
                 for action in pushingActions:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]

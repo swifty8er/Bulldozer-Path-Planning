@@ -302,7 +302,6 @@ class BasicGeometry():
 
     @staticmethod
     def getKappa(t,bezierCurve,secondDerivative):
-        print("Second derivative is = ",secondDerivative)
         first_derivative_point_array = bezierCurve.evaluate_hodograph(t)
         first_derivative_point = [i[0] for i in first_derivative_point_array]
         (dx,dy) = first_derivative_point
