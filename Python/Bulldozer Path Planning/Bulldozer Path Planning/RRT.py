@@ -417,8 +417,7 @@ class RRT:
     def connectPushPoint(self,push_point):
         backwardsDict = self.populateBackwardsDict(push_point)
         for node in backwardsDict:
-            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,10)
-            print("Nearest neighbours to node (%.2f,%.2f,%.2f) are" % (node.x,node.y,node.theta))
+            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,50)
             for nn in nearest_neighbours:
                 print(nn)
                 bezier_new = nn.createBezierCurveControl(node)
@@ -429,7 +428,6 @@ class RRT:
                     backwardsDict[node][nn] = False
                     self.tree.update(backwardsDict)
                     return True
-        time.sleep(30)
         return False
                    
 
@@ -468,13 +466,9 @@ class RRT:
                         raise Exception("Invalid RRT edge found")
                     if direction == 'F' or direction == 'R':
                         ax.plot([n1.x,n2.x],[n1.y,n2.y],'k-',linewidth=1)
-                        #print("Plotted line")
-                        #plt.show(block=False)
                     else:
                         (x_points,y_points) = n1.getCircleArcPoints(edge,25)
                         ax.plot(x_points,y_points,'k-',linewidth=1)
-                        #print("Plotted other control")
-                        #plt.show(block=False)
 
 
 
