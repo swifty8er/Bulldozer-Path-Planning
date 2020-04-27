@@ -10,8 +10,8 @@ fig = plt.figure()
 axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
 #plt.xlim(0,5)
 #plt.ylim(0,5)
-#v1 = Vehicle(2.77551,3.09045,182.22893)
-#v2 = Vehicle(2.95,2.5,180)
+#v1 = Vehicle(2.6,3.45,306.13)
+#v2 = Vehicle(3.07,2.92,241.91)
 #curve = v1.createBezierCurveControl(v2)
 #print("Tangent angle of starting path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0))
 #print("Tangent angle of ending path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0))
@@ -23,7 +23,6 @@ axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
 
 SCALING = 100.0
 OFFSET = 300.0
-NUM_NODES = 2000
 
 
 ControlsList = [
@@ -69,14 +68,14 @@ map = MyMaps.test_maps[0]
 My_Push = Push_RRT(map)
 starting_xy = map.initial_vehicle_pos_xy[0].tolist()
 StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
-MyRRT = RRT(map,StartVehiclePos,ControlsList)
+MyRRT = RRT(map,StartVehiclePos,ControlsList,5000)
 
 map.plotStartingMap(axis,True)
 plt.draw()
 plt.pause(1)
 plt.show(block=False)
 i = 0
-while i < NUM_NODES:
+while i < MyRRT.num_nodes:
     print("i = ",i)
     x_rand = MyRRT.generateRandomState()
     status = MyRRT.extend(x_rand,None)

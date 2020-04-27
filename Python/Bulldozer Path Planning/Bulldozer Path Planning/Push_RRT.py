@@ -50,7 +50,8 @@ class Push_RRT:
                 #create pushing action and add to list
             else:
                 print("Push point is not accessible")
-
+                time.sleep(2)
+        time.sleep(10000)
     def PushToGoals(self,disk_num,disk_pos,ax):
         pq = queue.PriorityQueue()
         firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)

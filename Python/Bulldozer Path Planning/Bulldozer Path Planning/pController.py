@@ -12,7 +12,8 @@
 try:
     import sim
 except:
-    print ('--------------------------------------------------------------')
+    
+   ('--------------------------------------------------------------')
     print ('"sim.py" could not be imported. This means very probably that')
     print ('either "sim.py" or the remoteApi library could not be found.')
     print ('Make sure both are in the same folder as this file,')

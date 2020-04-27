@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 
 SCALING = 100.0
 OFFSET = 300.0
+NUM_NODES = 3000
 
 class Status(Enum):
     REACHED = 1
@@ -23,14 +24,18 @@ class Status(Enum):
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
-    def __init__(self,map,start_position,controls_list):
+    def __init__(self,map,start_position,controls_list,num_nodes):
         self._map = map
         self._start_position = start_position
         if self.testStateCollision(start_position): #this test is flawed
             raise Exception("Attempted to initialise the RRT with a colliding state")
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
+        self._num_nodes = num_nodes
     
+    @property
+    def num_nodes(self):
+        return self._num_nodes
 
     @property
     def tree(self):
@@ -144,7 +149,9 @@ class RRT:
         k_nn = []
         for node in self.tree:
             if push_point.isAheadOf(node):
-                dist = push_point.DistanceMetric(node,5)
+                dist = push_point.WithinAngleDistanceMetric(node)
+                if dist == math.inf:
+                    continue
                 if len(k_nn) < k:
                     k_nn.append((dist,node))
                 elif dist < max(k_nn)[0]:
@@ -417,9 +424,8 @@ class RRT:
     def connectPushPoint(self,push_point):
         backwardsDict = self.populateBackwardsDict(push_point)
         for node in backwardsDict:
-            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,50)
+            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,int(self.num_nodes/10))
             for nn in nearest_neighbours:
-                print(nn)
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
                     if nn not in backwardsDict:

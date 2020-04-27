@@ -72,12 +72,18 @@ class Vehicle:
 
         return Vehicle(x2,y2,theta2%360) #apply the control (radius,deltaTheta) in the direction specified to generate a new Vehicle object
 
-    def DistanceMetric(self,otherVehicle,angularWeight):
+    def DistanceMetric(self,otherVehicle,angularWeight=1):
         p1 = (self._x,self._y)
         p2 = (otherVehicle.x,otherVehicle.y)
         euclidean_distance = BasicGeometry.ptDist(p1,p2)
         cosine_distance = 1 - math.cos(math.radians(otherVehicle.theta)-math.radians(self._theta))
         return euclidean_distance + angularWeight * cosine_distance
+
+    def WithinAngleDistanceMetric(self,otherVehicle,tolerance=90):
+        if abs(self.theta-otherVehicle.theta)>tolerance:
+            return math.inf
+        else:
+            return self.EuclideanDistance(otherVehicle)
 
     def EuclideanDistance(self,otherVehicle):
         p1 = (self._x,self._y)
@@ -145,8 +151,10 @@ class Vehicle:
 
     # Create a bezier control curve between the two vehicle, if a valid control exists
     def createBezierCurveControl(self,otherVehicle):
+        print("Creating bezier control curve between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta))
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)
         if intersectionPoint == None:
+            print("Failed")
             return False
         if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
             #deal with straight line case
@@ -193,10 +201,12 @@ class Vehicle:
         kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
         radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature<MIN_RADIUS:
+            #print("Failed radius of curvature is =",radiusOfCurvature)
             return False
         tangentStart = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0)
         tangentEnd = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0)
         if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
+            #print("Failed tangent angle is start=%.2f, end=%.2f" % (tangentStart,tangentEnd))
             return False
 
         return curve

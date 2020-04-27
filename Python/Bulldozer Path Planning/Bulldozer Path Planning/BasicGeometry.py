@@ -133,10 +133,16 @@ class BasicGeometry():
             start_point = (start_position.x,start_position.y)
             end_point = (end_position.x,end_position.y)
             #check that x,y are on the LINE SEGMENT...
-            s_1 = (x-x1)/(x2-x1)
-            s_2 = (y-y1)/(y2-y1)
+            if (x2-x1) == 0:
+                s_1 = None
+            else:
+                s_1 = (x-x1)/(x2-x1)
+            if (y2-y1) == 0:
+                s_2 = None
+            else:
+                s_2 = (y-y1)/(y2-y1)
 
-            if (0<= s_1 and s_1 <= 1 and 0<= s_2 and s_2 <=1 and s_1 == s_2):
+            if (s_1!=None and s_2!=None and 0<= s_1 and s_1 <= 1 and 0<= s_2 and s_2 <=1 and s_1 == s_2):
 
                 alpha = math.atan2(v_y,v_x)
 
