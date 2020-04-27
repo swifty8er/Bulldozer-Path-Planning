@@ -142,6 +142,7 @@ class RRT:
     def getInverseControl(self,u_new):
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
+        print(direction)
         return (radius,theta,directionDict[direction])
 
     # get the nearest neighbours that are behind the push point
@@ -420,10 +421,12 @@ class RRT:
 
 
 
-
-    def connectPushPoint(self,push_point):
+    # Make the maximum number of connections between the push_point and the reversed positions and their nearest neighbours
+    def connectPushPoint(self,push_point,axis=False):
         backwardsDict = self.populateBackwardsDict(push_point)
-        for node in backwardsDict:
+        connected = False
+        nodes = list(backwardsDict.keys()).copy()
+        for node in nodes:
             nearest_neighbours = self.getNearestNeighboursToPushPoint(node,int(self.num_nodes/10))
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
@@ -432,9 +435,11 @@ class RRT:
                         backwardsDict[nn] = {}
                     backwardsDict[nn][node] = bezier_new
                     backwardsDict[node][nn] = False
-                    self.tree.update(backwardsDict)
-                    return True
-        return False
+                    bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                    connected = True
+
+        self.tree.update(backwardsDict)
+        return connected
                    
 
 

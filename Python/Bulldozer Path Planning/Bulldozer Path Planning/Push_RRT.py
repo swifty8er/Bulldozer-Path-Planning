@@ -40,9 +40,8 @@ class Push_RRT:
         push_points = self.getPushPoints(state.getDiskPos())
         for push_point in push_points:
             print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
-            if self._RRT.connectPushPoint(push_point):
+            if self._RRT.connectPushPoint(push_point,axis):
                 print("Push point is accessible")
-                self._RRT.draw(axis)
                 plt.draw()
                 plt.pause(1)
                 plt.show(block=False)
@@ -50,7 +49,6 @@ class Push_RRT:
                 #create pushing action and add to list
             else:
                 print("Push point is not accessible")
-                time.sleep(2)
         time.sleep(10000)
     def PushToGoals(self,disk_num,disk_pos,ax):
         pq = queue.PriorityQueue()
