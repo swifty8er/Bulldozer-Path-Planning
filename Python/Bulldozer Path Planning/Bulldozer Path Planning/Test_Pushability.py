@@ -78,8 +78,8 @@ i = 0
 while i < MyRRT.num_nodes:
     print("i = ",i)
     x_rand = MyRRT.generateRandomState()
-    status = MyRRT.extend(x_rand,None)
-    if (status == Status.ADVANCED or status == Status.REACHED or status == Status.COLLIDING):
+    status = MyRRT.extend(x_rand)
+    if (status == Status.ADVANCED or status == Status.REACHED):
         i+=1
 
 

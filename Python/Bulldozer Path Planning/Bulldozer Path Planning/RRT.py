@@ -19,8 +19,6 @@ class Status(Enum):
     TRAPPED = 3
     NODE_EXISTS = 4
     EDGE_EXISTS = 5
-    COLLIDING = 6
-    BIDIRECTIONAL_SUCCESS = 7
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -60,75 +58,15 @@ class RRT:
         new_theta = random.uniform(0,360)
         return Vehicle(new_x,new_y,new_theta)
 
-    def extend(self,x_rand,pen):
+    def extend(self,x_rand):
         nearest_neighbour = self.nearestNeighbour(x_rand)
-        if pen != None:
-            pen.up()
-            pen.goto(x_rand.x*SCALING-OFFSET,x_rand.y*SCALING-OFFSET)
-            pen.setheading(x_rand.theta)
-            pen.down()
-            pen.color("red")
-            rand_stamp = pen.stamp()
-            pen.up()
-            pen.goto(nearest_neighbour.x*SCALING-OFFSET,nearest_neighbour.y*SCALING-OFFSET)
-            pen.setheading(nearest_neighbour.theta)
-            pen.color("green")
-            pen.down()
-            nn_stamp = pen.stamp()
-            pen.color("orange")
-            pen.dot(4)
-            pen.forward(SCALING/10)
-            pen.left(145)
-            pen.forward(SCALING/20)
-            pen.back(SCALING/20)
-            pen.right(145)
-            pen.right(145)
-            pen.forward(SCALING/20)
-            pen.back(SCALING/20)
-            pen.left(145)
-            pen.back(SCALING/10)
-            pen.color("orange")
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         u_inv = self.getInverseControl(u_new)
         if result:
             nodeExists = self.addVertex(x_new)
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
-            if pen != None:
-                (radius,dTheta,direction) = u_new
-                if direction == "F":
-                    pen.forward(radius*SCALING)
-                elif direction == "R":
-                    pen.back(radius*SCALING)
-                elif (direction == "FL"):
-                    pen.circle(radius*SCALING,dTheta)
-                elif (direction == "RL"):
-                    pen.circle(radius*SCALING,-1*dTheta)
-                else:
-                    pen.left(180)
-                    if (direction == "RR"):
-                        pen.circle(radius*SCALING,dTheta)
-                    else:
-                        pen.circle(radius*SCALING,-1*dTheta)
-                    pen.left(180)
-                pen.dot(4)
-                pen.forward(SCALING/10)
-                pen.left(145)
-                pen.forward(SCALING/20)
-                pen.back(SCALING/20)
-                pen.right(145)
-                pen.right(145)
-                pen.forward(SCALING/20)
-                pen.back(SCALING/20)
-                pen.left(145)
-                pen.back(SCALING/10)
-                pen.up()
-                pen.clearstamp(rand_stamp)
-                pen.clearstamp(nn_stamp)
-          
             if (x_new == x_rand):
                 return Status.REACHED
-            elif self.edgeCollidesWithDirtPile(nearest_neighbour,x_new,u_new):
-                return Status.COLLIDING
             elif nodeExists:
                 return Status.NODE_EXISTS
             elif bool1 or bool2:
@@ -142,7 +80,8 @@ class RRT:
     def getInverseControl(self,u_new):
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
-        print(direction)
+        if direction not in directionDict:
+            print("Error direction not found",direction)
         return (radius,theta,directionDict[direction])
 
     # get the nearest neighbours that are behind the push point
@@ -259,61 +198,33 @@ class RRT:
                         if (abs(math.degrees(theta_3-theta_4)-deltaTheta)<1):
 
                             if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
-                                print("COLLISION")
-                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                                #print("Intersection points are",x1,y1,x2,y2)
-                                #print(math.degrees(theta_4),math.degrees(theta_1),math.degrees(theta_3))
                                 return True
                             elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
-                                print("COLLISION")
-                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                                #print("Intersection points are",x1,y1,x2,y2)
-                                #print(math.degrees(theta_4),math.degrees(theta_2),math.degrees(theta_3))
                                 return True
                         elif (abs(math.degrees(2*math.pi - (theta_3-theta_4))-deltaTheta)<1):
                             if (theta_1 != None and 0<=theta_1 and theta_1<=theta_4):
-                                print("COLLISION")
                                 return True
                             elif (theta_2 != None and 0<=theta_2 and theta_2<=theta_4):
-                                print("COLLISION")
                                 return True
                             elif (theta_1 != None and 2*math.pi >= theta_1 and theta_1 >= theta_3):
-                                print("COLLISION")
                                 return True
                             elif (theta_2 != None and 2*math.pi >= theta_2 and theta_2 >= theta_3):
-                                print("COLLISION")
                                 return True
                                   
                     else:
                         if (abs(math.degrees(theta_4-theta_3)-deltaTheta)<1):
                             if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
-                                print("COLLISION")
-                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                                #print("Intersection points are",x1,y1,x2,y2)
-                                #print(math.degrees(theta_3),math.degrees(theta_1),math.degrees(theta_4))
                                 return True
                             elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
-                                print("COLLISION")
-                                #print("From (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) edge = (%.4f,%.2f,%s)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta,radius,deltaTheta,direction))
-                                #print("Circle comparison between (%.2f,%.2f) r1=[%.2f] and (%.2f,%.2f) r2=[%.2f]" % (pos[0],pos[1],self._map.disk_radius,p,q,radius))
-                                #print("Intersection points are",x1,y1,x2,y2)
-                                #print(math.degrees(theta_3),math.degrees(theta_2),math.degrees(theta_4))
                                 return True
                         elif (abs(math.degrees(2*math.pi - (theta_4-theta_3))-deltaTheta)<0.1):
                             if (theta_1 != None and 0<= theta_1 and theta_1 <= theta_3):
-                                print("COLLISION")
                                 return True
                             elif (theta_2 != None and 0<= theta_2 and theta_2 <= theta_3):
-                                print("COLLISION")
                                 return True
                             elif (theta_1 != None and 2*math.pi>=theta_1 and theta_1 >= theta_4):
-                                print("COLLISION")
                                 return True
                             elif (theta_2 != None and 2*math.pi>=theta_2 and theta_2 >= theta_4):
-                                print("COLLISION")
                                 return True
 
 

@@ -38,6 +38,7 @@ class Push_RRT:
 
     def getPushingActions(self,state,axis):
         push_points = self.getPushPoints(state.getDiskPos())
+        pushing_actions = []
         for push_point in push_points:
             print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
             if self._RRT.connectPushPoint(push_point,axis):
@@ -45,11 +46,19 @@ class Push_RRT:
                 plt.draw()
                 plt.pause(1)
                 plt.show(block=False)
-                plt.pause(5)
+                plt.pause(1)
+                action = [state.pushDisk(push_point),push_point]
+                pushing_actions.append(action)
                 #create pushing action and add to list
             else:
                 print("Push point is not accessible")
-        time.sleep(10000)
+                action = [state.getDiskPos(),push_point]
+                pushing_actions.append(action)
+        plt.draw()
+        plt.pause(1)
+        plt.show(block=False)
+        return pushing_actions
+
     def PushToGoals(self,disk_num,disk_pos,ax):
         pq = queue.PriorityQueue()
         firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)
@@ -64,10 +73,11 @@ class Push_RRT:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]
                     push_point = action[1]
-                    newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
-                    self.graph[oldDiskPos][newDiskPos] = push_point
-                    newState = PushState(currState.getG()+self.getHeursitic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
-                    pq.put(newState)
+                    if (newDiskPos != oldDiskPos):
+                        newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
+                        self.graph[oldDiskPos][newDiskPos] = push_point
+                        newState = PushState(currState.getG()+self.getHeursitic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
+                        pq.put(newState)
 
 
 
