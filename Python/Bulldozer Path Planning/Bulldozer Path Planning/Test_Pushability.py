@@ -21,82 +21,82 @@ curve.plot(100,ax=axis)
 
 plt.show()
 
-#SCALING = 100.0
-#OFFSET = 300.0
-#NUM_NODES = 2000
+SCALING = 100.0
+OFFSET = 300.0
+NUM_NODES = 2000
 
 
-#ControlsList = [
-#    (0.4,45,"FL"),
-#    (0.4826,37.3,"FL"),
-#    (0.593,30.37,"FL"),
-#    (0.7493,24.02,"FL"),
-#    (0.991,18.16,"FL"),
-#    (1.405,12.8,"FL"),
-#    (2.223,8.097,"FL"),
-#    (4.199,4.286,"FL"),
-#    ((0.4*math.pi)/4.0,0,"F"),
-#    (0.4,45,"FR"),
-#    (0.4826,37.3,"FR"),
-#    (0.593,30.37,"FR"),
-#    (0.7493,24.02,"FR"),
-#    (0.991,18.16,"FR"),
-#    (1.405,12.8,"FR"),
-#    (2.223,8.097,"FR"),
-#    (4.199,4.286,"FR"),
-#    (0.4,45,"RL"),
-#    (0.4826,37.3,"RL"),
-#    (0.593,30.37,"RL"),
-#    (0.7493,24.02,"RL"),
-#    (0.991,18.16,"RL"),
-#    (1.405,12.8,"RL"),
-#    (2.223,8.097,"RL"),
-#    (4.199,4.286,"RL"),
-#    ((0.4*math.pi)/4.0,0,"R"),
-#    (0.4,45,"RR"),
-#    (0.4826,37.3,"RR"),
-#    (0.593,30.37,"RR"),
-#    (0.7493,24.02,"RR"),
-#    (0.991,18.16,"RR"),
-#    (1.405,12.8,"RR"),
-#    (2.223,8.097,"RR"),
-#    (4.199,4.286,"RR")]
+ControlsList = [
+    (0.4,45,"FL"),
+    (0.4826,37.3,"FL"),
+    (0.593,30.37,"FL"),
+    (0.7493,24.02,"FL"),
+    (0.991,18.16,"FL"),
+    (1.405,12.8,"FL"),
+    (2.223,8.097,"FL"),
+    (4.199,4.286,"FL"),
+    ((0.4*math.pi)/4.0,0,"F"),
+    (0.4,45,"FR"),
+    (0.4826,37.3,"FR"),
+    (0.593,30.37,"FR"),
+    (0.7493,24.02,"FR"),
+    (0.991,18.16,"FR"),
+    (1.405,12.8,"FR"),
+    (2.223,8.097,"FR"),
+    (4.199,4.286,"FR"),
+    (0.4,45,"RL"),
+    (0.4826,37.3,"RL"),
+    (0.593,30.37,"RL"),
+    (0.7493,24.02,"RL"),
+    (0.991,18.16,"RL"),
+    (1.405,12.8,"RL"),
+    (2.223,8.097,"RL"),
+    (4.199,4.286,"RL"),
+    ((0.4*math.pi)/4.0,0,"R"),
+    (0.4,45,"RR"),
+    (0.4826,37.3,"RR"),
+    (0.593,30.37,"RR"),
+    (0.7493,24.02,"RR"),
+    (0.991,18.16,"RR"),
+    (1.405,12.8,"RR"),
+    (2.223,8.097,"RR"),
+    (4.199,4.286,"RR")]
 
 
 
-#MyMaps = Maps()
-#map = MyMaps.test_maps[0]
-#My_Push = Push_RRT(map)
-#starting_xy = map.initial_vehicle_pos_xy[0].tolist()
-#StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
-#MyRRT = RRT(map,StartVehiclePos,ControlsList)
+MyMaps = Maps()
+map = MyMaps.test_maps[0]
+My_Push = Push_RRT(map)
+starting_xy = map.initial_vehicle_pos_xy[0].tolist()
+StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
+MyRRT = RRT(map,StartVehiclePos,ControlsList)
 
-#map.plotStartingMap(axis,True)
-#plt.draw()
-#plt.pause(1)
-#plt.show(block=False)
-#i = 0
-#while i < NUM_NODES:
-#    print("i = ",i)
-#    x_rand = MyRRT.generateRandomState()
-#    status = MyRRT.extend(x_rand,None)
-#    if (status == Status.ADVANCED or status == Status.REACHED or status == Status.COLLIDING):
-#        i+=1
+map.plotStartingMap(axis,True)
+plt.draw()
+plt.pause(1)
+plt.show(block=False)
+i = 0
+while i < NUM_NODES:
+    print("i = ",i)
+    x_rand = MyRRT.generateRandomState()
+    status = MyRRT.extend(x_rand,None)
+    if (status == Status.ADVANCED or status == Status.REACHED or status == Status.COLLIDING):
+        i+=1
 
 
-#MyRRT.draw(axis)
-#plt.draw()
-#plt.pause(1)
-#plt.show(block=False)
-#My_Push.setRRT(MyRRT)
-###t.speed(4)
-###flag = False
-##turtle.update()
-###turtle.tracer(True)
-#starting_disk_pos = map.initial_disk_pos_xy
-#for i in range(len(starting_disk_pos)):
-#    disk_pos = starting_disk_pos[i]
-#    My_Push.PushToGoals(i,disk_pos,axis)
+MyRRT.draw(axis)
+plt.draw()
+plt.pause(1)
+plt.show(block=False)
+My_Push.setRRT(MyRRT)
+##t.speed(4)
+##flag = False
+#turtle.update()
+##turtle.tracer(True)
+starting_disk_pos = map.initial_disk_pos_xy
+for i in range(len(starting_disk_pos)):
+    disk_pos = starting_disk_pos[i]
+    My_Push.PushToGoals(i,disk_pos,axis)
 
 
 
