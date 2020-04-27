@@ -148,12 +148,13 @@ class Vehicle:
 
         kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
         radiusOfCurvature = 1.0/kappa
-        if radiusOfCurvature<MIN_RADIUS:
-            return False
-        tangentStart = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0)
-        tangentEnd = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0)
-        if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
-            return False
+        print("Radius of curvature is = ",radiusOfCurvature)
+        #if radiusOfCurvature<MIN_RADIUS:
+        #    return False
+        #tangentStart = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0)
+        #tangentEnd = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0)
+        #if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
+        #    return False
 
         return curve
 
