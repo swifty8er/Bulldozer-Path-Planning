@@ -99,6 +99,50 @@ class Vehicle:
             the_angle += delta_angle
         return (x_points,y_points)
 
+    def isAheadOf(self,otherVehicle):
+        line = [[self.x,self.y],[self.x+math.cos(math.radians(self.theta)),self.y+math.sin(math.radians(self.theta))]]
+        perp_line = BasicGeometry.getPerpLine(line)
+        (m,c,x) = perp_line
+        if m == None:
+            # line is of form x = 5
+            if (self.theta < 180):
+                if (otherVehicle.x<x):
+                    return True
+                else:
+                    return False
+       
+            else:
+                if (otherVehicle.x>x):
+                    return True
+                else:
+                    return False
+        elif m == 0:
+            # line is of the form y = 4
+            if (self.theta < 180):
+                if (otherVehicle.y<c):
+                    return True
+                else:
+                    return False
+            else:
+                if (otherVehicle.y>c):
+                    return True
+                else:
+                    return False
+
+        else:
+            if (self.theta<180):
+                upperBoundY = m*self.x+c
+                if otherVehicle.y < upperBoundY:
+                    return True
+                else:
+                    return False
+            else:
+                lowerBoundY = m*self.x+c
+                if otherVehicle.y > lowerBoundY:
+                    return True
+                else:
+                    return False
+
     # Create a bezier control curve between the two vehicle, if a valid control exists
     def createBezierCurveControl(self,otherVehicle):
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)
@@ -148,13 +192,12 @@ class Vehicle:
 
         kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
         radiusOfCurvature = 1.0/kappa
-        print("Radius of curvature is = ",radiusOfCurvature)
-        #if radiusOfCurvature<MIN_RADIUS:
-        #    return False
-        #tangentStart = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0)
-        #tangentEnd = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0)
-        #if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
-        #    return False
+        if radiusOfCurvature<MIN_RADIUS:
+            return False
+        tangentStart = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0)
+        tangentEnd = BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0)
+        if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
+            return False
 
         return curve
 

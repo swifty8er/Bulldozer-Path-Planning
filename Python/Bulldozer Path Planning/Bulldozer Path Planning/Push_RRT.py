@@ -44,9 +44,9 @@ class Push_RRT:
                 print("Push point is accessible")
                 self._RRT.draw(axis)
                 plt.draw()
-                plt.pause(10)
+                plt.pause(1)
                 plt.show(block=False)
-                plt.pause(30)
+                plt.pause(5)
                 #create pushing action and add to list
             else:
                 print("Push point is not accessible")

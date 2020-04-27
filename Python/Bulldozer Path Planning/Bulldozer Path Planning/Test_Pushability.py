@@ -8,18 +8,18 @@ from BasicGeometry import BasicGeometry
 import matplotlib.pyplot as plt
 fig = plt.figure()
 axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
-plt.xlim(0,5)
-plt.ylim(0,5)
-v1 = Vehicle(3.03798,2.26665,142.95182)
-v2 = Vehicle(3.13,2.15,153.71)
-curve = v1.createBezierCurveControl(v2)
-print("Tangent angle of starting path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0))
-print("Tangent angle of ending path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0))
-print(curve.evaluate_hodograph(0.0))
-print(curve.evaluate_hodograph(1.0))
-curve.plot(100,ax=axis)
+#plt.xlim(0,5)
+#plt.ylim(0,5)
+#v1 = Vehicle(2.77551,3.09045,182.22893)
+#v2 = Vehicle(2.95,2.5,180)
+#curve = v1.createBezierCurveControl(v2)
+#print("Tangent angle of starting path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,0.0))
+#print("Tangent angle of ending path is =",BasicGeometry.getTangentAngleOfBezierCurveAtPoint(curve,1.0))
+#print(curve.evaluate_hodograph(0.0))
+#print(curve.evaluate_hodograph(1.0))
+#curve.plot(100,ax=axis)
 
-plt.show()
+#plt.show()
 
 SCALING = 100.0
 OFFSET = 300.0

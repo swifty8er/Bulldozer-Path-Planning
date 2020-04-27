@@ -284,7 +284,6 @@ class BasicGeometry():
     #return the tangent angle of a bezier curve at a point along the curve in degrees
     def getTangentAngleOfBezierCurveAtPoint(bezierCurve,s):
         point_array = bezierCurve.evaluate(s).tolist()
-        print(point_array)
         point = [i[0] for i in point_array]
         d_points = bezierCurve.evaluate_hodograph(s).tolist()
         d_list = [i[0] for i in d_points]
