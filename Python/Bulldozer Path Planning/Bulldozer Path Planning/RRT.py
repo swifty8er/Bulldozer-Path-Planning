@@ -81,7 +81,7 @@ class RRT:
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         if direction not in directionDict:
-            print("Error direction not found",direction)
+            print("Error direction not found",u_new)
         return (radius,theta,directionDict[direction])
 
     # get the nearest neighbours that are behind the push point
@@ -91,11 +91,6 @@ class RRT:
             if push_point.isAheadOf(node):
                 dist = push_point.WithinAngleDistanceMetric(node)
                 if dist == math.inf:
-                    continue
-                if isinstance(dist,Vehicle) or isinstance(max(k_nn)[0],Vehicle):
-                    print("Error found Vehicles in nearest neighbours to push point")
-                    print(dist)
-                    print(max(k_nn)[0])
                     continue
                 if len(k_nn) < k:
                     k_nn.append((dist,node))

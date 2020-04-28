@@ -22,6 +22,10 @@ class Vehicle:
     def theta(self):
         return self._theta
 
+    # dummy greater than comparison so that max of k_nn works in parent class
+    def __gt__(self, other):
+        return False
+
     def __eq__(self, other):
         if other == None:
             return False
@@ -154,7 +158,6 @@ class Vehicle:
         #print("Creating bezier control curve between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta))
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)
         if intersectionPoint == None:
-            print("Failed")
             return False
         if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
             #deal with straight line case
@@ -197,8 +200,14 @@ class Vehicle:
                 t = t-interval/2.0
             else:
                 interval = interval/2.0
-
-        kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
+        gradientOfLine = BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y))
+        if gradientOfLine == math.inf:
+            ddx = 0
+            ddy = abs(self.y-otherVehicle.y)
+        else:
+            ddx = gradientOfLine
+            ddy = gradientOfLine
+        kappa = BasicGeometry.getKappa(t,curve,ddx,ddy)
         if kappa == 0:
             return curve
         radiusOfCurvature = 1.0/kappa

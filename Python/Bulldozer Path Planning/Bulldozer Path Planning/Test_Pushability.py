@@ -98,6 +98,7 @@ starting_disk_pos = map.initial_disk_pos_xy
 for i in range(len(starting_disk_pos)):
     disk_pos = starting_disk_pos[i]
     My_Push.PushToGoals(i,disk_pos,axis,ax2)
+    print("Pushed to goal... DONE")
     #My_Push.draw(ax2)
     plt.draw()
     plt.pause(1)
