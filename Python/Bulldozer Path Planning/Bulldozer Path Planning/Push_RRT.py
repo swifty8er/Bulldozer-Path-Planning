@@ -8,15 +8,16 @@ from RRT import RRT
 from RRT import Status
 from Vehicle import Vehicle
 from PushState import PushState
-
+import matplotlib.pyplot as plt
 SCALING = 100.0
 OFFSET = 300.0
 
 class Push_RRT:
-    def __init__(self,map):
+    def __init__(self,map,max_push_distance):
         self._map = map
         self._graph = {}
         self._RRT = None
+        self._map_push_distance = max_push_distance
 
     def setRRT(self,rrt):
         self._RRT = rrt
@@ -32,8 +33,12 @@ class Push_RRT:
             angle += (math.pi/6.0)
         return push_points
 
-    def addEdge(self,node1,node2,push_point,tree):
-        pass
+    def addEdge(self,node1,node2,push_point):
+        if node1 in self._graph:
+            self._graph[node1][node2] = push_point
+        else:
+            self._graph[node1] = {}
+            self._graph[node1][node2] = push_point
 
 
     def getPushingActions(self,state,axis):
@@ -47,7 +52,7 @@ class Push_RRT:
                 plt.pause(1)
                 plt.show(block=False)
                 plt.pause(1)
-                action = [state.pushDisk(push_point),push_point]
+                action = [state.pushDisk(push_point,self._map.goal_pos_xy,self._map_push_distance,50),push_point]
                 pushing_actions.append(action)
                 #create pushing action and add to list
             else:
@@ -75,11 +80,17 @@ class Push_RRT:
                     push_point = action[1]
                     if (newDiskPos != oldDiskPos):
                         newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
-                        self.graph[oldDiskPos][newDiskPos] = push_point
+                        self.addEdge(oldDiskPos,newDiskPos,push_point)
                         newState = PushState(currState.getG()+self.getHeursitic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
                         pq.put(newState)
 
 
+    def draw(self,axis):
+        for node in self._graph:
+            for n2 in self._graph[node]:
+                x_points = [node.x,n2.x]
+                y_points = [node.y,n2.y]
+                axis.plot(x_points,y_points,'m-',linewidth=1)
 
 
 

@@ -65,7 +65,7 @@ ControlsList = [
 
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
-My_Push = Push_RRT(map)
+My_Push = Push_RRT(map,(0.4*math.pi)/4.0)
 starting_xy = map.initial_vehicle_pos_xy[0].tolist()
 StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
 MyRRT = RRT(map,StartVehiclePos,ControlsList,5000)
@@ -96,6 +96,11 @@ starting_disk_pos = map.initial_disk_pos_xy
 for i in range(len(starting_disk_pos)):
     disk_pos = starting_disk_pos[i]
     My_Push.PushToGoals(i,disk_pos,axis)
+    My_Push.draw(axis)
+    plt.draw()
+    plt.pause(1)
+    plt.show(block=False)
+    plt.pause(30)
 
 
 
