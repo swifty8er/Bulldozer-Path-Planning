@@ -7,7 +7,8 @@ from Maps import Maps
 from BasicGeometry import BasicGeometry
 import matplotlib.pyplot as plt
 fig = plt.figure()
-axis = fig.add_subplot(1, 1, 1) # two rows, one column, first plot
+axis = fig.add_subplot(2, 1, 1) # two rows, one column, first plot
+ax2 = fig.add_subplot(2,1,2)
 #plt.xlim(0,5)
 #plt.ylim(0,5)
 #v1 = Vehicle(2.6,3.45,306.13)
@@ -71,6 +72,7 @@ StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
 MyRRT = RRT(map,StartVehiclePos,ControlsList,5000)
 
 map.plotStartingMap(axis,True)
+map.plotStartingMap(ax2,True)
 plt.draw()
 plt.pause(1)
 plt.show(block=False)
@@ -96,7 +98,7 @@ starting_disk_pos = map.initial_disk_pos_xy
 for i in range(len(starting_disk_pos)):
     disk_pos = starting_disk_pos[i]
     My_Push.PushToGoals(i,disk_pos,axis)
-    My_Push.draw(axis)
+    My_Push.draw(ax2)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)

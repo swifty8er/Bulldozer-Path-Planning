@@ -34,6 +34,7 @@ class Push_RRT:
         return push_points
 
     def addEdge(self,node1,node2,push_point):
+        
         if node1 in self._graph:
             self._graph[node1][node2] = push_point
         else:
@@ -41,17 +42,17 @@ class Push_RRT:
             self._graph[node1][node2] = push_point
 
 
-    def getPushingActions(self,state,axis):
+    def getPushingActions(self,state,axis=False):
         push_points = self.getPushPoints(state.getDiskPos())
         pushing_actions = []
         for push_point in push_points:
             print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
             if self._RRT.connectPushPoint(push_point,axis):
                 print("Push point is accessible")
-                plt.draw()
-                plt.pause(1)
-                plt.show(block=False)
-                plt.pause(1)
+                #plt.draw()
+                #plt.pause(0.01)
+                #plt.show(block=False)
+                #plt.pause(0.01)
                 action = [state.pushDisk(push_point,self._map.goal_pos_xy,self._map_push_distance,50),push_point]
                 pushing_actions.append(action)
                 #create pushing action and add to list
@@ -59,31 +60,70 @@ class Push_RRT:
                 print("Push point is not accessible")
                 action = [state.getDiskPos(),push_point]
                 pushing_actions.append(action)
-        plt.draw()
-        plt.pause(1)
-        plt.show(block=False)
+        #plt.draw()
+        #plt.pause(1)
+        #plt.show(block=False)
         return pushing_actions
 
+
+    def getHeuristic(self,newPosition,newStatuses):
+        h = 0
+        i = 0
+        for status in newStatuses:
+            if not status:
+                h += BasicGeometry.manhattanDistance(newPosition,self._map.goal_pos_xy[i])
+            i+=1
+        return h
+
+    def updateStatuses(self,statuses,disk_pos):
+        newStatuses = []
+        for i in range(len(self._map.goal_pos_xy)):
+            goal_pos = self._map.goal_pos_xy[i]
+            if statuses[i]:
+                newStatuses.append(True)
+            else:
+                if self.diskAtThisGoal(disk_pos,goal_pos):
+                    newStatuses.append(True)
+                else:
+                    newStatuses.append(False)
+        return newStatuses
+
+
+    def diskAtThisGoal(self,disk_pos,goal_pos):
+        if abs(disk_pos[0]-goal_pos[0]) < 0.05 and abs(disk_pos[1]-goal_pos[1]) < 0.05:
+            return True
+        else:
+            return False
+
     def PushToGoals(self,disk_num,disk_pos,ax):
+        disk_position = disk_pos.tolist()
+        starting_pos = (disk_position[0],disk_position[1])
         pq = queue.PriorityQueue()
-        firstState = PushState(0,disk_pos,[False]*len(self._map.goal_pos_xy),0)
+        firstState = PushState(0,starting_pos,[False]*len(self._map.goal_pos_xy),0)
         pq.put(firstState)
         while not pq.empty():
             currState = pq.get()
             if not (False in currState.getStatuses()):
                 break
             if not currState.diskAtGoal(self._map.goal_pos_xy):
-                pushingActions = self.getPushingActions(currState,ax)
+                pushingActions = self.getPushingActions(currState)
                 for action in pushingActions:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]
                     push_point = action[1]
-                    if (newDiskPos != oldDiskPos):
+                    if not self.samePosition(newDiskPos,oldDiskPos):
                         newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
                         self.addEdge(oldDiskPos,newDiskPos,push_point)
                         newState = PushState(currState.getG()+self.getHeursitic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
                         pq.put(newState)
 
+    def samePosition(self,pos1,pos2):
+        (x1,y1) = pos1
+        (x2,y2) = pos2
+        if (x1==x2) and (y1==y2):
+            return True
+        else:
+            return False
 
     def draw(self,axis):
         for node in self._graph:

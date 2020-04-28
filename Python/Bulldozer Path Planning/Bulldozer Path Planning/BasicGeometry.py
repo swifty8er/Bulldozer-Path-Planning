@@ -6,6 +6,13 @@ import bezier
 class BasicGeometry():
     #functions for basic geometry and list finding
     @staticmethod
+    def manhattanDistance(pos1,pos2):
+        (x1,y1) = pos1
+        (x2,y2) = pos2
+        return abs(x1-x2) + abs(y1-y2)
+
+
+    @staticmethod
     def arcLineCollisionAlgorithm(start_position,control,line,disk_radius):
         direction = control[2]
         end_position = start_position.applyControl(control[0],control[1],control[2])

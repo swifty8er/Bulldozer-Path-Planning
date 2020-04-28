@@ -346,7 +346,8 @@ class RRT:
                         backwardsDict[nn] = {}
                     backwardsDict[nn][node] = bezier_new
                     backwardsDict[node][nn] = False
-                    bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                    if axis!=False:
+                        bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
                     connected = True
 
         self.tree.update(backwardsDict)
