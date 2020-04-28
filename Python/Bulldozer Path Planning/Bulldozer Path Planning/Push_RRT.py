@@ -55,9 +55,9 @@ class Push_RRT:
         push_points = self.getPushPoints(state.getDiskPos())
         pushing_actions = []
         for push_point in push_points:
-            print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
+            #print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
             if self._RRT.connectPushPoint(push_point,axis):
-                print("Push point is accessible")
+                #print("Push point is accessible")
                 #plt.draw()
                 #plt.pause(0.01)
                 #plt.show(block=False)
@@ -66,7 +66,7 @@ class Push_RRT:
                 pushing_actions.append(action)
                 #create pushing action and add to list
             else:
-                print("Push point is not accessible")
+                #print("Push point is not accessible")
                 action = [state.getDiskPos(),push_point]
                 pushing_actions.append(action)
         #plt.draw()

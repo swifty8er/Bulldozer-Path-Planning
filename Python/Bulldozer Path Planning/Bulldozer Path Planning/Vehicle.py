@@ -199,6 +199,8 @@ class Vehicle:
                 interval = interval/2.0
 
         kappa = BasicGeometry.getKappa(t,curve,BasicGeometry.getGradientOfLine((self.x,self.y),(otherVehicle.x,otherVehicle.y)))
+        if kappa == 0:
+            return curve
         radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature<MIN_RADIUS:
             #print("Failed radius of curvature is =",radiusOfCurvature)

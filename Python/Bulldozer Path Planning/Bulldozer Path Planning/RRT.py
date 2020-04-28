@@ -92,6 +92,11 @@ class RRT:
                 dist = push_point.WithinAngleDistanceMetric(node)
                 if dist == math.inf:
                     continue
+                if isinstance(dist,Vehicle) or isinstance(max(k_nn)[0],Vehicle):
+                    print("Error found Vehicles in nearest neighbours to push point")
+                    print(dist)
+                    print(max(k_nn)[0])
+                    continue
                 if len(k_nn) < k:
                     k_nn.append((dist,node))
                 elif dist < max(k_nn)[0]:

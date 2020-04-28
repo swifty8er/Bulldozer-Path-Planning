@@ -37,8 +37,14 @@ class PushState:
         bestPush = None
         min_dist = math.inf
         found = False
+        if BasicGeometry.ptDist(closestGoal,self._disk_pos) < max_push_distance:
+            upperBound = BasicGeometry.ptDist(closestGoal,self._disk_pos)
+            lowerBound = 0.0
+        else:
+            upperBound = max_push_distance
+            lowerBound = max_push_distance/2.0
         for i in range(num_steps):
-            r = random.uniform(0.0,max_push_distance)
+            r = random.uniform(lowerBound,upperBound)
             new_disk_pos = (self._disk_pos[0]+r*math.cos(math.radians(push_point.theta)),self._disk_pos[1]+r*math.sin(math.radians(push_point.theta)))
             dist = BasicGeometry.manhattanDistance(new_disk_pos,closestGoal)
             if dist < min_dist:
@@ -48,7 +54,6 @@ class PushState:
 
         if not found:
             raise Exception("Failed to push disk towards closest goal")
-        print("Pushed disk from push point (%.2f,%.2f,%.2f) to (%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta,bestPush[0],bestPush[1]))
         return bestPush
 
     def getClosestGoal(self,goalPositions):
