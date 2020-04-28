@@ -8,7 +8,11 @@ class PushState:
         self._statuses = statuses
         self._g = g
 
-    # disk_pos is a point tuple (x,y
+    def __lt__(self,other):
+        return self.f < other.f
+
+
+    # disk_pos is a point tuple (x,y)
     def getDiskPos(self):
         return self._disk_pos
 
@@ -17,6 +21,10 @@ class PushState:
 
     def getG(self):
         return self._g
+
+    @property
+    def f(self):
+        return self._f
 
     def diskAtGoal(self,goalPositions):
         for pos in goalPositions:

@@ -33,13 +33,22 @@ class Push_RRT:
             angle += (math.pi/6.0)
         return push_points
 
-    def addEdge(self,node1,node2,push_point):
-        
+
+    # Node in the push graph are point tuples representing the location of the centre of a disk
+    # Edges are the push points used to move disk from n1 to n2
+    def addEdge(self,node1,node2,push_point,axis=False):
+        if axis!=False:
+            axis.plot([node1[0],node2[0]],[node1[1],node2[1]],'m-',linewidth=1)
+            plt.draw()
+            plt.pause(0.01)
+            plt.show(block=False)
+            plt.pause(1)
         if node1 in self._graph:
             self._graph[node1][node2] = push_point
         else:
             self._graph[node1] = {}
             self._graph[node1][node2] = push_point
+
 
 
     def getPushingActions(self,state,axis=False):
@@ -95,7 +104,7 @@ class Push_RRT:
         else:
             return False
 
-    def PushToGoals(self,disk_num,disk_pos,ax):
+    def PushToGoals(self,disk_num,disk_pos,ax,ax2=False):
         disk_position = disk_pos.tolist()
         starting_pos = (disk_position[0],disk_position[1])
         pq = queue.PriorityQueue()
@@ -113,8 +122,8 @@ class Push_RRT:
                     push_point = action[1]
                     if not self.samePosition(newDiskPos,oldDiskPos):
                         newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
-                        self.addEdge(oldDiskPos,newDiskPos,push_point)
-                        newState = PushState(currState.getG()+self.getHeursitic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
+                        self.addEdge(oldDiskPos,newDiskPos,push_point,ax2)
+                        newState = PushState(currState.getG()+self.getHeuristic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
                         pq.put(newState)
 
     def samePosition(self,pos1,pos2):
@@ -128,8 +137,8 @@ class Push_RRT:
     def draw(self,axis):
         for node in self._graph:
             for n2 in self._graph[node]:
-                x_points = [node.x,n2.x]
-                y_points = [node.y,n2.y]
+                x_points = [node[0],n2[0]]
+                y_points = [node[1],n2[1]]
                 axis.plot(x_points,y_points,'m-',linewidth=1)
 
 
