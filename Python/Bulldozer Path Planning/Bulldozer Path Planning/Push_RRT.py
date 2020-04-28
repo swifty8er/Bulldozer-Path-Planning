@@ -110,25 +110,21 @@ class Push_RRT:
         push_points = self.getPushPoints(state.getDiskPos())
         pushing_actions = []
         for push_point in push_points:
-            #print("Testing push point (%.2f.%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
             if self._RRT.connectPushPoint(push_point,axis):
-                #print("Push point is accessible")
-                #plt.draw()
-                #plt.pause(0.01)
-                #plt.show(block=False)
-                #plt.pause(0.01)
-                action = [self.pushDisk(push_point,state.getDiskPos()),push_point]
-                pushing_actions.append(action)
-                #create pushing action and add to list
-            else:
-                #print("Push point is not accessible")
-                action = [state.getDiskPos(),push_point]
-                pushing_actions.append(action)
-        #plt.draw()
-        #plt.pause(1)
-        #plt.show(block=False)
+                new_disk_pos = self.pushDisk(push_point,state.getDiskPos())
+                if not self.graphContainsPosCloseToNewPos(new_disk_pos):
+                    action = [new_disk_pos,push_point]
+                    pushing_actions.append(action)
+            
+
         return pushing_actions
 
+
+    def graphContainsPosCloseToNewPos(self,new_pos,tolerance=0.1):
+        for pos in self._graph:
+            if BasicGeometry.ptDist(pos,new_pos) <= tolerance:
+                return True
+        return False
 
     def getHeuristic(self,newPosition,newStatuses):
         h = 0
@@ -177,11 +173,10 @@ class Push_RRT:
                     oldDiskPos = currState.getDiskPos()
                     newDiskPos = action[0]
                     push_point = action[1]
-                    if not self.samePosition(newDiskPos,oldDiskPos):
-                        newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
-                        self.addEdge(oldDiskPos,newDiskPos,push_point,ax2)
-                        newState = PushState(currState.getG()+self.getHeuristic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
-                        q.put(newState)
+                    newStatuses = self.updateStatuses(currState.getStatuses(),newDiskPos)
+                    self.addEdge(oldDiskPos,newDiskPos,push_point,ax2)
+                    newState = PushState(currState.getG()+self.getHeuristic(newDiskPos,newStatuses),newDiskPos,newStatuses,currState.getG()+BasicGeometry.ptDist(oldDiskPos,newDiskPos))
+                    q.put(newState)
 
     def samePosition(self,pos1,pos2):
         (x1,y1) = pos1
