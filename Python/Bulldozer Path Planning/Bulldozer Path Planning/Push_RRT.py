@@ -30,7 +30,10 @@ class Push_RRT:
             push_point = (disk_pos[0]+self._map.disk_radius*math.cos(angle),disk_pos[1]+self._map.disk_radius*math.sin(angle))
             heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(push_point,disk_pos)))
             push_pose = Vehicle(push_point[0],push_point[1],heading%360)
-            push_points.append(push_pose)
+            if (push_pose.theta % 90 ==0):
+                push_point.insert(0,push_pose)
+            else:
+                push_points.append(push_pose)
             angle += (math.pi/6.0)
         return push_points
 
@@ -112,7 +115,7 @@ class Push_RRT:
         for push_point in push_points:
             if self._RRT.connectPushPoint(push_point,axis):
                 new_disk_pos = self.pushDisk(push_point,state.getDiskPos())
-                if not self.graphContainsPosCloseToNewPos(new_disk_pos):
+                if not self.graphContainsPosCloseToNewPos(new_disk_pos,pushing_actions):
                     action = [new_disk_pos,push_point]
                     pushing_actions.append(action)
             
@@ -120,9 +123,12 @@ class Push_RRT:
         return pushing_actions
 
 
-    def graphContainsPosCloseToNewPos(self,new_pos,tolerance=0.1):
+    def graphContainsPosCloseToNewPos(self,new_pos,pushing_actions,tolerance=0.25):
         for pos in self._graph:
             if BasicGeometry.ptDist(pos,new_pos) <= tolerance:
+                return True
+        for a in pushing_actions:
+            if BasicGeometry.ptDist(a[0],new_pos) <= tolerance:
                 return True
         return False
 
