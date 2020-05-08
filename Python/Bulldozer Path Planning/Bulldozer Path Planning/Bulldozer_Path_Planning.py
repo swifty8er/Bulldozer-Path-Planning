@@ -78,7 +78,7 @@ for mm in mapNums:
     starting_xy = map.initial_vehicle_pos_xy[0].tolist()
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],random.uniform(0,360))
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,NUM_NODES)
-    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[],StartingRRT,0)
+    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],-1,StartingRRT,0)
     transTable = TranspositionTable(NUM_NODES,NUM_OF_BITS,TRANS_TABLE_SIZE)
     pq = queue.PriorityQueue()
     pq.put(curr_state)
@@ -87,7 +87,7 @@ for mm in mapNums:
     while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
         curr_state = pq.get()
         if (transTable.isVisited(curr_state,True) == False):
-            new_states = curr_state.getResultingState()
+            new_states = curr_state.getResultingStates()
             for state in new_states:
                 status = transTable.addToTable(state)
                 if status == "E" or status == "R":

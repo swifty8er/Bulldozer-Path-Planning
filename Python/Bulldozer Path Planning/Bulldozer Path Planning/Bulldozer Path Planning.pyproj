@@ -44,6 +44,9 @@
     <Compile Include="PQState.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Pushing.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PushState.py">
       <SubType>Code</SubType>
     </Compile>

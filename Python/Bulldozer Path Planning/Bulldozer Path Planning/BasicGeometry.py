@@ -431,6 +431,22 @@ class BasicGeometry():
         distance = math.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)
         return distance
 
+
+    @staticmethod
+    def lengthOfVectorOfClosestApproach(x1,y1,theta,x2,y2):
+        x = x2-x1
+        y = y2-y1
+        return math.sqrt( (x-math.cos(math.radians(theta))*(math.cos(math.radians(theta))*x+math.sin(math.radians(theta))*y))**2  +  (y-math.sin(math.radians(theta))*(math.cos(math.radians(theta))*x+math.sin(math.radians(theta))*y))**2)
+
+
+    @staticmethod
+    def GoalDistanceMetric(x1,y1,theta,x2,y2):
+        if math.sin(math.radians(theta)) < 0.25:
+            return BasicGeometry.ptDist([x1,y1],[x2,y2])
+        else:
+            return math.sin(math.radians(theta)) * (BasicGeometry.ptDist([x1,y1],[x2,y2])) ** 2
+
+
     @staticmethod
     def findClosestPoint(start_point, dest_points):
         closest_dist = math.inf
