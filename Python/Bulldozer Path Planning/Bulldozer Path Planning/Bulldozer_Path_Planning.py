@@ -7,6 +7,7 @@ from xlutils.copy import copy
 import sim
 import math
 import numpy as np
+import random
 
 from Maps import Maps
 from VisibilityGraph import VisibilityGraph
@@ -14,12 +15,51 @@ from PushabilityGraph import PushabilityGraph
 from TranspositionTable import TranspositionTable
 from MapState import MapState
 from Graph import Graph
+from RRT import RRT
+from PQState import PQState
 from BasicGeometry import BasicGeometry
 
 
 NUM_OF_BITS = 32
 TRANS_TABLE_SIZE = 15
+NUM_NODES = 5000
 myMap = Maps()
+
+ControlsList = [
+    (0.4,45,"FL"),
+    (0.4826,37.3,"FL"),
+    (0.593,30.37,"FL"),
+    (0.7493,24.02,"FL"),
+    (0.991,18.16,"FL"),
+    (1.405,12.8,"FL"),
+    (2.223,8.097,"FL"),
+    (4.199,4.286,"FL"),
+    ((0.4*math.pi)/4.0,0,"F"),
+    (0.4,45,"FR"),
+    (0.4826,37.3,"FR"),
+    (0.593,30.37,"FR"),
+    (0.7493,24.02,"FR"),
+    (0.991,18.16,"FR"),
+    (1.405,12.8,"FR"),
+    (2.223,8.097,"FR"),
+    (4.199,4.286,"FR"),
+    (0.4,45,"RL"),
+    (0.4826,37.3,"RL"),
+    (0.593,30.37,"RL"),
+    (0.7493,24.02,"RL"),
+    (0.991,18.16,"RL"),
+    (1.405,12.8,"RL"),
+    (2.223,8.097,"RL"),
+    (4.199,4.286,"RL"),
+    ((0.4*math.pi)/4.0,0,"R"),
+    (0.4,45,"RR"),
+    (0.4826,37.3,"RR"),
+    (0.593,30.37,"RR"),
+    (0.7493,24.02,"RR"),
+    (0.991,18.16,"RR"),
+    (1.405,12.8,"RR"),
+    (2.223,8.097,"RR"),
+    (4.199,4.286,"RR")]
 
 
 fig1, ax1 = plt.subplots(1, 1)
@@ -35,32 +75,50 @@ mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,
 for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
-    curr_state = MapState(map)
-    trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
+    starting_xy = map.initial_vehicle_pos_xy[0].tolist()
+    StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],random.uniform(0,360))
+    StartingRRT = RRT(map,StartVehiclePos,ControlsList,NUM_NODES)
+    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[],StartingRRT,0)
+    transTable = TranspositionTable(NUM_NODES,NUM_OF_BITS,TRANS_TABLE_SIZE)
     pq = queue.PriorityQueue()
-    curr_node = curr_state.getCurrentState()
-    pq = queue.PriorityQueue()
-    pq.put(curr_node)
+    pq.put(curr_state)
     start_time = time.time()
 
-    #fig, ax = plt.subplots(1, 1)
-    #map.plotMap(ax, True)
+    while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
+        curr_state = pq.get()
+        if (transTable.isVisited(curr_state,True) == False):
+            new_states = curr_state.getResultingState()
+            for state in new_states:
+                status = transTable.addToTable(state)
+                if status == "E" or status == "R":
+                    pq.put(state)
 
-    while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
-        curr_node = pq.get()
-        #print("Current Node")
-        #curr_node.printNode()
-        if (trans_table.isVisited(curr_node, True) == False):
-            curr_state.updateState(curr_node)
-            decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
-            #print("\nList of Decisions")
-            for decision in decisions:
-                    status = trans_table.addToTable(decision)
-                    #decision.printNode()
-                    if status == "E" or status == "R":
-                        pq.put(decision)
+    #curr_state = MapState(map)
+    #trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
+    #pq = queue.PriorityQueue()
+    #curr_node = curr_state.getCurrentState()
+    #pq = queue.PriorityQueue()
+    #pq.put(curr_node)
+    #start_time = time.time()
 
-            curr_state.resetGraphs()
+    ##fig, ax = plt.subplots(1, 1)
+    ##map.plotMap(ax, True)
+
+    #while ((pq.empty() == False) and (curr_state.isFinishState() == False) and (time.time() - start_time <= 3600)):
+    #    curr_node = pq.get()
+    #    #print("Current Node")
+    #    #curr_node.printNode()
+    #    if (trans_table.isVisited(curr_node, True) == False):
+    #        curr_state.updateState(curr_node)
+    #        decisions = curr_state.findReachablePushPoints(curr_node.vehicle_path, curr_node.disk_path)
+    #        #print("\nList of Decisions")
+    #        for decision in decisions:
+    #                status = trans_table.addToTable(decision)
+    #                #decision.printNode()
+    #                if status == "E" or status == "R":
+    #                    pq.put(decision)
+
+    #        curr_state.resetGraphs()
 
     
     #Open the excel file
