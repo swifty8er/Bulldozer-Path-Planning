@@ -440,11 +440,13 @@ class BasicGeometry():
 
 
     @staticmethod
+    # Find the "closeness" between a disk and a goal in terms of pushability
+    # Theta in radians
     def GoalDistanceMetric(x1,y1,theta,x2,y2):
-        if math.sin(math.radians(theta)) < 0.25:
+        if math.sin(theta) < 0.25:
             return BasicGeometry.ptDist([x1,y1],[x2,y2])
         else:
-            return math.sin(math.radians(theta)) * (BasicGeometry.ptDist([x1,y1],[x2,y2])) ** 2
+            return math.sin((theta) * (BasicGeometry.ptDist([x1,y1],[x2,y2])) ** 2
 
 
     @staticmethod

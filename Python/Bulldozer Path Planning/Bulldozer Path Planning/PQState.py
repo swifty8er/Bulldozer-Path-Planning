@@ -67,7 +67,8 @@ class PQState:
         found = False
         for goal_pos in self._map.goal_pos_xy:
             if not reached[i]:
-                dist = BasicGeometry.GoalDistanceMetric(curr_disk_position[0],curr_disk_position[1],self._vehicle_pose.theta,goal_pos[0],goal_pos[1])
+                angle_between_heading_and_goal = abs(math.radians(self._vehicle_pose.theta) - BasicGeometry.vector_angle(BasicGeometry.vec_from_points(curr_disk_position,goal_pos)))
+                dist = BasicGeometry.GoalDistanceMetric(curr_disk_position[0],curr_disk_position[1],angle_between_heading_and_goal,goal_pos[0],goal_pos[1])
                 if dist < shortestDist:
                     shortestDist = dist
                     closestGoal = goal_pos
