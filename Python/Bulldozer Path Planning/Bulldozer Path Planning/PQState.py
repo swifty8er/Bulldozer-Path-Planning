@@ -1,7 +1,9 @@
 import math
+import numpy as np
 from BasicGeometry import BasicGeometry
+from Pushing import Pushing
 class PQState:
-    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,disk_being_pushed,rrt,f,g):
+    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,disk_being_pushed,rrt,g):
         self._map = map
         self._vehicle_pose = vehicle_pose
         self._disk_positions = disk_positions
@@ -82,11 +84,22 @@ class PQState:
 
 
     def getResultingStates(self):
+        resultingStates = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             push_point = self._vehicle_pose
             closest_goal = self.getClosestGoalToPushLine()
+            (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal)
+            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
+                new_disk_positions = np.copy(self._disk_positions)
+                new_disk_positions[self._disk_being_pushed] = new_disk_pos
+                new_vehicle_path = self._vehicle_path.copy()
+                new_vehicle_path.append(push_point)
+                new_disk_paths = self._disk_paths.copy()
+                new_disk_paths[self._disk_being_pushed].append(curr_disk_pos)
+                newState = PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_vehicle_paths,self._disk_being_pushed,self._RRT,self._g+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
+                resultingStates.append(newState)
         # next consider navigating to a different push point on the current disk
 
         # finally consider navigating to the push points of all other disks
