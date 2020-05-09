@@ -104,10 +104,11 @@ class PQState:
             if (transTable.isVisited(curr_state,True) == False):
                 path.append(pose)
                 for next_pose in self._RRT[pose]:
-                    new_state = (g+next_pose.EuclideanDistance(push_point),next_pose,path,g+pose.EuclideanDistance(next_pose))
-                    status = transTable.addToTable(new_state)
-                    if status == "E" or status == "R":
-                        pq.put(new_state)
+                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._disk_positions):
+                        new_state = (g+next_pose.EuclideanDistance(push_point),next_pose,path,g+pose.EuclideanDistance(next_pose))
+                        status = transTable.addToTable(new_state)
+                        if status == "E" or status == "R":
+                            pq.put(new_state)
 
         return (False,False,False)
 
@@ -139,6 +140,18 @@ class PQState:
                     newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,self._disk_being_pushed,self._RRT,self._g+gValue)
                     resultingStates.append(newState)
         # finally consider navigating to the push points of all other disks
+        for i in range(len(self._disk_positions)):
+            if i == self._disk_being_pushed:
+                continue
+            curr_disk_pos = self._disk_positions[i]
+            new_push_points = Pushing.getPushPoints(curr_disk_pos)
+            for push_point in new_push_points:
+                if self._RRT.connectPushPoint:
+                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
+                    if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
+                        newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,i,self._RRT,self._g+gValue)
+                        resultingStates.append(newState)
+
 
 
 

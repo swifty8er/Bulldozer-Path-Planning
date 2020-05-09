@@ -145,87 +145,104 @@ class RRT:
                 return True
         return False
 
-    def nodeWithinRadiusOfDirtPile(self,node):
-        for pos in self._map.initial_disk_pos_xy:
+    def nodeWithinRadiusOfDirtPile(self,node,dirt_pile_positions):
+        for pos in dirt_pile_positions:
             if self._map.disk_radius - BasicGeometry.ptDist(pos,(node.x,node.y)) > np.finfo(np.float32).eps:
                 return True
         return False
 
-    def edgeCollidesWithDirtPile(self,n1,n2,edge_arc):
-        if self.nodeWithinRadiusOfDirtPile(n1):
+    def pointWithinRadiusOfDirtPile(self,point,dirt_pile_positions):
+        for pos in dirt_pile_positions:
+            if self._map.disk_radius - BasicGeometry.ptDist(pos,point) > np.finfo(np.float32).eps:
+                return True
+        return False
+  
+    def edgeCollidesWithDirtPile(self,n1,n2,edge_arc,dirt_pile_positions):
+        if self.nodeWithinRadiusOfDirtPile(n1,dirt_pile_positions):
             return True
-        if self.nodeWithinRadiusOfDirtPile(n2):
+        if self.nodeWithinRadiusOfDirtPile(n2,dirt_pile_positions):
             return True
         if (edge_arc != False):
-            (radius,deltaTheta,direction) = edge_arc
-            if direction == "F" or direction == "R":
-                line = [[n1.x,n1.y],[n2.x,n2.y]]
-                for pos in self._map.initial_disk_pos_xy:
-                    if BasicGeometry.doesCircleIntersectLine(pos,self._map.disk_radius,line):
+            if isinstance(edge_arc,beizer.curve.Curve):
+                s = 0
+                while s<=1.0:
+                    point = edge_arc.evaluate(s)
+                    if self.pointWithinRadiusOfDirtPile(point,dirt_pile_positions):
                         return True
+                    s+= 0.02
+
+                return False
+
             else:
-                if direction == "FL" or direction == "RL":
-                    p = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
-                    q = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
+                (radius,deltaTheta,direction) = edge_arc
+                if direction == "F" or direction == "R":
+                    line = [[n1.x,n1.y],[n2.x,n2.y]]
+                    for pos in dirt_pile_positions:
+                        if BasicGeometry.doesCircleIntersectLine(pos,self._map.disk_radius,line):
+                            return True
                 else:
-                    p = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
-                    q = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
-                circle_2_centre = (p,q)
-                for pos in self._map.initial_disk_pos_xy:
-                    (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
-                    (x1,y1) = p1
-                    (x2,y2) = p2
-                    if (x1 != None and y1 != None):
-                        v1 = BasicGeometry.vec_from_points(circle_2_centre,p1)
-                        theta_1 = BasicGeometry.vector_angle(v1)
+                    if direction == "FL" or direction == "RL":
+                        p = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
+                        q = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
                     else:
-                        theta_1 = None
-                    if (x2 != None and y2 != None):
-                        v2 = BasicGeometry.vec_from_points(circle_2_centre,p2)
-                        theta_2 = BasicGeometry.vector_angle(v2)
-                    else:
-                        theta_2 = None
+                        p = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
+                        q = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
+                    circle_2_centre = (p,q)
+                    for pos in dirt_pile_positions:
+                        (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
+                        (x1,y1) = p1
+                        (x2,y2) = p2
+                        if (x1 != None and y1 != None):
+                            v1 = BasicGeometry.vec_from_points(circle_2_centre,p1)
+                            theta_1 = BasicGeometry.vector_angle(v1)
+                        else:
+                            theta_1 = None
+                        if (x2 != None and y2 != None):
+                            v2 = BasicGeometry.vec_from_points(circle_2_centre,p2)
+                            theta_2 = BasicGeometry.vector_angle(v2)
+                        else:
+                            theta_2 = None
 
 
 
-                    v3 = BasicGeometry.vec_from_points(circle_2_centre,(n1.x,n1.y))
-                    v4 = BasicGeometry.vec_from_points(circle_2_centre,(n2.x,n2.y))
+                        v3 = BasicGeometry.vec_from_points(circle_2_centre,(n1.x,n1.y))
+                        v4 = BasicGeometry.vec_from_points(circle_2_centre,(n2.x,n2.y))
 
-                    theta_3 = BasicGeometry.vector_angle(v3)
-                    theta_4 = BasicGeometry.vector_angle(v4)
+                        theta_3 = BasicGeometry.vector_angle(v3)
+                        theta_4 = BasicGeometry.vector_angle(v4)
 
-                    if (theta_4 < theta_3):
-                        if (abs(math.degrees(theta_3-theta_4)-deltaTheta)<1):
+                        if (theta_4 < theta_3):
+                            if (abs(math.degrees(theta_3-theta_4)-deltaTheta)<1):
 
-                            if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
-                                return True
-                            elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
-                                return True
-                        elif (abs(math.degrees(2*math.pi - (theta_3-theta_4))-deltaTheta)<1):
-                            if (theta_1 != None and 0<=theta_1 and theta_1<=theta_4):
-                                return True
-                            elif (theta_2 != None and 0<=theta_2 and theta_2<=theta_4):
-                                return True
-                            elif (theta_1 != None and 2*math.pi >= theta_1 and theta_1 >= theta_3):
-                                return True
-                            elif (theta_2 != None and 2*math.pi >= theta_2 and theta_2 >= theta_3):
-                                return True
+                                if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
+                                    return True
+                                elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
+                                    return True
+                            elif (abs(math.degrees(2*math.pi - (theta_3-theta_4))-deltaTheta)<1):
+                                if (theta_1 != None and 0<=theta_1 and theta_1<=theta_4):
+                                    return True
+                                elif (theta_2 != None and 0<=theta_2 and theta_2<=theta_4):
+                                    return True
+                                elif (theta_1 != None and 2*math.pi >= theta_1 and theta_1 >= theta_3):
+                                    return True
+                                elif (theta_2 != None and 2*math.pi >= theta_2 and theta_2 >= theta_3):
+                                    return True
                                   
-                    else:
-                        if (abs(math.degrees(theta_4-theta_3)-deltaTheta)<1):
-                            if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
-                                return True
-                            elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
-                                return True
-                        elif (abs(math.degrees(2*math.pi - (theta_4-theta_3))-deltaTheta)<0.1):
-                            if (theta_1 != None and 0<= theta_1 and theta_1 <= theta_3):
-                                return True
-                            elif (theta_2 != None and 0<= theta_2 and theta_2 <= theta_3):
-                                return True
-                            elif (theta_1 != None and 2*math.pi>=theta_1 and theta_1 >= theta_4):
-                                return True
-                            elif (theta_2 != None and 2*math.pi>=theta_2 and theta_2 >= theta_4):
-                                return True
+                        else:
+                            if (abs(math.degrees(theta_4-theta_3)-deltaTheta)<1):
+                                if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
+                                    return True
+                                elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
+                                    return True
+                            elif (abs(math.degrees(2*math.pi - (theta_4-theta_3))-deltaTheta)<0.1):
+                                if (theta_1 != None and 0<= theta_1 and theta_1 <= theta_3):
+                                    return True
+                                elif (theta_2 != None and 0<= theta_2 and theta_2 <= theta_3):
+                                    return True
+                                elif (theta_1 != None and 2*math.pi>=theta_1 and theta_1 >= theta_4):
+                                    return True
+                                elif (theta_2 != None and 2*math.pi>=theta_2 and theta_2 >= theta_4):
+                                    return True
 
 
         return False
