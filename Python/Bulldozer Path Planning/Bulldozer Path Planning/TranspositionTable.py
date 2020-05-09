@@ -71,9 +71,9 @@ class TranspositionTable:
         key = 0
         for i in range(len(self._zorbist_key)):
             #find the current value for a certain node
-            if (node.vehicle_pos == i):
+            if (node.vehicle_pose == i):
                 curr_value = self._zorbist_key[i]["vehicle"]
-            elif ((i in node.disk_poses) == True):
+            elif i in node.disk_positions:
                 curr_value = self._zorbist_key[i]["disk"]
             else:
                 curr_value = self._zorbist_key[i]["empty"]

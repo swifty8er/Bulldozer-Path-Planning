@@ -30,6 +30,10 @@ class PQState:
     def vehicle_pose(self):
         return self._vehicle_pose
 
+    @property
+    def disk_positions(self):
+        return self._disk_positions
+
     def __lt__(self,other):
         return self.f < other.f
 
@@ -38,7 +42,7 @@ class PQState:
         sorted_disk_poses = sorted(self._disk_positions)
         sorted_goal_poses = sorted(self._map.goal_pos_xy)
         for i in range(len(sorted_disk_poses)):
-            if (sorted_disk_poses[i] != sorted_goal_poses[i]):
+            if (sorted_disk_poses[i][0] != sorted_goal_poses[i][0] or sorted_disk_poses[i][1] != sorted_goal_poses[i][1]):
                     return False
 
         return True
