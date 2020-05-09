@@ -446,7 +446,7 @@ class BasicGeometry():
         if math.sin(theta) < 0.25:
             return BasicGeometry.ptDist([x1,y1],[x2,y2])
         else:
-            return math.sin((theta) * (BasicGeometry.ptDist([x1,y1],[x2,y2])) ** 2
+            return math.sin(theta) * (BasicGeometry.ptDist([x1,y1],[x2,y2])) ** 2
 
 
     @staticmethod

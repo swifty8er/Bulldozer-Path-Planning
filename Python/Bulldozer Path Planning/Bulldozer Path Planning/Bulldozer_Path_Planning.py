@@ -16,8 +16,10 @@ from TranspositionTable import TranspositionTable
 from MapState import MapState
 from Graph import Graph
 from RRT import RRT
+from RRT import Status
 from PQState import PQState
 from BasicGeometry import BasicGeometry
+from Vehicle import Vehicle
 
 
 NUM_OF_BITS = 32
@@ -78,6 +80,15 @@ for mm in mapNums:
     starting_xy = map.initial_vehicle_pos_xy[0].tolist()
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],random.uniform(0,360))
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,NUM_NODES)
+    i = 0
+    while i < StartingRRT.num_nodes:
+        print("i = ",i)
+        x_rand = StartingRRT.generateRandomState()
+        status = StartingRRT.extend(x_rand)
+        if (status == Status.ADVANCED or status == Status.REACHED):
+            i+=1
+
+
     curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],-1,StartingRRT,0)
     transTable = TranspositionTable(NUM_NODES,NUM_OF_BITS,TRANS_TABLE_SIZE)
     pq = queue.PriorityQueue()
@@ -86,6 +97,7 @@ for mm in mapNums:
 
     while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
         curr_state = pq.get()
+        print("Vehicle pose = (%.2f,%.2f) heading = [%.2f]" % (curr_state.vehicle_pose.x,curr_state.vehicle_pose.y,curr_state.vehicle_pose.theta))
         if (transTable.isVisited(curr_state,True) == False):
             new_states = curr_state.getResultingStates()
             for state in new_states:
@@ -93,6 +105,10 @@ for mm in mapNums:
                 if status == "E" or status == "R":
                     pq.put(state)
 
+    if curr_state.isFinishState() == True:
+        print("Solved in",time.time() - start_time)
+    else:
+        print("Failed")
     #curr_state = MapState(map)
     #trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
     #pq = queue.PriorityQueue()
@@ -121,63 +137,63 @@ for mm in mapNums:
     #        curr_state.resetGraphs()
 
     
-    #Open the excel file
-    read_book = open_workbook("Results/TestResults.xls")
-    work_book = copy(read_book)
-    read_sheet = read_book.sheet_by_index(0)
-    work_sheet = work_book.get_sheet(0)
+    ##Open the excel file
+    #read_book = open_workbook("Results/TestResults.xls")
+    #work_book = copy(read_book)
+    #read_sheet = read_book.sheet_by_index(0)
+    #work_sheet = work_book.get_sheet(0)
 
-    if curr_state.isFinishState() == True:
-        #print("Solution")
-        #print("Time:", time.time() - start_time)
-        #print("Vehicle Postion:", curr_node.vehicle_pos)
-        #print("Disk Positions:")
-        #for disk in curr_node.disk_poses:
-        #    print(disk)
-        #print("Vehicle Path:")
-        #for point in curr_node.vehicle_path:
-        #    print(point)
-        #print("Disk Paths:")
-        #i = 1
-        #for path in curr_node.disk_path:
-        #    print("Disk", i, "'s Path")
-        #    for point in path:
-        #        print(point)
-        #    i += 1
+    #if curr_state.isFinishState() == True:
+    #    #print("Solution")
+    #    #print("Time:", time.time() - start_time)
+    #    #print("Vehicle Postion:", curr_node.vehicle_pos)
+    #    #print("Disk Positions:")
+    #    #for disk in curr_node.disk_poses:
+    #    #    print(disk)
+    #    #print("Vehicle Path:")
+    #    #for point in curr_node.vehicle_path:
+    #    #    print(point)
+    #    #print("Disk Paths:")
+    #    #i = 1
+    #    #for path in curr_node.disk_path:
+    #    #    print("Disk", i, "'s Path")
+    #    #    for point in path:
+    #    #        print(point)
+    #    #    i += 1
 
-        #Store results in an excel file      
-        #if (read_sheet.cell_value(map.number+4, 4) == ''):
-        #Add info that map was solved
-        work_sheet.write(map.number+4, 4,'True')
+    #    #Store results in an excel file      
+    #    #if (read_sheet.cell_value(map.number+4, 4) == ''):
+    #    #Add info that map was solved
+    #    work_sheet.write(map.number+4, 4,'True')
 
-        #add time solve in to work sheet
-        counter = 0
+    #    #add time solve in to work sheet
+    #    counter = 0
        
-        while(read_sheet.nrows>=map.number+4 and read_sheet.ncols-2>=counter+6 and read_sheet.cell_value(map.number+4, counter + 6) != ''):
-            counter += 1
-        work_sheet.write(map.number+4, counter + 6, time.time() - start_time)
+    #    while(read_sheet.nrows>=map.number+4 and read_sheet.ncols-2>=counter+6 and read_sheet.cell_value(map.number+4, counter + 6) != ''):
+    #        counter += 1
+    #    work_sheet.write(map.number+4, counter + 6, time.time() - start_time)
 
-        work_book.save("Results/TestResults.xls")
+    #    work_book.save("Results/TestResults.xls")
 
-        #Save results as a gif
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-        file_path = 'Gifs/Map ' + str(map.number) +'.gif'
-        imageio.mimsave(file_path, curr_state.plotSolution(curr_node.vehicle_path, curr_node.disk_path), fps=1)
+    #    #Save results as a gif
+    #    kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+    #    file_path = 'Gifs/Map ' + str(map.number) +'.gif'
+    #    imageio.mimsave(file_path, curr_state.plotSolution(curr_node.vehicle_path, curr_node.disk_path), fps=1)
 
-    else:
-        #Store results in an excel file      
-        #if (read_sheet.cell_value(map.number+4, 4) == ''):
-            #Add info that map was unsolved or timed out
-        if (time.time() - start_time > 3600):
-            work_sheet.write(map.number+4, 4,'Timed Out')
-        else:
-            work_sheet.write(map.number+4, 4,'Unsolved')
+    #else:
+    #    #Store results in an excel file      
+    #    #if (read_sheet.cell_value(map.number+4, 4) == ''):
+    #        #Add info that map was unsolved or timed out
+    #    if (time.time() - start_time > 3600):
+    #        work_sheet.write(map.number+4, 4,'Timed Out')
+    #    else:
+    #        work_sheet.write(map.number+4, 4,'Unsolved')
 
-        #add time solve in to work sheet
-        if(read_sheet.cell_value(map.number+4, 6) == ''):
-            work_sheet.write(map.number+4, 6, time.time() - start_time)
+    #    #add time solve in to work sheet
+    #    if(read_sheet.cell_value(map.number+4, 6) == ''):
+    #        work_sheet.write(map.number+4, 6, time.time() - start_time)
 
-        work_book.save("Results/TestResults.xls")
+    #    work_book.save("Results/TestResults.xls")
         
 
     #if map.number == 1:

@@ -26,6 +26,10 @@ class PQState:
     def f(self):
         return self._f
 
+    @property
+    def vehicle_pose(self):
+        return self._vehicle_pose
+
     def __lt__(self,other):
         return self.f < other.f
 
@@ -152,6 +156,6 @@ class PQState:
                         newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,i,self._RRT,self._g+gValue)
                         resultingStates.append(newState)
 
-
+        return resultingStates
 
 

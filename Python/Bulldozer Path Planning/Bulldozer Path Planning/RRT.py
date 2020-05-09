@@ -61,8 +61,8 @@ class RRT:
     def extend(self,x_rand):
         nearest_neighbour = self.nearestNeighbour(x_rand)
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
-        u_inv = self.getInverseControl(u_new)
         if result:
+            u_inv = self.getInverseControl(u_new) #if not result u_new is invalid dummy control
             nodeExists = self.addVertex(x_new)
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
             if (x_new == x_rand):
