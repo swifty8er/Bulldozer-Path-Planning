@@ -101,6 +101,12 @@ class PQState:
                 newState = PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_vehicle_paths,self._disk_being_pushed,self._RRT,self._g+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
                 resultingStates.append(newState)
         # next consider navigating to a different push point on the current disk
+        curr_disk_pos = self._disk_positions[self._disk_being_pushed]
+        new_push_points = Pushing.getPushPoints(curr_disk_pos,self._vehicle_pose.theta)
+        for push_point in new_push_points:
+            if self._RRT.connectPushPoint(push_point):
+                (new_vehicle_pose,new_vehicle_path) = self.navigateToPushPoint(push_point)
+
 
         # finally consider navigating to the push points of all other disks
 
