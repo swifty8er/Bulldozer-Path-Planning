@@ -121,8 +121,9 @@ class PQState:
         while not pq.empty():
             curr_state = pq.get()
             (f,pose,path,g) = curr_state
-            print("PQ size = ",pq.qsize())
-            print("Current pose is (%.2f,%.2f) heading = [%.2f]" %(pose.x,pose.y,pose.theta))
+            if len(path)>0:
+                prev_pose = path[-1]
+                self._RRT.drawEdge(prev_pose,pose,axis,'k-')
             if pose == self._vehicle_pose:
                 path.reverse()
                 return (push_point,path,g)
@@ -130,26 +131,30 @@ class PQState:
                 visitedNodes[pose] = True
                 path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
-                    print("Possible next pose is (%.2f,%.2f) heading = [%.2f] " %(next_pose.x,next_pose.y,next_pose.theta))
-                    if isinstance(self._RRT.tree[pose][next_pose],bezier.curve.Curve):
-                        self._RRT.drawEdge(pose,next_pose,axis,[235.0/255.0,131.0/255.0,52.0/255.0])
-                    else:
-                        self._RRT.drawEdge(pose,next_pose,axis,'r-')
-                    plt.draw()
-                    plt.pause(2)
-                    plt.show()
-                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                        new_state = (g+next_pose.EuclideanDistance(self._vehicle_pose),next_pose,path,g+pose.EuclideanDistance(next_pose))
-                        pq.put(new_state)
-                        self._RRT.drawEdge(pose,next_pose,axis,'k-')
-                        plt.draw()
-                        plt.pause(2)
-                        plt.show(block=False)
+                    if self._RRT.tree[pose][next_pose] != False:
+                        if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
+                            new_state = (g+next_pose.EuclideanDistance(self._vehicle_pose),next_pose,path,g+pose.EuclideanDistance(next_pose))
+                            pq.put(new_state)
+                          
 
         return (False,False,False)
 
 
+    def drawVehiclePose(self,axis):
+        vehicle_pos = (self.vehicle_pose.x,self.vehicle_pose.y)
+        pos_circle = BasicGeometry.circlePoints(vehicle_pos, self._map.disk_radius, 25)
+        axis.plot(pos_circle[0],pos_circle[1],color='red', linewidth=2)
+        r = 0.5
+        dx = r*math.cos(math.radians(self.vehicle_pose.theta))
+        dy = r*math.sin(math.radians(self.vehicle_pose.theta))
+        axis.arrow(self.vehicle_pose.x,self.vehicle_pose.y,dx,dy)
+        plt.draw()
+        plt.pause(1)
+        plt.show(block=False)
+
+
     def getResultingStates(self,axis):
+        self.drawVehiclePose(axis)
         resultingStates = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
@@ -170,7 +175,7 @@ class PQState:
         curr_disk_pos = self._disk_positions[self._disk_being_pushed]
         new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
         for push_point in new_push_points:
-            if self._RRT.connectPushPoint(push_point):
+            if self._RRT.connectPushPoint(push_point,axis):
                 (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,axis)
                 if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                     print("Added resulting state")
@@ -183,7 +188,7 @@ class PQState:
             curr_disk_pos = self._disk_positions[i]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
-                if self._RRT.connectPushPoint:
+                if self._RRT.connectPushPoint(push_point,axis):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,i,self._RRT,self._g+gValue)
