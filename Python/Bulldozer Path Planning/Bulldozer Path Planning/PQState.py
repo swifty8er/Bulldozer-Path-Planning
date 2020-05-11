@@ -1,9 +1,12 @@
 import math
 import queue
+import bezier
 import numpy as np
 from BasicGeometry import BasicGeometry
 from Pushing import Pushing
 from TranspositionTable import TranspositionTable
+from matplotlib import pyplot as plt
+
 
 NUM_OF_BITS = 32
 TRANS_TABLE_SIZE = 15
@@ -107,29 +110,46 @@ class PQState:
         return closestGoal
 
     # Use the RRT to find a path between the current position of the vehicle and the push_point
-    # Use A* search
-    def navigateToPushPoint(self,push_point):
+    # Use A* search in reverse from the push point to the current position
+    def navigateToPushPoint(self,push_point,axis):
+        print("Navigating to current pose (%.2f,%.2f) heading = [%.2f]" %(self._vehicle_pose.x,self._vehicle_pose.y,self._vehicle_pose.theta))
+        print("From push point (%.2f,%.2f) heading = [%.2f]" %(push_point.x,push_point.y,push_point.theta))
         pq = queue.PriorityQueue()
         visitedNodes = {}
-        starting_state = (self._vehicle_pose.EuclideanDistance(push_point),self._vehicle_pose,[],0)
+        starting_state = (push_point.EuclideanDistance(self._vehicle_pose),push_point,[],0)
         pq.put(starting_state)
         while not pq.empty():
             curr_state = pq.get()
             (f,pose,path,g) = curr_state
-            if pose == push_point:
-                return (pose,path,g)
+            print("PQ size = ",pq.qsize())
+            print("Current pose is (%.2f,%.2f) heading = [%.2f]" %(pose.x,pose.y,pose.theta))
+            if pose == self._vehicle_pose:
+                path.reverse()
+                return (push_point,path,g)
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
+                    print("Possible next pose is (%.2f,%.2f) heading = [%.2f] " %(next_pose.x,next_pose.y,next_pose.theta))
+                    if isinstance(self._RRT.tree[pose][next_pose],bezier.curve.Curve):
+                        self._RRT.drawEdge(pose,next_pose,axis,[235.0/255.0,131.0/255.0,52.0/255.0])
+                    else:
+                        self._RRT.drawEdge(pose,next_pose,axis,'r-')
+                    plt.draw()
+                    plt.pause(2)
+                    plt.show()
                     if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                        new_state = (g+next_pose.EuclideanDistance(push_point),next_pose,path,g+pose.EuclideanDistance(next_pose))
+                        new_state = (g+next_pose.EuclideanDistance(self._vehicle_pose),next_pose,path,g+pose.EuclideanDistance(next_pose))
                         pq.put(new_state)
+                        self._RRT.drawEdge(pose,next_pose,axis,'k-')
+                        plt.draw()
+                        plt.pause(2)
+                        plt.show(block=False)
 
         return (False,False,False)
 
 
-    def getResultingStates(self):
+    def getResultingStates(self,axis):
         resultingStates = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
@@ -151,8 +171,9 @@ class PQState:
         new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
         for push_point in new_push_points:
             if self._RRT.connectPushPoint(push_point):
-                (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
+                (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,axis)
                 if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
+                    print("Added resulting state")
                     newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,self._disk_being_pushed,self._RRT,self._g+gValue)
                     resultingStates.append(newState)
         # finally consider navigating to the push points of all other disks
@@ -166,6 +187,7 @@ class PQState:
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,i,self._RRT,self._g+gValue)
+                        print("Added resulting state")
                         resultingStates.append(newState)
 
         return resultingStates

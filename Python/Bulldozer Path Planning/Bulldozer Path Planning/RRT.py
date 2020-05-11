@@ -164,10 +164,11 @@ class RRT:
             return True
         if (edge_arc != False):
             if isinstance(edge_arc,bezier.curve.Curve):
-                s = 0
+                s = 0.0
                 while s<=1.0:
                     point = edge_arc.evaluate(s)
                     if self.pointWithinRadiusOfDirtPile(point,dirt_pile_positions):
+                        print("Bezier curve collision detected")
                         return True
                     s+= 0.02
 
@@ -391,7 +392,20 @@ class RRT:
         return backwardsDict
 
 
-
+    def drawEdge(self,n1,n2,axis,c):
+        edge = self.tree[n1][n2]
+        if isinstance(edge,bezier.curve.Curve):
+            edge.plot(100,color=c,ax=axis)
+        elif edge != False:
+            try:
+                (radius,theta,direction) = edge
+            except:
+                raise Exception("Invalid RRT edge found")
+            if direction == 'F' or direction == 'R':
+                axis.plot([n1.x,n2.x],[n1.y,n2.y],c,linewidth=1)
+            else:
+                (x_points,y_points) = n1.getCircleArcPoints(edge,25)
+                axis.plot(x_points,y_points,c,linewidth=1)
 
     def draw(self,ax):
         for n1 in self.tree.keys():

@@ -78,6 +78,10 @@ mapNums = [1]
 for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
+    map.plotStartingMap(ax1,True)
+    plt.draw()
+    plt.pause(1)
+    plt.show(block=False)
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
     num_nodes = int(x_range * y_range * 100)
@@ -104,7 +108,7 @@ for mm in mapNums:
         print("Vehicle pose = (%.2f,%.2f) heading = [%.2f]" % (curr_state.vehicle_pose.x,curr_state.vehicle_pose.y,curr_state.vehicle_pose.theta))
         if not curr_state in visitedStates:
             visitedStates[curr_state] = True
-            new_states = curr_state.getResultingStates()
+            new_states = curr_state.getResultingStates(ax1)
             for state in new_states:
                 if not state in visitedStates:
                     pq.put(state)
