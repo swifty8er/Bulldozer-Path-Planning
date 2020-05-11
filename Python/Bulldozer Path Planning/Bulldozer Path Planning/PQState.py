@@ -124,16 +124,20 @@ class PQState:
             if len(path)>0:
                 prev_pose = path[-1]
                 self._RRT.drawEdge(prev_pose,pose,axis,'k-')
+                plt.draw()
+                plt.pause(0.001)
+                plt.show(block=False)
             if pose == self._vehicle_pose:
                 path.reverse()
                 return (push_point,path,g)
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
-                path.append(pose)
+                new_path = path.copy()
+                new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
                     if self._RRT.tree[pose][next_pose] != False:
                         if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                            new_state = (g+next_pose.EuclideanDistance(self._vehicle_pose),next_pose,path,g+pose.EuclideanDistance(next_pose))
+                            new_state = (g+next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+pose.EuclideanDistance(next_pose))
                             pq.put(new_state)
                           
 

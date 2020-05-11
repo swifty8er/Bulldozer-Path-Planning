@@ -396,27 +396,24 @@ class RRT:
         return backwardsDict
 
 
-    def drawEdge(self,n1,n2,axis,c):
-        print("Drawing edge from (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f)" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta))
-        if n1 in self.tree:
-            if n2 in self.tree[n1]:
-                edge = self.tree[n1][n2]
-                if c == 'k-':
-                    bezierColor = [0.0,0.0,0.0]
-                else:
-                    bezierColor = [235.0/255.0,131.0/255.0,52.0/255.0]
-                if isinstance(edge,bezier.curve.Curve):
-                    edge.plot(100,color=bezierColor,ax=axis)
-                elif edge != False:
-                    try:
-                        (radius,theta,direction) = edge
-                    except:
-                        raise Exception("Invalid RRT edge found")
-                    if direction == 'F' or direction == 'R':
-                        axis.plot([n1.x,n2.x],[n1.y,n2.y],c,linewidth=1)
-                    else:
-                        (x_points,y_points) = n1.getCircleArcPoints(edge,25)
-                        axis.plot(x_points,y_points,c,linewidth=1)
+    def drawEdge(self,n1,n2,axis,c):       
+        edge = self.tree[n1][n2]
+        if c == 'k-':
+            bezierColor = [0.0,0.0,0.0]
+        else:
+            bezierColor = [235.0/255.0,131.0/255.0,52.0/255.0]
+        if isinstance(edge,bezier.curve.Curve):
+            edge.plot(100,color=bezierColor,ax=axis)
+        elif edge != False:
+            try:
+                (radius,theta,direction) = edge
+            except:
+                raise Exception("Invalid RRT edge found")
+            if direction == 'F' or direction == 'R':
+                axis.plot([n1.x,n2.x],[n1.y,n2.y],c,linewidth=1)
+            else:
+                (x_points,y_points) = n1.getCircleArcPoints(edge,25)
+                axis.plot(x_points,y_points,c,linewidth=1)
 
     def draw(self,ax):
         for n1 in self.tree.keys():
