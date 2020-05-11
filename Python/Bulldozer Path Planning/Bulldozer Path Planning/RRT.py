@@ -163,7 +163,7 @@ class RRT:
         if self.nodeWithinRadiusOfDirtPile(n2,dirt_pile_positions):
             return True
         if (edge_arc != False):
-            if isinstance(edge_arc,beizer.curve.Curve):
+            if isinstance(edge_arc,bezier.curve.Curve):
                 s = 0
                 while s<=1.0:
                     point = edge_arc.evaluate(s)

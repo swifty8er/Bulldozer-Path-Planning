@@ -24,7 +24,7 @@ from Vehicle import Vehicle
 
 NUM_OF_BITS = 32
 TRANS_TABLE_SIZE = 15
-NUM_NODES = 5000
+NUM_NODES = 5000 # adjusted dynamically for now
 myMap = Maps()
 
 ControlsList = [
@@ -78,9 +78,12 @@ mapNums = [1]
 for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
+    x_range = map.max_x - map.min_x
+    y_range = map.max_y - map.min_y
+    num_nodes = int(x_range * y_range * 100)
     starting_xy = map.initial_vehicle_pos_xy[0].tolist()
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],random.uniform(0,360))
-    StartingRRT = RRT(map,StartVehiclePos,ControlsList,NUM_NODES)
+    StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
     i = 0
     while i < StartingRRT.num_nodes:
         print("i = ",i)

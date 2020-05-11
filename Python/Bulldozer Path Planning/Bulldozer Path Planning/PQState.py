@@ -121,8 +121,8 @@ class PQState:
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 path.append(pose)
-                for next_pose in self._RRT[pose]:
-                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
+                for next_pose in self._RRT.tree[pose]:
+                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
                         new_state = (g+next_pose.EuclideanDistance(push_point),next_pose,path,g+pose.EuclideanDistance(next_pose))
                         pq.put(new_state)
 
@@ -148,7 +148,7 @@ class PQState:
                 resultingStates.append(newState)
         # next consider navigating to a different push point on the current disk
         curr_disk_pos = self._disk_positions[self._disk_being_pushed]
-        new_push_points = Pushing.getPushPoints(curr_disk_pos,self._vehicle_pose.theta)
+        new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
         for push_point in new_push_points:
             if self._RRT.connectPushPoint(push_point):
                 (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
@@ -160,7 +160,7 @@ class PQState:
             if i == self._disk_being_pushed:
                 continue
             curr_disk_pos = self._disk_positions[i]
-            new_push_points = Pushing.getPushPoints(curr_disk_pos)
+            new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint:
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)

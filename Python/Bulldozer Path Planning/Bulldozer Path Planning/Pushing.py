@@ -31,11 +31,11 @@ class Pushing:
             return bestPush
 
     @staticmethod
-    def getPushPoints(disk_pos,curr_heading=-1):
+    def getPushPoints(disk_pos,disk_radius,curr_heading=-1):
         push_points = []
         angle = 0
         while (angle<=2*math.pi):
-            push_point = (disk_pos[0]+self._map.disk_radius*math.cos(angle),disk_pos[1]+self._map.disk_radius*math.sin(angle))
+            push_point = (disk_pos[0]+disk_radius*math.cos(angle),disk_pos[1]+disk_radius*math.sin(angle))
             heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(push_point,disk_pos)))
             if round(heading,0) == curr_heading:
                 angle+= (math.pi/6.0)
