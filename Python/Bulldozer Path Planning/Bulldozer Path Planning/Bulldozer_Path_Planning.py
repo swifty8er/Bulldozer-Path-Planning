@@ -69,7 +69,8 @@ fig1, ax1 = plt.subplots(1, 1)
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
-mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
+#mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
+mapNums = [1]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -90,7 +91,7 @@ for mm in mapNums:
 
 
     curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],-1,StartingRRT,0)
-    transTable = TranspositionTable(NUM_NODES,NUM_OF_BITS,TRANS_TABLE_SIZE)
+    visitedStates = {}
     pq = queue.PriorityQueue()
     pq.put(curr_state)
     start_time = time.time()
@@ -98,11 +99,11 @@ for mm in mapNums:
     while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
         curr_state = pq.get()
         print("Vehicle pose = (%.2f,%.2f) heading = [%.2f]" % (curr_state.vehicle_pose.x,curr_state.vehicle_pose.y,curr_state.vehicle_pose.theta))
-        if (transTable.isVisited(curr_state,True) == False):
+        if not curr_state in visitedStates:
+            visitedStates[curr_state] = True
             new_states = curr_state.getResultingStates()
             for state in new_states:
-                status = transTable.addToTable(state)
-                if status == "E" or status == "R":
+                if not state in visitedStates:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:

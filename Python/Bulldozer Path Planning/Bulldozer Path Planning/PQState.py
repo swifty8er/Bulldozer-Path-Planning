@@ -38,6 +38,15 @@ class PQState:
         return self.f < other.f
 
 
+    # a hacky zobrist hash - does not use random numbers
+    def __hash__(self):
+        h = 0
+        h^self.vehicle_pose.__hash__()
+        for pos in self.disk_positions:
+            t = (pos[0],pos[1])
+            h^hash(t)
+        return h
+
     def isFinishState(self):
         sorted_disk_poses = sorted(self._disk_positions)
         sorted_goal_poses = sorted(self._map.goal_pos_xy)
@@ -101,7 +110,7 @@ class PQState:
     # Use A* search
     def navigateToPushPoint(self,push_point):
         pq = queue.PriorityQueue()
-        transTable = TranspositionTable(NUM_NODES*1.1,NUM_OF_BITS,TRANS_TABLE_SIZE)
+        visitedNodes = {}
         starting_state = (self._vehicle_pose.EuclideanDistance(push_point),self._vehicle_pose,[],0)
         pq.put(starting_state)
         while not pq.empty():
@@ -109,14 +118,13 @@ class PQState:
             (f,pose,path,g) = curr_state
             if pose == push_point:
                 return (pose,path,g)
-            if (transTable.isVisited(curr_state,True) == False):
+            if pose not in visitedNodes:
+                visitedNodes[pose] = True
                 path.append(pose)
                 for next_pose in self._RRT[pose]:
-                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._disk_positions):
+                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
                         new_state = (g+next_pose.EuclideanDistance(push_point),next_pose,path,g+pose.EuclideanDistance(next_pose))
-                        status = transTable.addToTable(new_state)
-                        if status == "E" or status == "R":
-                            pq.put(new_state)
+                        pq.put(new_state)
 
         return (False,False,False)
 
