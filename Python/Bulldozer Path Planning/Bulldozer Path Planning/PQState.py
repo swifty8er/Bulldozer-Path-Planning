@@ -42,13 +42,24 @@ class PQState:
         return self.f < other.f
 
 
+    def plotState(self,ax,line_width=2):
+        self._map.plotMapBoundaryObstacles(ax)
+        for disk_pos in self._disk_positions:
+            disk_circle = BasicGeometry.circlePoints(disk_pos, self._map.disk_radius, 25)
+            ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
+        self.drawVehiclePose(ax)
+
+
     # a hacky zobrist hash - does not use random numbers
     def __hash__(self):
+        print("Getting hash for PQ state with vehicle pos (%.2f,%.2f,%.2f) and disk positions = " % (self._vehicle_pose.x,self._vehicle_pose.y,self._vehicle_pose.theta))
         h = 0
-        h^self.vehicle_pose.__hash__()
+        h = h^self.vehicle_pose.__hash__()
         for pos in self.disk_positions:
+            print(pos)
             t = (pos[0],pos[1])
-            h^hash(t)
+            h = h^hash(t)
+        print("Hash = ",h)
         return h
 
     def isFinishState(self):
@@ -232,6 +243,7 @@ class PQState:
                 new_disk_paths[self._disk_being_pushed].append(curr_disk_pos)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)
                 newState = PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_disk_paths,new_reached_goals,self._disk_being_pushed,self._RRT,self._g+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
+                print("Added pushing state")
                 resultingStates.append(newState)
             # next consider navigating to a different push point on the current disk
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
@@ -242,6 +254,7 @@ class PQState:
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         newState = PQState(self._map,new_vehicle_pose,self._disk_positions,self._vehicle_path+new_vehicle_path,self._disk_paths,self._reached_goals,self._disk_being_pushed,self._RRT,self._g+gValue)
                         resultingStates.append(newState)
+                        print("Added state that navigates to new push point on same disk")
                         cachedPaths.append(new_vehicle_path)
         # finally consider navigating to the push points of all other disks
         for i in range(len(self._disk_positions)):
@@ -255,6 +268,7 @@ class PQState:
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         newState = PQState(self._map,new_vehicle_pose,self._disk_positions,self._vehicle_path+new_vehicle_path,self._disk_paths,self._reached_goals,i,self._RRT,self._g+gValue)
                         resultingStates.append(newState)
+                        print("Addes state the navigates to push point of new disk")
                         cachedPaths.append(new_vehicle_path)
 
         return resultingStates

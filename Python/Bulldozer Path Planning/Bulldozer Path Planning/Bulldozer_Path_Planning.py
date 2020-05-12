@@ -78,7 +78,7 @@ mapNums = [1]
 for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
-    map.plotStartingMap(ax1,True)
+    map.plotStartingMap(ax1)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
@@ -106,6 +106,8 @@ for mm in mapNums:
     while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
         curr_state = pq.get()
         print("Vehicle pose = (%.2f,%.2f) heading = [%.2f]" % (curr_state.vehicle_pose.x,curr_state.vehicle_pose.y,curr_state.vehicle_pose.theta))
+        plt.cla()
+        curr_state.plotState(ax1)
         if not curr_state in visitedStates:
             visitedStates[curr_state] = True
             new_states = curr_state.getResultingStates(ax1)
