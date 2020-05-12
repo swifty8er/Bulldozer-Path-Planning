@@ -13,12 +13,13 @@ TRANS_TABLE_SIZE = 15
 NUM_NODES = 5000
 
 class PQState:
-    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,disk_being_pushed,rrt,g):
+    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,rrt,g):
         self._map = map
         self._vehicle_pose = vehicle_pose
         self._disk_positions = disk_positions
         self._vehicle_path = vehicle_path
         self._disk_paths = disk_paths
+        self._reached_goals = reached_goals
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
@@ -51,12 +52,9 @@ class PQState:
         return h
 
     def isFinishState(self):
-        sorted_disk_poses = sorted(self._disk_positions)
-        sorted_goal_poses = sorted(self._map.goal_pos_xy)
-        for i in range(len(sorted_disk_poses)):
-            if (sorted_disk_poses[i][0] != sorted_goal_poses[i][0] or sorted_disk_poses[i][1] != sorted_goal_poses[i][1]):
-                    return False
-
+        for r in self._reached_goals:
+            if not r:
+                return False
         return True
 
     def calculateHeuristicValue(self):
@@ -109,11 +107,10 @@ class PQState:
             raise Exception("Unable to find closest goal")
         return closestGoal
 
+
     # Use the RRT to find a path between the current position of the vehicle and the push_point
     # Use A* search in reverse from the push point to the current position
-    def navigateToPushPoint(self,push_point,axis):
-        print("Navigating to current pose (%.2f,%.2f) heading = [%.2f]" %(self._vehicle_pose.x,self._vehicle_pose.y,self._vehicle_pose.theta))
-        print("From push point (%.2f,%.2f) heading = [%.2f]" %(push_point.x,push_point.y,push_point.theta))
+    def navigateToPushPoint(self,push_point,cachedPaths,axis):
         pq = queue.PriorityQueue()
         visitedNodes = {}
         starting_state = (push_point.EuclideanDistance(self._vehicle_pose),push_point,[],0)
@@ -121,15 +118,18 @@ class PQState:
         while not pq.empty():
             curr_state = pq.get()
             (f,pose,path,g) = curr_state
-            if len(path)>0:
-                prev_pose = path[-1]
-                self._RRT.drawEdge(prev_pose,pose,axis,'k-')
-                plt.draw()
-                plt.pause(0.001)
-                plt.show(block=False)
             if pose == self._vehicle_pose:
                 path.reverse()
+                self.drawPath(path,axis)
                 return (push_point,path,g)
+            remainingPath = self.getSavedPath(pose,cachedPaths)
+            if remainingPath != False:
+                path.reverse()
+                new_path  = remainingPath + path
+                self.drawPath(new_path,axis)
+                return (push_point,new_path,g+self.calcPathLength(remainingPath))
+
+
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 new_path = path.copy()
@@ -137,12 +137,55 @@ class PQState:
                 for next_pose in self._RRT.tree[pose]:
                     if self._RRT.tree[pose][next_pose] != False:
                         if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                            new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+pose.EuclideanDistance(next_pose)) #change this to use the arc path length
+                            new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
                             pq.put(new_state)
                           
 
         return (False,False,False)
 
+
+    def getEdgeLength(self,n1,n2):
+        edge = self._RRT.tree[n1][n2]
+        if edge != False:
+            if isinstance(edge,bezier.curve.Curve):
+                return edge.length
+            else:
+                try:
+                    (radius,deltaTheta,direction) = edge
+                except:
+                    raise Exception("Invalid RRT edge found")
+                if direction == "F" or direction =="R":
+                    return radius
+                else:
+                    return radius * math.radians(deltaTheta)
+        else:
+            raise Exception("Empty edge found in length function")
+
+    def calcPathLength(self,path):
+        length = 0
+        for i in range(len(path)-1):
+            curr_node = path[i]
+            next_node = path[i+1]
+            length += self.getEdgeLength(curr_node,next_node)
+        return length
+
+    def getSavedPath(self,pose,cachedPaths):
+        for path in cachedPaths:
+            for i in range(len(path)):
+                curr_pose = path[i]
+                if curr_pose == pose:
+                    return path[:i+1]
+        return False
+
+    def drawPath(self,path,ax):
+        for i in range(len(path)-1):
+            curr_node = path[i]
+            next_node = path[i+1]
+            self._RRT.drawEdge(curr_node,next_node,ax,'k-')
+
+        plt.draw()
+        plt.pause(0.001)
+        plt.show(block=False)
 
     def drawVehiclePose(self,axis):
         vehicle_pos = (self.vehicle_pose.x,self.vehicle_pose.y)
@@ -151,20 +194,32 @@ class PQState:
         r = 0.5
         dx = r*math.cos(math.radians(self.vehicle_pose.theta))
         dy = r*math.sin(math.radians(self.vehicle_pose.theta))
-        axis.arrow(self.vehicle_pose.x,self.vehicle_pose.y,dx,dy)
+        axis.arrow(self.vehicle_pose.x,self.vehicle_pose.y,dx,dy,width=0.05)
         plt.draw()
-        plt.pause(1)
+        plt.pause(0.001)
         plt.show(block=False)
 
+
+    def determineGoalsReached(self,disk_positions):
+        reached = [False]*len(self._map.goal_pos_xy)
+        i = 0
+        for goal_pos in self._map.goal_pos_xy:
+            for disk_pos in disk_positions:
+                if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.05:
+                    reached[i] = True
+                    break
+            i+=1
+        return reached
 
     def getResultingStates(self,axis):
         self.drawVehiclePose(axis)
         resultingStates = []
+        cachedPaths = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             push_point = self._vehicle_pose
-            closest_goal = self.getClosestGoalToPushLine()
+            closest_goal = self.getClosestGoalToPushLine(curr_disk_pos)
             (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 new_disk_positions = np.copy(self._disk_positions)
@@ -173,18 +228,19 @@ class PQState:
                 new_vehicle_path.append(push_point)
                 new_disk_paths = self._disk_paths.copy()
                 new_disk_paths[self._disk_being_pushed].append(curr_disk_pos)
-                newState = PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_vehicle_paths,self._disk_being_pushed,self._RRT,self._g+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
+                new_reached_goals = self.determineGoalsReached(new_disk_positions)
+                newState = PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_vehicle_paths,new_reached_goals,self._disk_being_pushed,self._RRT,self._g+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
                 resultingStates.append(newState)
-        # next consider navigating to a different push point on the current disk
-        curr_disk_pos = self._disk_positions[self._disk_being_pushed]
-        new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
-        for push_point in new_push_points:
-            if self._RRT.connectPushPoint(push_point,axis):
-                (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,axis)
-                if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                    print("Added resulting state")
-                    newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,self._disk_being_pushed,self._RRT,self._g+gValue)
-                    resultingStates.append(newState)
+            # next consider navigating to a different push point on the current disk
+            curr_disk_pos = self._disk_positions[self._disk_being_pushed]
+            new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
+            for push_point in new_push_points:
+                if self._RRT.connectPushPoint(push_point,axis):
+                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
+                    if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
+                        newState = PQState(self._map,new_vehicle_pose,self._disk_positions,self._vehicle_path+new_vehicle_path,self._disk_paths,self._reached_goals,self._disk_being_pushed,self._RRT,self._g+gValue)
+                        resultingStates.append(newState)
+                        cachedPaths.append(new_vehicle_path)
         # finally consider navigating to the push points of all other disks
         for i in range(len(self._disk_positions)):
             if i == self._disk_being_pushed:
@@ -193,11 +249,11 @@ class PQState:
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint(push_point,axis):
-                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point)
+                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        newState = PQState(self._map,new_vehicle_pose,self._disk_positions,new_vehicle_path,self._disk_paths,i,self._RRT,self._g+gValue)
-                        print("Added resulting state")
+                        newState = PQState(self._map,new_vehicle_pose,self._disk_positions,self._vehicle_path+new_vehicle_path,self._disk_paths,self._reached_goals,i,self._RRT,self._g+gValue)
                         resultingStates.append(newState)
+                        cachedPaths.append(new_vehicle_path)
 
         return resultingStates
 
