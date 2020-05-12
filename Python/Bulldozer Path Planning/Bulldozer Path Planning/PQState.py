@@ -176,7 +176,7 @@ class PQState:
             for i in range(len(path)):
                 curr_pose = path[i]
                 if curr_pose == pose:
-                    return path[:i+1]
+                    return path[:i]
         return False
 
     def drawPath(self,path,ax):

@@ -165,7 +165,7 @@ class RRT:
         if (edge_arc != False):
             if isinstance(edge_arc,bezier.curve.Curve):
                 s = 0.0
-                while s<=1.0:
+                while s<1.0:
                     point = edge_arc.evaluate(s)
                     if self.pointWithinRadiusOfDirtPile(point,dirt_pile_positions):
                         print("Bezier curve collision detected")

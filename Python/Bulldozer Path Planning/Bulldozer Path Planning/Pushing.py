@@ -21,7 +21,7 @@ class Pushing:
             dist = BasicGeometry.manhattanDistance(new_disk_pos,closestGoal)
             if dist < min_dist and not Pushing.pushingCollision(push_point,new_disk_pos,map):
                 min_dist = dist
-                new_vehicle_pose = (push_point.x+r*math.cos(math.radians(push_point.theta)),push_point.y+r*math.sin(math.radians(push_point.theta)))
+                new_vehicle_pose = Vehicle(push_point.x+r*math.cos(math.radians(push_point.theta)),push_point.y+r*math.sin(math.radians(push_point.theta)),push_point.theta)
                 bestPush = (new_disk_pos,new_vehicle_pose)
                 found = True
 
