@@ -84,7 +84,7 @@ for mm in mapNums:
     plt.show(block=False)
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
-    num_nodes = int(x_range * y_range * 100)
+    num_nodes = int(x_range * y_range * 200)
     starting_xy = map.initial_vehicle_pos_xy[0].tolist()
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],random.uniform(0,360))
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)

@@ -29,7 +29,8 @@ class Vehicle:
     def __eq__(self, other):
         if other == None:
             return False
-
+        elif not isinstance(other,Vehicle):
+            return False
         else:
             #print("Testing for equality (%.2f,%.2f,%.2f) (%.2f,%.2f,%.2f)" % (self.x,self.y,self.theta,other.x,other.y,other.theta))
             return (round(self.x,2) == round(other.x,2)) and (round(self.y,2) == round(other.y,2)) and (round(self.theta,0) == round(other.theta,0))
