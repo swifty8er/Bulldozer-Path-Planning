@@ -352,6 +352,8 @@ class RRT:
 
     # Make the maximum number of connections between the push_point and the reversed positions and their nearest neighbours
     def connectPushPoint(self,push_point,axis=False):
+        if push_point in self.tree: #if push point is already connected to tree, return true
+            return True
         backwardsDict = self.populateBackwardsDict(push_point)
         connected = False
         nodes = list(backwardsDict.keys()).copy()

@@ -12,11 +12,10 @@ class Pushing:
         if BasicGeometry.ptDist(closestGoal,curr_disk_pos) < max_distance:
             upperBound = BasicGeometry.ptDist(closestGoal,curr_disk_pos)
             lowerBound = 0.0
-        else:
-            upperBound = max_distance
-            lowerBound = max_distance/2.0
-        for i in range(num_steps):
             r = random.uniform(lowerBound,upperBound)
+        else:
+            r = max_distance
+        for i in range(num_steps):
             new_disk_pos = (curr_disk_pos[0]+r*math.cos(math.radians(push_point.theta)),curr_disk_pos[1]+r*math.sin(math.radians(push_point.theta)))
             dist = BasicGeometry.manhattanDistance(new_disk_pos,closestGoal)
             if dist < min_dist and not Pushing.pushingCollision(push_point,new_disk_pos,map):

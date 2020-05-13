@@ -69,7 +69,7 @@ class PQState:
         return True
 
     def calculateHeuristicValue(self):
-        reached = [False]*len(self._map.goal_pos_xy)
+        reached = self._reached_goals.copy()
         h = 0
         for disk in self._disk_positions:
             closestGoal = self.getClosestGoalManhattan(disk,reached)
@@ -77,6 +77,11 @@ class PQState:
             reached[index] = True
             h += BasicGeometry.manhattanDistance(disk,closestGoal)
 
+
+        print("Heuristic value for PQ state with disk pos = ")
+        for pos in self.disk_positions:
+            print(pos)
+        print("h = ",h)
         return h
 
     def getClosestGoalManhattan(self,disk_pos,reached):
@@ -197,7 +202,7 @@ class PQState:
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(0.001)
+        plt.pause(1)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):
@@ -209,7 +214,7 @@ class PQState:
         dy = r*math.sin(math.radians(self.vehicle_pose.theta))
         axis.arrow(self.vehicle_pose.x,self.vehicle_pose.y,dx,dy,width=0.05)
         plt.draw()
-        plt.pause(0.001)
+        plt.pause(1)
         plt.show(block=False)
 
 
@@ -235,7 +240,8 @@ class PQState:
             new_disk_paths = self._disk_paths.copy()
             new_disk_paths[disk_being_pushed].append(curr_disk_pos)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
-            return PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,self._RRT,gValue+BasicGeometry.ptDist((push_point.x,push_point.y),(new_vehicle_pose.x,new_vehicle_pose.y)))
+            #use greedy search for now i.e g = 0 f = h
+            return PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,self._RRT,0)
            
         return False
 
@@ -273,7 +279,7 @@ class PQState:
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,i,self._g+gValue)
                         if pushedState != False:
-                            resultingStates.append(newState)
+                            resultingStates.append(pushedState)
                             print("Added state that pushed from new disk push point")
                         
                         cachedPaths.append(new_vehicle_path)
