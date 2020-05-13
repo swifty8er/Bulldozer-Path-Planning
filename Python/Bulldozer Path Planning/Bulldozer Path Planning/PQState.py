@@ -8,10 +8,6 @@ from TranspositionTable import TranspositionTable
 from matplotlib import pyplot as plt
 
 
-NUM_OF_BITS = 32
-TRANS_TABLE_SIZE = 15
-NUM_NODES = 5000
-
 class PQState:
     def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,rrt,g):
         self._map = map
@@ -52,14 +48,12 @@ class PQState:
 
     # a hacky zobrist hash - does not use random numbers
     def __hash__(self):
-        print("Getting hash for PQ state with vehicle pos (%.2f,%.2f,%.2f) and disk positions = " % (self._vehicle_pose.x,self._vehicle_pose.y,self._vehicle_pose.theta))
         h = 0
         h = h^self.vehicle_pose.__hash__()
         for pos in self.disk_positions:
             print(pos)
             t = (pos[0],pos[1])
             h = h^hash(t)
-        print("Hash = ",h)
         return h
 
     def isFinishState(self):
@@ -75,10 +69,11 @@ class PQState:
         for disk in self._disk_positions:
             #check if disk in goal
             if not self.diskInGoal(disk):
-                closestGoal = self.getClosestGoalManhattan(disk,reached)
-                index = self._map.goal_pos_xy.index(closestGoal)
-                reached[index] = True
-                h += BasicGeometry.manhattanDistance(disk,closestGoal)
+                (closestGoal,found) = self.getClosestGoalManhattan(disk,reached)
+                if found:
+                    index = self._map.goal_pos_xy.index(closestGoal)
+                    reached[index] = True
+                    h += BasicGeometry.manhattanDistance(disk,closestGoal)
         return h
 
 
@@ -102,10 +97,8 @@ class PQState:
                     found = True
             i+=1
 
-        if not found:
-            return False
         
-        return closestGoal
+        return (closestGoal,found)
 
     def getClosestGoalToPushLine(self,curr_disk_position):
         shortestDist = math.inf
@@ -123,9 +116,7 @@ class PQState:
 
             i+=1
 
-        if not found:
-            return False
-        return closestGoal
+        return (closestGoal,found)
 
 
     # Use the RRT to find a path between the current position of the vehicle and the push_point
@@ -234,8 +225,8 @@ class PQState:
         return reached
 
     def getStateAfterPush(self,push_point,curr_disk_pos,vehicle_path,disk_being_pushed,gValue):
-        closest_goal = self.getClosestGoalToPushLine(curr_disk_pos)
-        if not closest_goal:
+        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+        if not found:
             return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._map)
         if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):

@@ -147,13 +147,13 @@ class RRT:
 
     def nodeWithinRadiusOfDirtPile(self,node,dirt_pile_positions):
         for pos in dirt_pile_positions:
-            if 2 * self._map.disk_radius - BasicGeometry.ptDist(pos,(node.x,node.y)) > np.finfo(np.float32).eps:
+            if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(pos,(node.x,node.y)) > np.finfo(np.float32).eps:
                 return True
         return False
 
     def pointWithinRadiusOfDirtPile(self,point,dirt_pile_positions):
         for pos in dirt_pile_positions:
-            if 2 * self._map.disk_radius - BasicGeometry.ptDist(pos,point) > np.finfo(np.float32).eps:
+            if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(pos,point) > np.finfo(np.float32).eps:
                 return True
         return False
   

@@ -22,9 +22,6 @@ from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
 
 
-NUM_OF_BITS = 32
-TRANS_TABLE_SIZE = 15
-NUM_NODES = 5000 # adjusted dynamically for now
 myMap = Maps()
 
 ControlsList = [
@@ -117,7 +114,12 @@ for mm in mapNums:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:
-        print("Solved in",time.time() - start_time)
+        print("Solved in minutes = ",(time.time() - start_time)/60)
+        plt.cla()
+        curr_state.plotState(ax1)
+        plt.draw()
+        plt.pause(10)
+        plt.show()
     else:
         print("Failed")
     #curr_state = MapState(map)
