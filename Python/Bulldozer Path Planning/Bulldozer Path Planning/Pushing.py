@@ -39,12 +39,14 @@ class Pushing:
                 return True
         return False
 
+
+    # Find the push points for the vehicle to push the given disk with its boundary
     @staticmethod
     def getPushPoints(disk_pos,disk_radius,curr_heading=-1):
         push_points = []
         angle = 0
         while (angle<=2*math.pi):
-            push_point = (disk_pos[0]+disk_radius*math.cos(angle),disk_pos[1]+disk_radius*math.sin(angle))
+            push_point = (disk_pos[0]+2*disk_radius*math.cos(angle),disk_pos[1]+2*disk_radius*math.sin(angle))
             heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(push_point,disk_pos)))
             if round(heading,0) == curr_heading:
                 angle+= (math.pi/6.0)

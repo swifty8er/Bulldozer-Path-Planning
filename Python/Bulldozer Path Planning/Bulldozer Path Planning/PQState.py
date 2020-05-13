@@ -68,6 +68,7 @@ class PQState:
                 return False
         return True
 
+
     def calculateHeuristicValue(self):
         reached = self._reached_goals.copy()
         h = 0
@@ -76,12 +77,6 @@ class PQState:
             index = self._map.goal_pos_xy.index(closestGoal)
             reached[index] = True
             h += BasicGeometry.manhattanDistance(disk,closestGoal)
-
-
-        print("Heuristic value for PQ state with disk pos = ")
-        for pos in self.disk_positions:
-            print(pos)
-        print("h = ",h)
         return h
 
     def getClosestGoalManhattan(self,disk_pos,reached):
@@ -233,6 +228,11 @@ class PQState:
         closest_goal = self.getClosestGoalToPushLine(curr_disk_pos)
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._map)
         if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
+            distance = push_point.EuclideanDistance(new_vehicle_pose)
+            new_edge = (distance,0,"F")
+            inv_edge = (distance,0,"R")
+            self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
+            print("Pushing disk from [%.2f,%.2f] to goal [%.2f,%.2f] results in new disk pos [%.2f,%.2f] and vehicle pose = (%.2f,%.2f,%.2f)" % (curr_disk_pos[0],curr_disk_pos[1],closest_goal[0],closest_goal[1],new_disk_pos[0],new_disk_pos[1],new_vehicle_pose.x,new_vehicle_pose.y,new_vehicle_pose.theta))
             new_disk_positions = np.copy(self._disk_positions)
             new_disk_positions[self._disk_being_pushed] = new_disk_pos
             new_vehicle_path = vehicle_path.copy()
@@ -246,11 +246,13 @@ class PQState:
         return False
 
     def getResultingStates(self,axis):
+        print("Getting resulting states")
         resultingStates = []
         cachedPaths = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
+            print("Current disk being pushed pos [%.2f,%.2f]" % (curr_disk_pos[0],curr_disk_pos[1]))
             push_point = self._vehicle_pose
             pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path,self._disk_being_pushed,self._g)
             if pushedState != False:
@@ -259,14 +261,17 @@ class PQState:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
             for push_point in new_push_points:
+                print("Push point = (%.2f,%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,self._disk_being_pushed,self_g+gValue)
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,self._disk_being_pushed,self._g+gValue)
                         if pushedState != False:
                             resultingStates.append(pushedState)
                             print("Added state that pushed from new push point on same disk")
                         cachedPaths.append(new_vehicle_path)
+                else:
+                    print("Could not connect to push point")
         # finally consider navigating to the push points of all other disks
         for i in range(len(self._disk_positions)):
             if i == self._disk_being_pushed:
@@ -274,6 +279,7 @@ class PQState:
             curr_disk_pos = self._disk_positions[i]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
+                print("Push point = (%.2f,%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
@@ -283,7 +289,8 @@ class PQState:
                             print("Added state that pushed from new disk push point")
                         
                         cachedPaths.append(new_vehicle_path)
-
+                else:
+                    print("Could not connect to push point")
         return resultingStates
 
 
