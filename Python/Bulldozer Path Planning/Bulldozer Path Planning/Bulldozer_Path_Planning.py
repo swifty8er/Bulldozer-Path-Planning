@@ -103,11 +103,12 @@ for mm in mapNums:
     pq.put(curr_state)
     start_time = time.time()
 
-    while not pq.empty() and not curr_state.isFinishState() and (time.time() - start_time <= 3600):
+    while not pq.empty() and (time.time() - start_time <= 3600):
         curr_state = pq.get()
-        print("Vehicle pose = (%.2f,%.2f) heading = [%.2f]" % (curr_state.vehicle_pose.x,curr_state.vehicle_pose.y,curr_state.vehicle_pose.theta))
         plt.cla()
         curr_state.plotState(ax1)
+        if curr_state.isFinishState():
+            break
         if not curr_state in visitedStates:
             visitedStates[curr_state] = True
             new_states = curr_state.getResultingStates(ax1)

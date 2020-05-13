@@ -73,11 +73,20 @@ class PQState:
         reached = self._reached_goals.copy()
         h = 0
         for disk in self._disk_positions:
-            closestGoal = self.getClosestGoalManhattan(disk,reached)
-            index = self._map.goal_pos_xy.index(closestGoal)
-            reached[index] = True
-            h += BasicGeometry.manhattanDistance(disk,closestGoal)
+            #check if disk in goal
+            if not self.diskInGoal(disk):
+                closestGoal = self.getClosestGoalManhattan(disk,reached)
+                index = self._map.goal_pos_xy.index(closestGoal)
+                reached[index] = True
+                h += BasicGeometry.manhattanDistance(disk,closestGoal)
         return h
+
+
+    def diskInGoal(self,disk_pos):
+        for goal_pos in self._map.goal_pos_xy:
+            if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.05:
+                return True
+        return False
 
     def getClosestGoalManhattan(self,disk_pos,reached):
         shortestDist = math.inf
@@ -94,7 +103,7 @@ class PQState:
             i+=1
 
         if not found:
-            raise Exception("Unable to find closest goal")
+            return False
         
         return closestGoal
 
@@ -115,7 +124,7 @@ class PQState:
             i+=1
 
         if not found:
-            raise Exception("Unable to find closest goal")
+            return False
         return closestGoal
 
 
@@ -226,11 +235,14 @@ class PQState:
 
     def getStateAfterPush(self,push_point,curr_disk_pos,vehicle_path,disk_being_pushed,gValue):
         closest_goal = self.getClosestGoalToPushLine(curr_disk_pos)
+        if not closest_goal:
+            return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._map)
         if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
+            self._RRT.addVertex(new_vehicle_pose)
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
             print("Pushing disk from [%.2f,%.2f] to goal [%.2f,%.2f] results in new disk pos [%.2f,%.2f] and vehicle pose = (%.2f,%.2f,%.2f)" % (curr_disk_pos[0],curr_disk_pos[1],closest_goal[0],closest_goal[1],new_disk_pos[0],new_disk_pos[1],new_vehicle_pose.x,new_vehicle_pose.y,new_vehicle_pose.theta))
             new_disk_positions = np.copy(self._disk_positions)
@@ -246,7 +258,6 @@ class PQState:
         return False
 
     def getResultingStates(self,axis):
-        print("Getting resulting states")
         resultingStates = []
         cachedPaths = []
         # first consider pushing the current disk forward
@@ -257,11 +268,12 @@ class PQState:
             pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path,self._disk_being_pushed,self._g)
             if pushedState != False:
                 resultingStates.append(pushedState)
+            else:
+                print("Continuation of current push failed")
             # next consider navigating to a different push point on the current disk
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
             for push_point in new_push_points:
-                print("Push point = (%.2f,%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
@@ -269,7 +281,11 @@ class PQState:
                         if pushedState != False:
                             resultingStates.append(pushedState)
                             print("Added state that pushed from new push point on same disk")
+                        else:
+                            print("Pushing disk failed")
                         cachedPaths.append(new_vehicle_path)
+                    else:
+                        print("A* search to push point failed")
                 else:
                     print("Could not connect to push point")
         # finally consider navigating to the push points of all other disks
@@ -287,8 +303,11 @@ class PQState:
                         if pushedState != False:
                             resultingStates.append(pushedState)
                             print("Added state that pushed from new disk push point")
-                        
+                        else:
+                            print("Pushing disk failed")
                         cachedPaths.append(new_vehicle_path)
+                    else:
+                        print("A* search to push point failed")
                 else:
                     print("Could not connect to push point")
         return resultingStates
