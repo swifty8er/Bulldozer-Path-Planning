@@ -132,14 +132,14 @@ class PQState:
             if pose == self._vehicle_pose:
                 path.append(pose)
                 path.reverse()
-                self.drawPath(path,axis)
+                #self.drawPath(path,axis)
                 return (push_point,path,g)
             remainingPath = self.getSavedPath(pose,cachedPaths)
             if remainingPath != False:
                 path.append(pose)
                 path.reverse()
                 new_path  = remainingPath + path
-                self.drawPath(new_path,axis)
+                #self.drawPath(new_path,axis)
                 return (push_point,new_path,g+self.calcPathLength(remainingPath))
 
 
@@ -148,10 +148,9 @@ class PQState:
                 new_path = path.copy()
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
-                    if self._RRT.tree[pose][next_pose] != False:
-                        if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                            new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
-                            pq.put(new_state)
+                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
+                        new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
+                        pq.put(new_state)
                           
 
         return (False,False,False)
@@ -159,20 +158,17 @@ class PQState:
 
     def getEdgeLength(self,n1,n2):
         edge = self._RRT.tree[n1][n2]
-        if edge != False:
-            if isinstance(edge,bezier.curve.Curve):
-                return edge.length
-            else:
-                try:
-                    (radius,deltaTheta,direction) = edge
-                except:
-                    raise Exception("Invalid RRT edge found")
-                if direction == "F" or direction =="R":
-                    return radius
-                else:
-                    return radius * math.radians(deltaTheta)
+        if isinstance(edge,bezier.curve.Curve):
+            return edge.length
         else:
-            raise Exception("Empty edge found in length function")
+            try:
+                (radius,deltaTheta,direction) = edge
+            except:
+                raise Exception("Invalid RRT edge found")
+            if direction == "F" or direction =="R":
+                return radius
+            else:
+                return radius * math.radians(deltaTheta)
 
     def calcPathLength(self,path):
         length = 0
@@ -234,8 +230,6 @@ class PQState:
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-
-            print("Pushing disk from [%.2f,%.2f] to goal [%.2f,%.2f] results in new disk pos [%.2f,%.2f] and vehicle pose = (%.2f,%.2f,%.2f)" % (curr_disk_pos[0],curr_disk_pos[1],closest_goal[0],closest_goal[1],new_disk_pos[0],new_disk_pos[1],new_vehicle_pose.x,new_vehicle_pose.y,new_vehicle_pose.theta))
             new_disk_positions = np.copy(self._disk_positions)
             new_disk_positions[self._disk_being_pushed] = new_disk_pos
             new_vehicle_path = vehicle_path.copy()
@@ -254,13 +248,11 @@ class PQState:
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
-            print("Current disk being pushed pos [%.2f,%.2f]" % (curr_disk_pos[0],curr_disk_pos[1]))
             push_point = self._vehicle_pose
             pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path,self._disk_being_pushed,self._g)
             if pushedState != False:
                 resultingStates.append(pushedState)
-            else:
-                print("Continuation of current push failed")
+           
             # next consider navigating to a different push point on the current disk
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
@@ -271,14 +263,10 @@ class PQState:
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,self._disk_being_pushed,self._g+gValue)
                         if pushedState != False:
                             resultingStates.append(pushedState)
-                            print("Added state that pushed from new push point on same disk")
-                        else:
-                            print("Pushing disk failed")
+                       
                         cachedPaths.append(new_vehicle_path)
-                    else:
-                        print("A* search to push point failed")
-                else:
-                    print("Could not connect to push point")
+                    
+             
         # finally consider navigating to the push points of all other disks
         for i in range(len(self._disk_positions)):
             if i == self._disk_being_pushed:
@@ -286,21 +274,14 @@ class PQState:
             curr_disk_pos = self._disk_positions[i]
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
-                print("Push point = (%.2f,%.2f,%.2f)" % (push_point.x,push_point.y,push_point.theta))
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,i,self._g+gValue)
                         if pushedState != False:
                             resultingStates.append(pushedState)
-                            print("Added state that pushed from new disk push point")
-                        else:
-                            print("Pushing disk failed")
+                        
                         cachedPaths.append(new_vehicle_path)
-                    else:
-                        print("A* search to push point failed")
-                else:
-                    print("Could not connect to push point")
         return resultingStates
 
 
