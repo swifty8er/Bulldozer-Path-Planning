@@ -9,13 +9,14 @@ from matplotlib import pyplot as plt
 
 
 class PQState:
-    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,rrt,g):
+    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,pushed_disks,rrt,g):
         self._map = map
         self._vehicle_pose = vehicle_pose
         self._disk_positions = disk_positions
         self._vehicle_path = vehicle_path
         self._disk_paths = disk_paths
         self._reached_goals = reached_goals
+        self._pushed_disks = pushed_disks
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
@@ -51,7 +52,6 @@ class PQState:
         h = 0
         h = h^self.vehicle_pose.__hash__()
         for pos in self.disk_positions:
-            print(pos)
             t = (pos[0],pos[1])
             h = h^hash(t)
         return h
@@ -132,14 +132,14 @@ class PQState:
             if pose == self._vehicle_pose:
                 path.append(pose)
                 path.reverse()
-                #self.drawPath(path,axis)
+                self.drawPath(path,axis)
                 return (push_point,path,g)
             remainingPath = self.getSavedPath(pose,cachedPaths)
             if remainingPath != False:
                 path.append(pose)
                 path.reverse()
                 new_path  = remainingPath + path
-                #self.drawPath(new_path,axis)
+                self.drawPath(new_path,axis)
                 return (push_point,new_path,g+self.calcPathLength(remainingPath))
 
 
@@ -157,18 +157,27 @@ class PQState:
 
 
     def getEdgeLength(self,n1,n2):
-        edge = self._RRT.tree[n1][n2]
-        if isinstance(edge,bezier.curve.Curve):
-            return edge.length
-        else:
-            try:
-                (radius,deltaTheta,direction) = edge
-            except:
-                raise Exception("Invalid RRT edge found")
-            if direction == "F" or direction =="R":
-                return radius
+        if n1 in self._RRT.tree:
+            if n2 in self._RRT.tree[n1]:
+                edge = self._RRT.tree[n1][n2]
+                if isinstance(edge,bezier.curve.Curve):
+                    return edge.length
+                else:
+                    try:
+                        (radius,deltaTheta,direction) = edge
+                    except:
+                        raise Exception("Invalid RRT edge found")
+                    if direction == "F" or direction =="R":
+                        return radius
+                    else:
+                        return radius * math.radians(deltaTheta)
             else:
-                return radius * math.radians(deltaTheta)
+                print("Edge for length not found")
+                return 0
+        else:
+            print("Edge for length not found")
+            return 0
+
 
     def calcPathLength(self,path):
         length = 0
@@ -232,13 +241,16 @@ class PQState:
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
             new_disk_positions = np.copy(self._disk_positions)
             new_disk_positions[self._disk_being_pushed] = new_disk_pos
-            new_vehicle_path = vehicle_path.copy()
-            new_vehicle_path.append(push_point)
+            vehicle_path.append(push_point)
+            new_vehicle_paths = self._vehicle_path.copy()
+            new_vehicle_paths.append(vehicle_path)
             new_disk_paths = self._disk_paths.copy()
             new_disk_paths[disk_being_pushed].append(curr_disk_pos)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
+            new_pushed_disks = self._pushed_disks.copy()
+            new_pushed_disks.append(disk_being_pushed)
             #use greedy search for now i.e g = 0 f = h
-            return PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,self._RRT,0)
+            return PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_paths,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,0)
            
         return False
 
@@ -249,7 +261,7 @@ class PQState:
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             push_point = self._vehicle_pose
-            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path,self._disk_being_pushed,self._g)
+            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,[],self._disk_being_pushed,self._g)
             if pushedState != False:
                 resultingStates.append(pushedState)
            
@@ -260,7 +272,7 @@ class PQState:
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,self._disk_being_pushed,self._g+gValue)
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,new_vehicle_path,self._disk_being_pushed,self._g+gValue)
                         if pushedState != False:
                             resultingStates.append(pushedState)
                        
@@ -277,7 +289,7 @@ class PQState:
                 if self._RRT.connectPushPoint(push_point):
                     (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
                     if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._vehicle_path+new_vehicle_path,i,self._g+gValue)
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,new_vehicle_path,i,self._g+gValue)
                         if pushedState != False:
                             resultingStates.append(pushedState)
                         
@@ -285,3 +297,44 @@ class PQState:
         return resultingStates
 
 
+    def plotSolution(self):
+
+        solution_images = []
+        #all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
+        #curr_disk_index = [0]*len(disks_path)
+        #curr_disk_pos = []
+        #push_point_rng = [self.num_of_nodes, self.num_of_nodes + int(self.num_of_points/2) - 1]
+        #dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
+        #for curr_disk_path in disks_path:
+        #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
+        disk_pos_indices = [0]*len(self._disk_paths)
+        for i in range(len(self._vehicle_path)):
+            #get and plot vehicle position
+            curr_path = self._vehicle_path[i]
+            for j in range(len(curr_path)):
+                fig, ax = plt.subplots(1,1)
+                curr_pos = curr_path[j]
+                if j == len(curr_path)-1:
+                    #push the disk
+                    disk_being_pushed = self._pushed_disks[i]
+                    disk_pos_indices[disk_being_pushed] +=1
+                ax = self._map.displayMap(ax,curr_pos,self._disk_paths,disk_pos_indices)
+                fig.canvas.draw()       # draw the canvas, cache the renderer
+                image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+                tp = fig.canvas.get_width_height()[::-1]
+                newtp = (tp[0]*2,tp[1]*2)
+                image  = image.reshape(newtp + (3,))
+                solution_images.append(image)
+                plt.close(fig)
+
+        final_indices = [-1] * len(self._disk_positions)
+        ax = self._map.displayMap(ax,self._vehicle_pose,self._disk_paths,final_indices)
+        fig.canvas.draw()       # draw the canvas, cache the renderer
+        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+        tp = fig.canvas.get_width_height()[::-1]
+        newtp = (tp[0]*2,tp[1]*2)
+        image  = image.reshape(newtp + (3,))
+        solution_images.append(image)
+        plt.close(fig)
+        plt.close("all")
+        return solution_images

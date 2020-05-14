@@ -94,7 +94,7 @@ for mm in mapNums:
             i+=1
 
 
-    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],[False]*len(map.goal_pos_xy),-1,StartingRRT,0)
+    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}
     pq = queue.PriorityQueue()
     pq.put(curr_state)
@@ -104,6 +104,9 @@ for mm in mapNums:
         curr_state = pq.get()
         plt.cla()
         curr_state.plotState(ax1)
+        plt.draw()
+        plt.pause(0.1)
+        plt.show(block=False)
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
@@ -115,11 +118,10 @@ for mm in mapNums:
 
     if curr_state.isFinishState() == True:
         print("Solved in minutes = ",(time.time() - start_time)/60)
-        plt.cla()
-        curr_state.plotState(ax1)
-        plt.draw()
-        plt.pause(10)
-        plt.show()
+        #Save results as a gif
+        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
+        imageio.mimsave(file_path, curr_state.plotSolution(), fps=1)
     else:
         print("Failed")
     #curr_state = MapState(map)

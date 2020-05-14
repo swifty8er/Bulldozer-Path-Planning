@@ -114,6 +114,42 @@ class Map:
                 ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
        
 
+    def displayMap(self,ax,vehicle_pos,disk_positions,disk_indicies, line_width=2):
+        ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
+        x_axis = []
+        y_axis = []
+        for point in self._boundary:
+            x_axis.append(point[0])
+            y_axis.append(point[1])
+        ax.plot(x_axis, y_axis, 'k-')
+        
+        for curr_obs in self._obstacles:
+            x_axis = []
+            y_axis = []
+            for point in curr_obs:
+                x_axis.append(point[0])
+                y_axis.append(point[1])
+            ax.plot(x_axis, y_axis, 'k-')
+        for goal in self._goal_poses_xy:
+            goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
+            ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
+       
+        robot_pose = [vehicle_pos.x,vehicle_pos.y]
+        pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
+        ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
+        r = 0.5
+        dx = r*math.cos(math.radians(vehicle_pos.theta))
+        dy = r*math.sin(math.radians(vehicle_pos.theta))
+        ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
+        a = 0
+        for index in disk_indicies:
+            disk_pos = disk_positions[a][index]
+            disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
+            ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
+            a+=1
+        return ax
+
+
     def plotMap(self, ax, show_plot, vehicle_pos = [], disk_poses = [], line_width = 2):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
         x_axis = []
