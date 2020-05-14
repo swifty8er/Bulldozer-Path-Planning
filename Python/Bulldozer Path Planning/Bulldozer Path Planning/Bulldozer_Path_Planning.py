@@ -100,7 +100,7 @@ for mm in mapNums:
     pq.put(curr_state)
     start_time = time.time()
 
-    while not pq.empty() and (time.time() - start_time <= 3600):
+    while not pq.empty():
         curr_state = pq.get()
         plt.cla()
         curr_state.plotState(ax1)

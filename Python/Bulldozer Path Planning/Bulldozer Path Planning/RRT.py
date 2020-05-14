@@ -17,8 +17,7 @@ class Status(Enum):
     REACHED = 1
     ADVANCED = 2
     TRAPPED = 3
-    NODE_EXISTS = 4
-    EDGE_EXISTS = 5
+    EDGE_EXISTS = 4
 
 class RRT:
     # function to initalise a tree from a start state and a list of control tuples that can be applied
@@ -42,7 +41,6 @@ class RRT:
     def initaliseTree(self,start_position):
         tree = {}
         tree[start_position] = {}
-        tree[start_position][start_position] = False
         return tree
 
     def generateRandomState(self):
@@ -62,13 +60,10 @@ class RRT:
         nearest_neighbour = self.nearestNeighbour(x_rand)
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         if result:
-            u_inv = self.getInverseControl(u_new) #if not result u_new is invalid dummy control
-            nodeExists = self.addVertex(x_new)
+            u_inv = self.getInverseControl(u_new) 
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
             if (x_new == x_rand):
                 return Status.REACHED
-            elif nodeExists:
-                return Status.NODE_EXISTS
             elif bool1 or bool2:
                 return Status.EDGE_EXISTS
             else:
@@ -80,8 +75,6 @@ class RRT:
     def getInverseControl(self,u_new):
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
-        if direction not in directionDict:
-            print("Error direction not found",u_new)
         return (radius,theta,directionDict[direction])
 
     # get the nearest neighbours that are behind the push point
@@ -286,34 +279,34 @@ class RRT:
         else:
             return (True,x_new,u_new) # returns a bool if successful, and the new state and control used
 
-    def addBackwardsVertex(self,x_new,tree):
-        if not x_new in tree:
-            tree[x_new] = {}
-        for key in tree.keys():
-            tree[x_new][key] = False
-            tree[key][x_new] = False
+    #def addBackwardsVertex(self,x_new,tree):
+    #    if not x_new in tree:
+    #        tree[x_new] = {}
+    #    for key in tree.keys():
+    #        tree[x_new][key] = False
+    #        tree[key][x_new] = False
 
-    # Add the vertex to the tree
-    def addVertex(self,x_new):
-        if x_new in self._tree:
-            print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
-            return True
-        else:
-            self._tree[x_new] = {}
-            for key in self._tree.keys():
-                self._tree[x_new][key] = False
-                self._tree[key][x_new] = False
-            return False
+    ## Add the vertex to the tree
+    #def addVertex(self,x_new):
+    #    if x_new in self._tree:
+    #        print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
+    #        return True
+    #    else:
+    #        self._tree[x_new] = {}
+    #        for key in self._tree.keys():
+    #            self._tree[x_new][key] = False
+    #            self._tree[key][x_new] = False
+    #        return False
 
     def hasVertex(self,x):
         return ( x in self._tree )
 
-    def addBackwardsEdge(self,x_new,x_near,u_new,u_inv,tree):
-        if tree[x_new][x_near] == u_inv or tree[x_near][x_new] == u_new:
-            return True
-        tree[x_new][x_near] = u_inv
-        tree[x_near][x_new] = u_new
-        return False
+    #def addBackwardsEdge(self,x_new,x_near,u_new,u_inv,tree):
+    #    if tree[x_new][x_near] == u_inv or tree[x_near][x_new] == u_new:
+    #        return True
+    #    tree[x_new][x_near] = u_inv
+    #    tree[x_near][x_new] = u_new
+    #    return False
 
     #u_new from x_near to x_new
     #u_inv from x_new to x_near
@@ -323,31 +316,30 @@ class RRT:
         if (x_new == x_near):
             print("Cannot insert an edge from a node to itself")
             return (True,True)
-        if x_new in self._tree.keys():
-            if x_near in self._tree[x_new].keys():
-                if (self._tree[x_new][x_near] == False):
-                    self._tree[x_new][x_near] = u_inv
-                elif (self._tree[x_new][x_near] == u_inv):
+        if x_new in self._tree:
+            if x_near in self._tree[x_new]:
+                if (self._tree[x_new][x_near] == u_inv):
                     bool1 = True
                 else:
-                    print("New edge between states?? (should overwrite?)")
+                    self._tree[x_new][x_near] = u_inv
             else:
-                raise Exception("x_near not in tree under key x_new")
+                self._tree[x_new][x_near] = u_inv
         else:
-            raise Exception("x_new not in tree")
+            self._tree[x_new] = {}
+            self._tree[x_new][x_near] = u_inv
 
-        if x_near in self._tree.keys():
-            if x_new in self._tree[x_near].keys():
-                if (self._tree[x_near][x_new] == False):
-                    self._tree[x_near][x_new] = u_new
-                elif (self._tree[x_near][x_new] == u_new):
+        if x_near in self._tree:
+            if x_new in self._tree[x_near]:
+                if (self._tree[x_near][x_new] == u_new):
                     bool2 = True
                 else:
-                    print("New edge between states?? (should overwrite?)")
+                    self._tree[x_near][x_new] = u_new
             else:
-                raise Exception("x_new not in tree under key x_near")
+               self._tree[x_near][x_new] = u_new
         else:
-            raise Exception("x_near not in tree")
+            self._tree[x_near] = {}
+            self._tree[x_near][x_new] = u_new
+        
 
         return (bool1,bool2)
 
@@ -411,7 +403,7 @@ class RRT:
                     bezierColor = [235.0/255.0,131.0/255.0,52.0/255.0]
                 if isinstance(edge,bezier.curve.Curve):
                     edge.plot(100,color=bezierColor,ax=axis)
-                elif edge != False:
+                else:
                     try:
                         (radius,theta,direction) = edge
                     except:
@@ -433,7 +425,7 @@ class RRT:
                 edge = self.tree[n1][n2]
                 if isinstance(edge,bezier.curve.Curve):
                     edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
-                elif edge != False:
+                else:
                     try:
                         (radius,theta,direction) = edge
                     except:

@@ -233,8 +233,8 @@ class PQState:
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
-            self._RRT.addVertex(new_vehicle_pose)
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
+
             print("Pushing disk from [%.2f,%.2f] to goal [%.2f,%.2f] results in new disk pos [%.2f,%.2f] and vehicle pose = (%.2f,%.2f,%.2f)" % (curr_disk_pos[0],curr_disk_pos[1],closest_goal[0],closest_goal[1],new_disk_pos[0],new_disk_pos[1],new_vehicle_pose.x,new_vehicle_pose.y,new_vehicle_pose.theta))
             new_disk_positions = np.copy(self._disk_positions)
             new_disk_positions[self._disk_being_pushed] = new_disk_pos
