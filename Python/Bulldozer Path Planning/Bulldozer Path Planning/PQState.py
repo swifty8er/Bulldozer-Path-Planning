@@ -1,9 +1,11 @@
 import math
 import queue
 import bezier
+import copy
 import numpy as np
 from BasicGeometry import BasicGeometry
 from Pushing import Pushing
+from Vehicle import Vehicle
 from TranspositionTable import TranspositionTable
 from matplotlib import pyplot as plt
 
@@ -240,11 +242,12 @@ class PQState:
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
             new_disk_positions = np.copy(self._disk_positions)
-            new_disk_positions[self._disk_being_pushed] = new_disk_pos
+            new_disk_positions[disk_being_pushed] = new_disk_pos
             vehicle_path.append(push_point)
-            new_vehicle_paths = self._vehicle_path.copy()
+            vehicle_path.append(new_vehicle_pose)
+            new_vehicle_paths = copy.deepcopy(self._vehicle_path)
             new_vehicle_paths.append(vehicle_path)
-            new_disk_paths = self._disk_paths.copy()
+            new_disk_paths = copy.deepcopy(self._disk_paths)
             new_disk_paths[disk_being_pushed].append(curr_disk_pos)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
             new_pushed_disks = self._pushed_disks.copy()
@@ -297,6 +300,30 @@ class PQState:
         return resultingStates
 
 
+    def generatePosesAlongEdge(self,n1,n2,edge,num_steps=20):
+        poses = [n1]
+        if n1 in self._RRT.tree:
+            if n2 in self._RRT.tree[n1]:
+                edge = self._RRT.tree[n1][n2]
+                if isinstance(edge,bezier.curve.Curve):
+                    s = 0.0
+                    while s<1.0:
+                        point = edge.evaluate(s)
+                        next_point = edge.evaluate(s+0.01)
+                        newPose = Vehicle(point[0],point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(point,next_point))))
+                        poses.append(newPose)
+                        s+=0.01
+                else:
+                    angle = edge[1]
+                    delta_angle = angle/float(num_steps)
+                    the_angle = delta_angle
+                    for i in range(num_steps):
+                        new_position = start_position.applyControl(edge[0],the_angle,edge[2])
+                        poses.append(new_position)
+                        the_angle += delta_angle
+        poses.append(n2)
+        return poses
+
     def plotSolution(self):
 
         solution_images = []
@@ -311,22 +338,47 @@ class PQState:
         for i in range(len(self._vehicle_path)):
             #get and plot vehicle position
             curr_path = self._vehicle_path[i]
-            for j in range(len(curr_path)):
-                fig, ax = plt.subplots(1,1)
-                curr_pos = curr_path[j]
-                if j == len(curr_path)-1:
+            for j in range(len(curr_path)-1):
+                curr_pose = curr_path[j]
+                next_pose = curr_path[j+1]
+                if j == len(curr_path)-2 and i<len(self._vehicle_path)-1:
                     #push the disk
                     disk_being_pushed = self._pushed_disks[i]
                     disk_pos_indices[disk_being_pushed] +=1
-                ax = self._map.displayMap(ax,curr_pos,self._disk_paths,disk_pos_indices)
-                fig.canvas.draw()       # draw the canvas, cache the renderer
-                image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-                tp = fig.canvas.get_width_height()[::-1]
-                newtp = (tp[0]*2,tp[1]*2)
-                image  = image.reshape(newtp + (3,))
-                solution_images.append(image)
-                plt.close(fig)
+                    
+                    fig, ax = plt.subplots(1,1)
+                   
+                    ax = self._map.displayMap(ax,next_pose,self._disk_paths,disk_pos_indices)
+                    fig.canvas.draw()       # draw the canvas, cache the renderer
+                    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+                    tp = fig.canvas.get_width_height()[::-1]
+                    newtp = (tp[0]*2,tp[1]*2)
+                    image  = image.reshape(newtp + (3,))
+                    solution_images.append(image)
+                    plt.close(fig)
+                else:
+                  
+                    edge_path = self.generatePosesAlongEdge(curr_pose,next_pose)
+                    for k in range(len(edge_path)):
 
+                        fig, ax = plt.subplots(1,1)
+                   
+                        ax = self._map.displayMap(ax,edge_path[k],self._disk_paths,disk_pos_indices)
+                        fig.canvas.draw()       # draw the canvas, cache the renderer
+                        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+                        tp = fig.canvas.get_width_height()[::-1]
+                        newtp = (tp[0]*2,tp[1]*2)
+                        image  = image.reshape(newtp + (3,))
+                        solution_images.append(image)
+                        plt.close(fig)
+
+        #add the final disk positions to the state disk paths
+        a = 0
+        for final_pos in self._disk_positions:
+            self._disk_paths[a].append(final_pos)
+            a+=1
+
+        fig, ax = plt.subplots(1,1)
         final_indices = [-1] * len(self._disk_positions)
         ax = self._map.displayMap(ax,self._vehicle_pose,self._disk_paths,final_indices)
         fig.canvas.draw()       # draw the canvas, cache the renderer
