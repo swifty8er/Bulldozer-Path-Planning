@@ -391,7 +391,6 @@ class RRT:
 
         return backwardsDict
 
-
     def drawEdge(self,n1,n2,axis,c):   
         if n1 in self.tree:
             if n2 in self.tree[n1]:
