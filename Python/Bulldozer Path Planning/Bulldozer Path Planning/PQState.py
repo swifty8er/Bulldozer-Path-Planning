@@ -300,7 +300,7 @@ class PQState:
         return resultingStates
 
 
-    def generatePosesAlongEdge(self,n1,n2,edge,num_steps=20):
+    def generatePosesAlongEdge(self,n1,n2,num_steps=20):
         poses = [n1]
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:
@@ -308,17 +308,19 @@ class PQState:
                 if isinstance(edge,bezier.curve.Curve):
                     s = 0.0
                     while s<1.0:
-                        point = edge.evaluate(s)
-                        next_point = edge.evaluate(s+0.01)
-                        newPose = Vehicle(point[0],point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(point,next_point))))
+                        point_list = edge.evaluate(s).tolist()
+                        real_point = [point_list[0][0],point_list[1][0]]
+                        next_list = edge.evaluate(s+0.01).tolist()
+                        real_next = [next_list[0][0],next_list[1][0]]
+                        newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
                         poses.append(newPose)
                         s+=0.01
-                else:
+                elif edge != False:
                     angle = edge[1]
                     delta_angle = angle/float(num_steps)
                     the_angle = delta_angle
                     for i in range(num_steps):
-                        new_position = start_position.applyControl(edge[0],the_angle,edge[2])
+                        new_position = n1.applyControl(edge[0],the_angle,edge[2])
                         poses.append(new_position)
                         the_angle += delta_angle
         poses.append(n2)
