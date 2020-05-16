@@ -156,10 +156,11 @@ class RRT:
         if self.nodeWithinRadiusOfDirtPile(n2,dirt_pile_positions):
             return True
         if (edge_arc != False):
-            if isinstance(edge_arc,bezier.curve.Curve):
+            if isinstance(edge_arc[0],bezier.curve.Curve):
+                (bezierEdge,direction) = edge_arc
                 s = 0.0
                 while s<1.0:
-                    point = edge_arc.evaluate(s)
+                    point = bezierEdge.evaluate(s)
                     if self.pointWithinRadiusOfDirtPile(point,dirt_pile_positions):
                         return True
                     s+= 0.02
@@ -399,7 +400,7 @@ class RRT:
                 else:
                     bezierColor = [235.0/255.0,131.0/255.0,52.0/255.0]
                 if isinstance(edge[0],bezier.curve.Curve):
-                    edge.plot(100,color=bezierColor,ax=axis)
+                    edge[0].plot(100,color=bezierColor,ax=axis)
                 else:
                     try:
                         (radius,theta,direction) = edge

@@ -11,9 +11,10 @@ from matplotlib import pyplot as plt
 
 
 class PQState:
-    def __init__(self,map,vehicle_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,pushed_disks,rrt,g):
+    def __init__(self,map,vehicle_pose,previous_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,pushed_disks,rrt,g):
         self._map = map
         self._vehicle_pose = vehicle_pose
+        self._previous_pose = previous_pose
         self._disk_positions = disk_positions
         self._vehicle_path = vehicle_path
         self._disk_paths = disk_paths
@@ -122,11 +123,11 @@ class PQState:
 
 
     def connectToPreviousPose(self,axis):
-        if len(self._vehicle_path)==0:
+        if self._previous_pose == None:
             return True
         pq = queue.PriorityQueue()
         visitedNodes = {}
-        previousPose = self._vehicle_path[-1][-1]
+        previousPose = self._previous_pose
         currentPose = self._vehicle_pose
         starting_state = (currentPose.EuclideanDistance(previousPose),currentPose,[],0)
         pq.put(starting_state)
@@ -192,8 +193,8 @@ class PQState:
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:
                 edge = self._RRT.tree[n1][n2]
-                if isinstance(edge,bezier.curve.Curve):
-                    return edge.length
+                if isinstance(edge[0],bezier.curve.Curve):
+                    return edge[0].length
                 else:
                     try:
                         (radius,deltaTheta,direction) = edge
@@ -234,7 +235,7 @@ class PQState:
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(1)
+        plt.pause(5)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):
@@ -283,7 +284,7 @@ class PQState:
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use greedy search for now i.e g = 0 f = h
-            return PQState(self._map,new_vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,0)
+            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
            
         return False
 
@@ -293,7 +294,7 @@ class PQState:
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             push_point = self._vehicle_pose
-            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,self._g)
+            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
             if pushedState != False:
                 resultingStates.append(pushedState)
            
@@ -302,7 +303,7 @@ class PQState:
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint(push_point):
-                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,self._g+BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                     if pushedState != False:
                         resultingStates.append(pushedState)
                        
@@ -316,7 +317,7 @@ class PQState:
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint(push_point):
-                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,self._g+BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                     if pushedState != False:
                         resultingStates.append(pushedState)
                         
@@ -327,14 +328,16 @@ class PQState:
         poses = [n1]
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:
+                edge = self._RRT.tree[n1][n2]
                 if edge != False: #this check should no longer be necessary
                     if isinstance(edge[0],bezier.curve.Curve):
-                        if edge[1] == "F":
+                        (bezierEdge,direction) = edge
+                        if direction == "F":
                             s = 0.0
                             while s<1.0:
-                                point_list = edge.evaluate(s).tolist()
+                                point_list = bezierEdge.evaluate(s).tolist()
                                 real_point = [point_list[0][0],point_list[1][0]]
-                                next_list = edge.evaluate(s+0.025).tolist()
+                                next_list = bezierEdge.evaluate(s+0.025).tolist()
                                 real_next = [next_list[0][0],next_list[1][0]]
                                 newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
                                 poses.append(newPose)
@@ -342,9 +345,9 @@ class PQState:
                         else:
                             s=1.0-0.025
                             while s>0:
-                                point_list = edge.evaluate(s).tolist()
+                                point_list = bezierEdge.evaluate(s).tolist()
                                 real_point = [point_list[0][0],point_list[1][0]]
-                                next_list = edge.evaluate(s+0.025).tolist()
+                                next_list = bezierEdge.evaluate(s+0.025).tolist()
                                 real_next = [next_list[0][0],next_list[1][0]]
                                 newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
                                 poses.append(newPose)
@@ -352,12 +355,15 @@ class PQState:
                     else:
                         (radius,theta,direction) = edge
                         if direction == "F" or direction == "R":
-                            delta_distance = radius/float(num_steps)
+                            delta_distance = 0.025 #fix increment distance for straight lines
                             the_dist = delta_distance
-                            for i in range(num_steps):
+                            while the_dist<radius:
                                 new_position = n1.applyControl(the_dist,0,direction)
                                 poses.append(new_position)
                                 the_dist += delta_distance
+
+                            new_position = n1.applyControl(radius,0,direction)
+                            poses.append(new_position)
                         else:
                             delta_angle = theta/float(num_steps)
                             the_angle = delta_angle
@@ -400,6 +406,23 @@ class PQState:
                     image  = image.reshape(newtp + (3,))
                     solution_images.append(image)
                     plt.close(fig)
+                elif j == len(curr_path)-2 and i==len(self._vehicle_path)-1:
+                    a = 0
+                    for final_pos in self._disk_positions:
+                        self._disk_paths[a].append(final_pos)
+                        a+=1
+
+                    fig, ax = plt.subplots(1,1)
+                    final_indices = [-1] * len(self._disk_positions)
+                    ax = self._map.displayMap(ax,next_pose,self._disk_paths,final_indices)
+                    fig.canvas.draw()       # draw the canvas, cache the renderer
+                    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+                    tp = fig.canvas.get_width_height()[::-1]
+                    newtp = (tp[0]*2,tp[1]*2)
+                    image  = image.reshape(newtp + (3,))
+                    for b in range(375):
+                        solution_images.append(image) #freeze on the final frame for 15 seconds
+                    plt.close(fig)
                 else:
                   
                     edge_path = self.generatePosesAlongEdge(curr_pose,next_pose)
@@ -417,21 +440,6 @@ class PQState:
                         plt.close(fig)
 
         #add the final disk positions to the state disk paths
-        a = 0
-        for final_pos in self._disk_positions:
-            self._disk_paths[a].append(final_pos)
-            a+=1
-
-        fig, ax = plt.subplots(1,1)
-        final_indices = [-1] * len(self._disk_positions)
-        ax = self._map.displayMap(ax,self._vehicle_pose,self._disk_paths,final_indices)
-        fig.canvas.draw()       # draw the canvas, cache the renderer
-        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-        tp = fig.canvas.get_width_height()[::-1]
-        newtp = (tp[0]*2,tp[1]*2)
-        image  = image.reshape(newtp + (3,))
-        for b in range(375):
-            solution_images.append(image) #freeze on the final frame for 15 seconds
-        plt.close(fig)
+        
         plt.close("all")
         return solution_images

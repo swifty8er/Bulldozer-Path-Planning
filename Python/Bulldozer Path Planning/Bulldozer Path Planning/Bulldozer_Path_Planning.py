@@ -81,7 +81,7 @@ for mm in mapNums:
     plt.show(block=False)
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
-    num_nodes = int(x_range * y_range * 200)
+    num_nodes = int(x_range * y_range * 100)
     starting_xy = map.initial_vehicle_pos_xy[0].tolist()
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
@@ -94,7 +94,7 @@ for mm in mapNums:
             i+=1
 
 
-    curr_state = PQState(map,StartVehiclePos,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
+    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}
     pq = queue.PriorityQueue()
     pq.put(curr_state)
