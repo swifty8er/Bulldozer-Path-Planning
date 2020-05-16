@@ -358,8 +358,8 @@ class RRT:
                 if bezier_new != False:
                     if nn not in backwardsDict:
                         backwardsDict[nn] = {}
-                    backwardsDict[nn][node] = bezier_new
-                    backwardsDict[node][nn] = bezier_new
+                    backwardsDict[nn][node] = (bezier_new,"F")
+                    backwardsDict[node][nn] = (bezier_new,"R")
                     if axis!=False:
                         bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
                     connected = True
@@ -398,7 +398,7 @@ class RRT:
                     bezierColor = [0.0,0.0,0.0]
                 else:
                     bezierColor = [235.0/255.0,131.0/255.0,52.0/255.0]
-                if isinstance(edge,bezier.curve.Curve):
+                if isinstance(edge[0],bezier.curve.Curve):
                     edge.plot(100,color=bezierColor,ax=axis)
                 else:
                     try:
@@ -420,7 +420,7 @@ class RRT:
         for n1 in self.tree.keys():
             for n2 in self.tree[n1].keys():
                 edge = self.tree[n1][n2]
-                if isinstance(edge,bezier.curve.Curve):
+                if isinstance(edge[0],bezier.curve.Curve):
                     edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
                 else:
                     try:

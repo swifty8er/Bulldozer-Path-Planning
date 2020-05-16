@@ -121,41 +121,71 @@ class PQState:
         return (closestGoal,found)
 
 
-    # Use the RRT to find a path between the current position of the vehicle and the push_point
-    # Use A* search in reverse from the push point to the current position
-    def navigateToPushPoint(self,push_point,cachedPaths,axis):
+    def connectToPreviousPose(self,axis):
+        if len(self._vehicle_path)==0:
+            return True
         pq = queue.PriorityQueue()
         visitedNodes = {}
-        starting_state = (push_point.EuclideanDistance(self._vehicle_pose),push_point,[],0)
+        previousPose = self._vehicle_path[-1][-1]
+        currentPose = self._vehicle_pose
+        starting_state = (currentPose.EuclideanDistance(previousPose),currentPose,[],0)
         pq.put(starting_state)
         while not pq.empty():
             curr_state = pq.get()
             (f,pose,path,g) = curr_state
-            if pose == self._vehicle_pose:
+            if pose == previousPose:
                 path.append(pose)
                 path.reverse()
                 self.drawPath(path,axis)
-                return (push_point,path,g)
-            remainingPath = self.getSavedPath(pose,cachedPaths)
-            if remainingPath != False:
-                path.append(pose)
-                path.reverse()
-                new_path  = remainingPath + path
-                self.drawPath(new_path,axis)
-                return (push_point,new_path,g+self.calcPathLength(remainingPath))
-
-
+                self._vehicle_path.append(path)
+                return True
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 new_path = path.copy()
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
                     if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                        new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
+                        new_state = (next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
                         pq.put(new_state)
                           
 
-        return (False,False,False)
+        return False
+
+    # Use the RRT to find a path between the current position of the vehicle and the push_point
+    # Use A* search in reverse from the push point to the current position
+    #def navigateToPushPoint(self,push_point,cachedPaths,axis):
+    #    pq = queue.PriorityQueue()
+    #    visitedNodes = {}
+    #    starting_state = (push_point.EuclideanDistance(self._vehicle_pose),push_point,[],0)
+    #    pq.put(starting_state)
+    #    while not pq.empty():
+    #        curr_state = pq.get()
+    #        (f,pose,path,g) = curr_state
+    #        if pose == self._vehicle_pose:
+    #            path.append(pose)
+    #            path.reverse()
+    #            self.drawPath(path,axis)
+    #            return (push_point,path,g)
+    #        remainingPath = self.getSavedPath(pose,cachedPaths)
+    #        if remainingPath != False:
+    #            path.append(pose)
+    #            path.reverse()
+    #            new_path  = remainingPath + path
+    #            self.drawPath(new_path,axis)
+    #            return (push_point,new_path,g+self.calcPathLength(remainingPath))
+
+
+    #        if pose not in visitedNodes:
+    #            visitedNodes[pose] = True
+    #            new_path = path.copy()
+    #            new_path.append(pose)
+    #            for next_pose in self._RRT.tree[pose]:
+    #                if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
+    #                    new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
+    #                    pq.put(new_state)
+                          
+
+    #    return (False,False,False)
 
 
     def getEdgeLength(self,n1,n2):
@@ -231,7 +261,7 @@ class PQState:
             i+=1
         return reached
 
-    def getStateAfterPush(self,push_point,curr_disk_pos,vehicle_path,disk_being_pushed,gValue):
+    def getStateAfterPush(self,push_point,curr_disk_pos,disk_being_pushed,gValue):
         (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
         if not found:
             return False # do not push disk out of goal
@@ -243,28 +273,27 @@ class PQState:
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
             new_disk_positions = np.copy(self._disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
-            vehicle_path.append(push_point)
-            vehicle_path.append(new_vehicle_pose)
-            new_vehicle_paths = copy.deepcopy(self._vehicle_path)
-            new_vehicle_paths.append(vehicle_path)
+            #vehicle_path.append(push_point)
+            #vehicle_path.append(new_vehicle_pose)
+            #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
+            #new_vehicle_paths.append(vehicle_path)
             new_disk_paths = copy.deepcopy(self._disk_paths)
             new_disk_paths[disk_being_pushed].append(curr_disk_pos)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use greedy search for now i.e g = 0 f = h
-            return PQState(self._map,new_vehicle_pose,new_disk_positions,new_vehicle_paths,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,0)
+            return PQState(self._map,new_vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,0)
            
         return False
 
     def getResultingStates(self,axis):
         resultingStates = []
-        cachedPaths = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             push_point = self._vehicle_pose
-            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,[],self._disk_being_pushed,self._g)
+            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,self._g)
             if pushedState != False:
                 resultingStates.append(pushedState)
            
@@ -273,13 +302,10 @@ class PQState:
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint(push_point):
-                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
-                    if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,new_vehicle_path,self._disk_being_pushed,self._g+gValue)
-                        if pushedState != False:
-                            resultingStates.append(pushedState)
+                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,self._g+BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                    if pushedState != False:
+                        resultingStates.append(pushedState)
                        
-                        cachedPaths.append(new_vehicle_path)
                     
              
         # finally consider navigating to the push points of all other disks
@@ -290,13 +316,10 @@ class PQState:
             new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
             for push_point in new_push_points:
                 if self._RRT.connectPushPoint(push_point):
-                    (new_vehicle_pose,new_vehicle_path,gValue) = self.navigateToPushPoint(push_point,cachedPaths,axis)
-                    if not (new_vehicle_pose == False and new_vehicle_path == False and gValue == False):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,new_vehicle_path,i,self._g+gValue)
-                        if pushedState != False:
-                            resultingStates.append(pushedState)
+                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,self._g+BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                    if pushedState != False:
+                        resultingStates.append(pushedState)
                         
-                        cachedPaths.append(new_vehicle_path)
         return resultingStates
 
 
@@ -304,33 +327,44 @@ class PQState:
         poses = [n1]
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:
-                edge = self._RRT.tree[n1][n2]
-                if isinstance(edge,bezier.curve.Curve):
-                    s = 0.0
-                    while s<1.0:
-                        point_list = edge.evaluate(s).tolist()
-                        real_point = [point_list[0][0],point_list[1][0]]
-                        next_list = edge.evaluate(s+0.025).tolist()
-                        real_next = [next_list[0][0],next_list[1][0]]
-                        newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
-                        poses.append(newPose)
-                        s+=0.025
-                elif edge != False: #this check should no longer be necessary
-                    (radius,theta,direction) = edge
-                    if direction == "F" or direction == "R":
-                        delta_distance = radius/float(num_steps)
-                        the_dist = delta_distance
-                        for i in range(num_steps):
-                            new_position = n1.applyControl(the_dist,0,direction)
-                            poses.append(new_position)
-                            the_dist += delta_distance
+                if edge != False: #this check should no longer be necessary
+                    if isinstance(edge[0],bezier.curve.Curve):
+                        if edge[1] == "F":
+                            s = 0.0
+                            while s<1.0:
+                                point_list = edge.evaluate(s).tolist()
+                                real_point = [point_list[0][0],point_list[1][0]]
+                                next_list = edge.evaluate(s+0.025).tolist()
+                                real_next = [next_list[0][0],next_list[1][0]]
+                                newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
+                                poses.append(newPose)
+                                s+=0.025
+                        else:
+                            s=1.0-0.025
+                            while s>0:
+                                point_list = edge.evaluate(s).tolist()
+                                real_point = [point_list[0][0],point_list[1][0]]
+                                next_list = edge.evaluate(s+0.025).tolist()
+                                real_next = [next_list[0][0],next_list[1][0]]
+                                newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
+                                poses.append(newPose)
+                                s-=0.025
                     else:
-                        delta_angle = theta/float(num_steps)
-                        the_angle = delta_angle
-                        for i in range(num_steps):
-                            new_position = n1.applyControl(radius,the_angle,direction)
-                            poses.append(new_position)
-                            the_angle += delta_angle
+                        (radius,theta,direction) = edge
+                        if direction == "F" or direction == "R":
+                            delta_distance = radius/float(num_steps)
+                            the_dist = delta_distance
+                            for i in range(num_steps):
+                                new_position = n1.applyControl(the_dist,0,direction)
+                                poses.append(new_position)
+                                the_dist += delta_distance
+                        else:
+                            delta_angle = theta/float(num_steps)
+                            the_angle = delta_angle
+                            for i in range(num_steps):
+                                new_position = n1.applyControl(radius,the_angle,direction)
+                                poses.append(new_position)
+                                the_angle += delta_angle
         poses.append(n2)
         return poses
 
