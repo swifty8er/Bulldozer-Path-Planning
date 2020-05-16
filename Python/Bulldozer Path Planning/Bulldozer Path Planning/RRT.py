@@ -359,8 +359,12 @@ class RRT:
                 if bezier_new != False:
                     if nn not in backwardsDict:
                         backwardsDict[nn] = {}
-                    backwardsDict[nn][node] = (bezier_new,"F")
-                    backwardsDict[node][nn] = (bezier_new,"R")
+                    if isinstance(bezier_new,bezier.curve.Curve):
+                        backwardsDict[nn][node] = (bezier_new,"F")
+                        backwardsDict[node][nn] = (bezier_new,"R")
+                    else:
+                        backwardsDict[nn][node] = bezier_new
+                        backwardsDict[node][nn] = self.getInverseControl(bezier_new)
                     if axis!=False:
                         bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
                     connected = True

@@ -332,7 +332,7 @@ class BasicGeometry():
     @staticmethod
     def findVectorLinesIntersectionPoint(x1,y1,theta1,x2,y2,theta2):
         if round(math.cos(math.radians(theta1)),4) == 0:
-            if math.cos(math.radians(theta2)) == 0:
+            if round(math.cos(math.radians(theta2)),4) == 0:
                 if (x1 == x2):
                     return (None,math.inf)
                 else:
@@ -340,7 +340,7 @@ class BasicGeometry():
             else:
                 t2 = (x1-x2)/math.cos(math.radians(theta2))
         elif round(math.tan(math.radians(theta1)),4) == 0:
-            if math.tan(math.radians(theta2)) == 0:
+            if round(math.tan(math.radians(theta2)),4) == 0:
                 if (y1 == y2):
                     return (math.inf,None)
                 else:

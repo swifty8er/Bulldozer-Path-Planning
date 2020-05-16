@@ -67,7 +67,7 @@ ControlsList = [
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
 My_Push = Push_RRT(map,(0.4*math.pi)/4.0)
-starting_xy = map.initial_vehicle_pos_xy[0].tolist()
+starting_xy = map.initial_vehicle_pos_xy[0]
 StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90)
 MyRRT = RRT(map,StartVehiclePos,ControlsList,5000)
 

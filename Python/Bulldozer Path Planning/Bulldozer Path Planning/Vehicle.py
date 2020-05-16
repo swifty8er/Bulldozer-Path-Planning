@@ -161,11 +161,17 @@ class Vehicle:
         if intersectionPoint == None:
             return False
         if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
-            #deal with straight line case
-            pass
+            dist = abs(self.x-otherVehicle.x)
+            if self.x<otherVehicle.x:
+                return (dist,0,"F")
+            else:
+                return (dist,0,"R")
         elif intersectionPoint[0] == None and intersectionPoint[1] == math.inf:
-            #deal with straight line case
-            pass
+            dist = abs(self.y-otherVehicle.y)
+            if self.y<otherVehicle.y:
+                return (dist,0,"F")
+            else:
+                return (dist,0,"R")
         x_points = [self.x,intersectionPoint[0],otherVehicle.x]
         y_points = [self.y,intersectionPoint[1],otherVehicle.y]
         nodes = np.asfortranarray([x_points,y_points])

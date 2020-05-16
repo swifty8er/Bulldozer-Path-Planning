@@ -300,21 +300,21 @@ class Maps:
             for k in range(max_j):
                 if (curr_level[j][k] == '.'):
                     #goal
-                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    goal_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
                 elif (curr_level[j][k] == '@'):
                     #vehicle
-                    initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    initial_vehicle_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
                 elif (curr_level[j][k] == '$'):
                     #disk
-                    initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    initial_disk_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
                 elif (curr_level[j][k] == '*'):
                     #disk on top of goal
-                    initial_disk_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    initial_disk_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
+                    goal_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
                 elif (curr_level[j][k] == '+'):
                     #vehicle on top of goal
-                    initial_vehicle_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
-                    goal_pos_xy.append(np.array([k-min_x-0.5,max_y+0.5-j])) #converted
+                    initial_vehicle_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
+                    goal_pos_xy.append([k-min_x-0.5,max_y+0.5-j]) #converted
         return (initial_vehicle_pos_xy,initial_disk_pos_xy,goal_pos_xy)
 
     def GetMinxMaxy(self,curr_outline):
