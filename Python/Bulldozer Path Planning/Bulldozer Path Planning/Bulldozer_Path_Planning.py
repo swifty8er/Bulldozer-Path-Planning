@@ -94,7 +94,7 @@ for mm in mapNums:
             i+=1
 
 
-    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[]*len(map.initial_disk_pos_xy)],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
+    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}
     pq = queue.PriorityQueue()
     pq.put(curr_state)
