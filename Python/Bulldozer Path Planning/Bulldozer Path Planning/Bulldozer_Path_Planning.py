@@ -107,7 +107,7 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.1)
         plt.show(block=False)
-        if not curr_state.connectToPreviousPose(ax1):
+        if not curr_state.connectToPreviousPose():
             continue
         if curr_state.isFinishState():
             break

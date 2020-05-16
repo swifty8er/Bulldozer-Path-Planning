@@ -122,7 +122,7 @@ class PQState:
         return (closestGoal,found)
 
 
-    def connectToPreviousPose(self,axis):
+    def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
             return True
         pq = queue.PriorityQueue()
@@ -137,7 +137,8 @@ class PQState:
             if pose == previousPose:
                 path.append(pose)
                 path.reverse()
-                self.drawPath(path,axis)
+                if axis!=False:
+                    self.drawPath(path,axis)
                 self._vehicle_path.append(path)
                 return True
             if pose not in visitedNodes:
@@ -297,6 +298,7 @@ class PQState:
             pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
             if pushedState != False:
                 resultingStates.append(pushedState)
+                print("Added pushing state from current pose")
            
             # next consider navigating to a different push point on the current disk
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
@@ -306,6 +308,7 @@ class PQState:
                     pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                     if pushedState != False:
                         resultingStates.append(pushedState)
+                        print("Added pushing state from new push point on same disk")
                        
                     
              
@@ -320,6 +323,7 @@ class PQState:
                     pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                     if pushedState != False:
                         resultingStates.append(pushedState)
+                        print("Added pushing state from push point on new disk")
                         
         return resultingStates
 
