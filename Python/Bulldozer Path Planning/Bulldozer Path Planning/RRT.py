@@ -353,7 +353,7 @@ class RRT:
         connected = False
         nodes = list(backwardsDict.keys()).copy()
         for node in nodes:
-            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,int(self.num_nodes/10))
+            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,int(self.num_nodes/15))
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
