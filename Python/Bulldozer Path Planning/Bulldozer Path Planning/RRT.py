@@ -376,7 +376,6 @@ class RRT:
     def populateBackwardsDict(self,startingNode):
         backwardsDict = {}
         backwardsDict[startingNode] = {}
-        backwardsDict[startingNode][startingNode] = False
         for control in self._controls_list:
             newControl = self.randomiseControlPathLength(control)
             (radius,deltaTheta,direction) = newControl

@@ -310,19 +310,27 @@ class PQState:
                     while s<1.0:
                         point_list = edge.evaluate(s).tolist()
                         real_point = [point_list[0][0],point_list[1][0]]
-                        next_list = edge.evaluate(s+0.01).tolist()
+                        next_list = edge.evaluate(s+0.025).tolist()
                         real_next = [next_list[0][0],next_list[1][0]]
                         newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
                         poses.append(newPose)
-                        s+=0.01
-                elif edge != False:
-                    angle = edge[1]
-                    delta_angle = angle/float(num_steps)
-                    the_angle = delta_angle
-                    for i in range(num_steps):
-                        new_position = n1.applyControl(edge[0],the_angle,edge[2])
-                        poses.append(new_position)
-                        the_angle += delta_angle
+                        s+=0.025
+                elif edge != False: #this check should no longer be necessary
+                    (radius,theta,direction) = edge
+                    if direction == "F" or direction == "R":
+                        delta_distance = radius/float(num_steps)
+                        the_dist = delta_distance
+                        for i in range(num_steps):
+                            new_position = n1.applyControl(the_dist,0,direction)
+                            poses.append(new_position)
+                            the_dist += delta_distance
+                    else:
+                        delta_angle = theta/float(num_steps)
+                        the_angle = delta_angle
+                        for i in range(num_steps):
+                            new_position = n1.applyControl(radius,the_angle,direction)
+                            poses.append(new_position)
+                            the_angle += delta_angle
         poses.append(n2)
         return poses
 
@@ -388,7 +396,8 @@ class PQState:
         tp = fig.canvas.get_width_height()[::-1]
         newtp = (tp[0]*2,tp[1]*2)
         image  = image.reshape(newtp + (3,))
-        solution_images.append(image)
+        for b in range(375):
+            solution_images.append(image) #freeze on the final frame for 15 seconds
         plt.close(fig)
         plt.close("all")
         return solution_images

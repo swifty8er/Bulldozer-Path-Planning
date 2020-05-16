@@ -119,9 +119,9 @@ for mm in mapNums:
     if curr_state.isFinishState() == True:
         print("Solved in minutes = ",(time.time() - start_time)/60)
         #Save results as a gif
-        kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+        kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
-        imageio.mimsave(file_path, curr_state.plotSolution(), fps=1)
+        imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
     else:
         print("Failed")
     #curr_state = MapState(map)

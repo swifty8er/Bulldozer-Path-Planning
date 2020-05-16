@@ -255,17 +255,22 @@ class BasicGeometry():
 
     @staticmethod
     def arcLineCollisionIterative(start_position,control,line,num_steps,disk_radius):
-        angle = control[1]
-        delta_angle = angle/float(num_steps)
-        the_angle = delta_angle
-        for i in range(num_steps+1):
-            new_position = start_position.applyControl(control[0],the_angle,control[2])
-            point = (new_position.x,new_position.y)
-            dist = BasicGeometry.point2LineDist(line,point)
-            if (disk_radius - dist) > np.finfo(np.float32).eps:
-                return True
-            the_angle += delta_angle
-        return False
+        if control[2] == "F" or control[2] == "R":
+            end_position = startPosition.applyControl(control[0],control[1],control[2])
+            L2 = [[start_position.x,start_position.y],[end_position.x,end_position.y]]
+            return BasicGeometry.doLinesIntersect(line,L2)
+        else:
+            angle = control[1]
+            delta_angle = angle/float(num_steps)
+            the_angle = delta_angle
+            for i in range(num_steps+1):
+                new_position = start_position.applyControl(control[0],the_angle,control[2])
+                point = (new_position.x,new_position.y)
+                dist = BasicGeometry.point2LineDist(line,point)
+                if (disk_radius - dist) > np.finfo(np.float32).eps:
+                    return True
+                the_angle += delta_angle
+            return False
 
     @staticmethod
     def doLinesIntersect(line_1, line_2):
