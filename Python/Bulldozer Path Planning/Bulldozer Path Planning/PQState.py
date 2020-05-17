@@ -82,7 +82,7 @@ class PQState:
 
     def diskInGoal(self,disk_pos):
         for goal_pos in self._map.goal_pos_xy:
-            if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.05:
+            if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.075:
                 return True
         return False
 
@@ -214,7 +214,7 @@ class PQState:
         i = 0
         for goal_pos in self._map.goal_pos_xy:
             for disk_pos in disk_positions:
-                if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.05:
+                if (BasicGeometry.ptDist(disk_pos,goal_pos)) < 0.075:
                     reached[i] = True
                     break
             i+=1
@@ -251,21 +251,21 @@ class PQState:
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
-            push_point = self._vehicle_pose
-            pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
-            if pushedState != False:
-                resultingStates.append(pushedState)
-                print("Added pushing state from current pose")
+            if not self.diskInGoal(curr_disk_pos):
+                push_point = self._vehicle_pose
+                pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
+                if pushedState != False:
+                    resultingStates.append(pushedState)
+                    print("Added pushing state from current pose")
            
-            # next consider navigating to a different push point on the current disk
-            curr_disk_pos = self._disk_positions[self._disk_being_pushed]
-            new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
-            for push_point in new_push_points:
-                if self._RRT.connectPushPoint(push_point):
-                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
-                    if pushedState != False:
-                        resultingStates.append(pushedState)
-                        print("Added pushing state from new push point on same disk")
+                # next consider navigating to a different push point on the current disk
+                new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
+                for push_point in new_push_points:
+                    if self._RRT.connectPushPoint(push_point):
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                        if pushedState != False:
+                            resultingStates.append(pushedState)
+                            print("Added pushing state from new push point on same disk")
                        
                     
              
@@ -274,13 +274,14 @@ class PQState:
             if i == self._disk_being_pushed:
                 continue
             curr_disk_pos = self._disk_positions[i]
-            new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
-            for push_point in new_push_points:
-                if self._RRT.connectPushPoint(push_point):
-                    pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
-                    if pushedState != False:
-                        resultingStates.append(pushedState)
-                        print("Added pushing state from push point on new disk")
+            if not self.diskInGoal(curr_disk_pos):
+                new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
+                for push_point in new_push_points:
+                    if self._RRT.connectPushPoint(push_point):
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                        if pushedState != False:
+                            resultingStates.append(pushedState)
+                            print("Added pushing state from push point on new disk")
                         
         return resultingStates
 
