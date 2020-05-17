@@ -78,13 +78,7 @@ class Map:
 
 
     def getMapEdgesAndObstacles(self):
-        edges = []
-        for bd_index in range(len(self._boundary)-1):
-            edges.append([self._boundary[bd_index], self._boundary[bd_index+1]])
-        for obs in self._obstacles:
-            for pt_index in range(len(obs)-1):
-                edges.append([obs[pt_index], obs[pt_index+1]])
-        return edges
+        return self._boundary + self._obstacles
 
 
     def plotMapBoundaryObstacles(self,ax,line_width=2):

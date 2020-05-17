@@ -49,10 +49,10 @@ class Maps:
 
 
     def __init__(self):
-        raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Elliott_maps.txt", "r")
+        raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/new_maps.txt", "r")
         self._test_maps = []
         if raw_mb.readable():
-            self._test_maps = self.LoadTestMaps(raw_mb)
+            self._test_maps = self.LoadElliottTestMaps(raw_mb)
         else:
             print("File not readable")
         raw_mb.close()
@@ -326,6 +326,96 @@ class Maps:
             if coord[1] > max_y:
                 max_y = coord[1]
         return (min_x,max_y)
+
+    def LoadElliottTestMaps(self,raw_mb):
+        lines = []
+        goals = []
+        disks = []
+        testMaps = []
+        mapNum = 0
+        for line in raw_mb.readlines():
+            if line.split()[0] == "Level":
+                i = 0
+                mapNum = int(line.split()[1])
+            if i == 1:
+                lineSegments = line.split()
+                j = 0
+                for parts in lineSegments:
+                    j = 0
+                    lineList = []
+                    l = []
+                    for part in parts.split(','):
+                        if j==0:
+                            l.append(float(part.strip('[')))
+                        elif j== 1:
+                            l.append(float(part.strip(']')))
+                            lineList.append(l)
+                        elif j==2:
+                            l = []
+                            l.append(float(part.strip('[')))
+                        elif j==3:
+                            l.append(float(part.strip(']')))
+                            lineList.append(l)
+                        j+=1
+                    lines.append(lineList)
+            elif i==2:
+                goalPos = line.split()
+                for goal in goalPos:
+                    x = float(goal.split(',')[0].strip('['))
+                    y = float(goal.split(',')[1].strip(']'))
+                    newGoal = [x,y]
+                    goals.append(newGoal)
+            elif i==3:
+                diskPos = line.split()
+                for disk in diskPos:
+                    x = float(disk.split(',')[0].strip('['))
+                    y = float(disk.split(',')[1].strip(']'))
+                    newDisk = [x,y]
+                    disks.append(newDisk)
+            elif i==4:
+                vehiclePos = line
+                x = float(vehiclePos.split(',')[0].strip('['))
+                y = float(vehiclePos.split(',')[1].strip(']'))
+                v = [x,y]
+                (minx,maxx,miny,maxy) = self.getMinMax(lines)
+                newMap = Map(mapNum,minx,miny,maxx,maxy,1,lines,[],0.45,0.45,goals,v,disks)
+                testMaps.append(newMap)
+
+            i+=1
+
+        return testMaps
+
+
+    def getMinMax(self,lines):
+        min_x = math.inf
+        min_y = math.inf
+        max_x = 0
+        max_y = 0
+        for line in lines:
+            (x1,y1) = line[0]
+            (x2,y2) = line[1]
+            if x2>x1:
+                if x1<min_x:
+                    min_x = x1
+                if x2>max_x:
+                    max_x = x2
+            elif x2<x1:
+                if x2<min_x:
+                    min_x = x2
+                if x1>max_x:
+                    max_x = x1
+            if y2>y1:
+                if y1<min_y:
+                    min_y = y1
+                if y2>max_y:
+                    max_y = y2
+            elif y2<y1:
+                if y2<min_y:
+                    min_y = y2
+                if y1>max_y:
+                    max_y = y1
+
+        return (min_x,max_x,min_y,max_y)
 
     def LoadTestMaps(self,raw_mb):
         testMaps = []

@@ -153,42 +153,6 @@ class PQState:
 
         return False
 
-    # Use the RRT to find a path between the current position of the vehicle and the push_point
-    # Use A* search in reverse from the push point to the current position
-    #def navigateToPushPoint(self,push_point,cachedPaths,axis):
-    #    pq = queue.PriorityQueue()
-    #    visitedNodes = {}
-    #    starting_state = (push_point.EuclideanDistance(self._vehicle_pose),push_point,[],0)
-    #    pq.put(starting_state)
-    #    while not pq.empty():
-    #        curr_state = pq.get()
-    #        (f,pose,path,g) = curr_state
-    #        if pose == self._vehicle_pose:
-    #            path.append(pose)
-    #            path.reverse()
-    #            self.drawPath(path,axis)
-    #            return (push_point,path,g)
-    #        remainingPath = self.getSavedPath(pose,cachedPaths)
-    #        if remainingPath != False:
-    #            path.append(pose)
-    #            path.reverse()
-    #            new_path  = remainingPath + path
-    #            self.drawPath(new_path,axis)
-    #            return (push_point,new_path,g+self.calcPathLength(remainingPath))
-
-
-    #        if pose not in visitedNodes:
-    #            visitedNodes[pose] = True
-    #            new_path = path.copy()
-    #            new_path.append(pose)
-    #            for next_pose in self._RRT.tree[pose]:
-    #                if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-    #                    new_state = (next_pose.EuclideanDistance(self._vehicle_pose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
-    #                    pq.put(new_state)
-                          
-
-    #    return (False,False,False)
-
 
     def getEdgeLength(self,n1,n2):
         if n1 in self._RRT.tree:
@@ -221,13 +185,6 @@ class PQState:
             length += self.getEdgeLength(curr_node,next_node)
         return length
 
-    def getSavedPath(self,pose,cachedPaths):
-        for path in cachedPaths:
-            for i in range(len(path)):
-                curr_pose = path[i]
-                if curr_pose == pose:
-                    return path[:i]
-        return False
 
     def drawPath(self,path,ax):
         for i in range(len(path)-1):
@@ -273,7 +230,7 @@ class PQState:
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-            new_disk_positions = np.copy(self._disk_positions)
+            new_disk_positions = copy.deepcopy(self._disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
             #vehicle_path.append(push_point)
             #vehicle_path.append(new_vehicle_pose)
@@ -284,7 +241,7 @@ class PQState:
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
-            #use greedy search for now i.e g = 0 f = h
+            #use A* where g = distance between push points
             return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
            
         return False
