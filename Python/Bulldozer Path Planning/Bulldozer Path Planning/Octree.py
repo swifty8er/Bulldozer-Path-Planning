@@ -10,13 +10,36 @@ class Octree:
         self._vehicle_states : Vehicle = [] #list of vehicles
         self._num_states = 0
 
+    @property
+    def centreState(self):
+        return self._centreState
+
     def extend(self):
         self._has_children = True
         self._children = list([self.generateChildTree(index) for index in range(self._max_size)])
 
 
     def getMaxDistanceBetweenVehicleStatesAndCentreState(self):
+        max_dist = -1*math.inf
+        for vs in self._vehicle_states:
+            dist = self._centreState.DistanceMetric(vs)
+            if dist > max_dist:
+                max_dist = dist
+        return max_dist
 
+    def findClosestChildIndex(self, state : Vehicle):
+        shortest_dist = math.inf
+        closestChildIndex = -1
+        i = 0
+        for child in self._children:
+            dist = state.DistanceMetric(child.centreState)
+            if dist < shortest_dist:
+                shortest_dist = dist
+                closestChildIndex = i
+            i+=1
+        if closestChildIndex == -1:
+            raise Exception("Could not find closest child to state (%.2f,%.2f,%.2f)" % (state.x,state.y,state.theta))
+        return closestChildIndex
 
     def generateChildTree(self,index):
         parentState = self.__vehicle_states[index]
@@ -37,4 +60,8 @@ class Octree:
         self._num_states += 1
 
 
+
+    def addStateToChild(self,state : Vehicle):
+        idx = self.findClosestChildIndex(state)
+        self._children[idx].addState(state)
 
