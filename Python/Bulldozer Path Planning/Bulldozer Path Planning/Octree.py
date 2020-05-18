@@ -10,6 +10,21 @@ class Octree:
         self._vehicle_states : Vehicle = [] #list of vehicles
         self._num_states = 0
 
+
+    @property
+    def children(self):
+        return self._children
+
+    @property 
+    def vehicle_states(self):
+        return self._vehicle_states
+
+
+    @property 
+    def num_states(self):
+        return self._num_states
+
+
     @property
     def centreState(self):
         return self._centreState

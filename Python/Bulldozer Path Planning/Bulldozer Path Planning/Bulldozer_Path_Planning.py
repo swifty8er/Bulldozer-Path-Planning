@@ -17,6 +17,7 @@ from MapState import MapState
 from Graph import Graph
 from RRT import RRT
 from RRT import Status
+from Octree import Octree
 from PQState import PQState
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
@@ -92,6 +93,12 @@ for mm in mapNums:
         status = StartingRRT.extend(x_rand)
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
+
+    StartingOctree = Octree(StartVehiclePos,StartingRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
+    for node in StartingRRT.tree:
+        StartingOctree.addState(node)
+
+    print("Octree grown to size = ",StartingOctree.num_states)
 
 
     curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)

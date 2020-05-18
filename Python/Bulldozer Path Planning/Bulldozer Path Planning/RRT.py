@@ -94,6 +94,16 @@ class RRT:
         nearest_neighbours = [i[1] for i in k_nn]
         return nearest_neighbours
 
+    def computeMaxDistanceMetricBetweenNodes(self,centre_node):
+        max_dist = -1*math.inf
+        for node in self._tree:
+            dist = centre_node.DistanceMetric(node)
+            if dist > max_dist:
+                max_dist = dist
+        return max_dist
+
+
+
     # searches the tree for the nearest node to x by some distance metric
     def nearestNeighbour(self,x):
         min_dist = math.inf
