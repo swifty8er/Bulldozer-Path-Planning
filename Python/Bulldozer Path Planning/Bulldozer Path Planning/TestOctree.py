@@ -79,5 +79,7 @@ class Test_TestOctree(unittest.TestCase):
         nearestNeighbours = MyRRT.getNearestNeighboursOctree(savedNode,100)
         for nn in nearestNeighbours:
             print("(%.2f,%.2f,%.2f) is a nearest neighbour to (%.2f,%.2f,%.2f)" % (nn.x,nn.y,nn.theta,savedNode.x,savedNode.y,savedNode.theta))
+        print("Num nn found =",len(nearestNeighbours))
+
 if __name__ == '__main__':
     unittest.main()
