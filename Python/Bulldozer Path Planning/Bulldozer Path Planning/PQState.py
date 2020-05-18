@@ -72,11 +72,11 @@ class PQState:
         for disk in self._disk_positions:
             #check if disk in goal
             if not self.diskInGoal(disk):
-                (closestGoal,found) = self.getClosestGoalManhattan(disk,reached)
+                (closestGoal,found) = self.getClosestGoalEuclidean(disk,reached)
                 if found:
                     index = self._map.goal_pos_xy.index(closestGoal)
                     reached[index] = True
-                    h += BasicGeometry.manhattanDistance(disk,closestGoal)
+                    h += BasicGeometry.ptDist(disk,closestGoal)
         return h
 
 
@@ -86,14 +86,14 @@ class PQState:
                 return True
         return False
 
-    def getClosestGoalManhattan(self,disk_pos,reached):
+    def getClosestGoalEuclidean(self,disk_pos,reached):
         shortestDist = math.inf
         closestGoal = None
         i = 0
         found = False
         for goal_pos in self._map.goal_pos_xy:
             if not reached[i]:
-                dist = BasicGeometry.manhattanDistance(disk_pos,goal_pos)
+                dist = BasicGeometry.ptDist(disk_pos,goal_pos)
                 if dist < shortestDist:
                     shortestDist = dist
                     closestGoal = goal_pos
