@@ -81,6 +81,17 @@ class RRT:
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
 
+    def addNearestNeighboursOctnode(self,k_nn,k,octnode):
+        if not octnode.has_children:
+            k_nn += octnode.vehicle_states
+            return k_nn
+        else:
+           for child in octnode.children:
+               k_nn = self.addNearestNeighboursOctnode(k_nn,k,child)
+               if len(k_nn) >= k:
+                   return k_nn
+           return k_nn
+
 
     def getNearestNeighboursOctree(self,push_point,k):
         k_nn = []
@@ -91,10 +102,10 @@ class RRT:
         while len(k_nn) < k:
             octNode = octNode.parent
             for child in octNode.children:
-                if not octNode.has_children:
-                    k_nn += octNode.vehicle_states
+                k_nn = self.addNearestNeighboursOctnode(k_nn,k,child)
                 if len(k_nn) >= k:
                     break
+
 
         return k_nn
 

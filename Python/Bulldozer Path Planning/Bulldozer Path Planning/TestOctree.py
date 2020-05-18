@@ -72,14 +72,12 @@ class Test_TestOctree(unittest.TestCase):
             j+=1
 
         print("Octree grown to size = ",MyOctree.num_states)
-        print("Locating state : (%.2f,%.2f,%.2f)" % (savedNode.x,savedNode.y,savedNode.theta))
-        (octNode,found) = MyOctree.locateState(savedNode)
-        if not found:
-            print("Could not locate state")
-        else:
-            for n in octNode.vehicle_states:
-                print("State is (%.2f,%.2f,%.2f)" % (n.x,n.y,n.theta))
-            print("Node centre state is (%.2f,%.2f,%.2f)" % (octNode.centreState.x,octNode.centreState.y,octNode.centreState.theta))
-            print("Max dist is",octNode.max_distance)
+
+        MyRRT.setOctree(MyOctree)
+
+
+        nearestNeighbours = MyRRT.getNearestNeighboursOctree(savedNode,100)
+        for nn in nearestNeighbours:
+            print("(%.2f,%.2f,%.2f) is a nearest neighbour to (%.2f,%.2f,%.2f)" % (nn.x,nn.y,nn.theta,savedNode.x,savedNode.y,savedNode.theta))
 if __name__ == '__main__':
     unittest.main()
