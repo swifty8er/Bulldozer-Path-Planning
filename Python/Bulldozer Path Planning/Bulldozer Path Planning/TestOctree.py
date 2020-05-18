@@ -9,7 +9,8 @@ from BasicGeometry import BasicGeometry
 NUM_NODES = 1000
 MyMaps = Maps()
 map = MyMaps.test_maps[0]
-StartVehiclePos = Vehicle(1.5,2.5,270)
+starting_xy = map.initial_vehicle_pos_xy
+StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
 ControlsList = [
     (0.4,45,"FL"),
     (0.4826,37.3,"FL"),
@@ -58,18 +59,27 @@ class Test_TestOctree(unittest.TestCase):
             if (status == Status.ADVANCED or status == Status.REACHED):
                 i+=1
         print("Initalising Octree...")
-        MyOctree = Octree(StartVehiclePos,MyRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
+        MyOctree = Octree(StartVehiclePos,None,MyRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
         print("Building Octree...")
+        j = 0
+        savedNode = None
         for node in MyRRT.tree:
+            if node == StartVehiclePos:
+                continue
             MyOctree.addState(node)
+            if j == 500:
+                savedNode = node
+            j+=1
 
         print("Octree grown to size = ",MyOctree.num_states)
-        self.testSizeOctree(MyOctree)
-       
-    def testSizeOctree(self,o : Octree):
-        self.assertLessEqual(len(o.vehicle_states),8)
-        for child in o.children:
-            self.testSizeOctree(child)
-
+        print("Locating state : (%.2f,%.2f,%.2f)" % (savedNode.x,savedNode.y,savedNode.theta))
+        (octNode,found) = MyOctree.locateState(savedNode)
+        if not found:
+            print("Could not locate state")
+        else:
+            for n in octNode.vehicle_states:
+                print("State is (%.2f,%.2f,%.2f)" % (n.x,n.y,n.theta))
+            print("Node centre state is (%.2f,%.2f,%.2f)" % (octNode.centreState.x,octNode.centreState.y,octNode.centreState.theta))
+            print("Max dist is",octNode.max_distance)
 if __name__ == '__main__':
     unittest.main()

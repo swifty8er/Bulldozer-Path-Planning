@@ -94,12 +94,14 @@ for mm in mapNums:
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
 
-    StartingOctree = Octree(StartVehiclePos,StartingRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
+    StartingOctree = Octree(StartVehiclePos,None,StartingRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
     for node in StartingRRT.tree:
+        if node == StartVehiclePos:
+            continue
         StartingOctree.addState(node)
 
     print("Octree grown to size = ",StartingOctree.num_states)
-
+    StartingRRT.setOctree(StartingOctree)
 
     curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}

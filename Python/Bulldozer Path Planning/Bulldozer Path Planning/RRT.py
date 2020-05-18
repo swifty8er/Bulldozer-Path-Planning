@@ -29,6 +29,7 @@ class RRT:
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
         self._num_nodes = num_nodes
+        self._octree = None
     
     @property
     def num_nodes(self):
@@ -37,6 +38,9 @@ class RRT:
     @property
     def tree(self):
         return self._tree
+
+    def setOctree(self,octree):
+        self._octree = octree
     
     def initaliseTree(self,start_position):
         tree = {}
@@ -76,6 +80,23 @@ class RRT:
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
+
+
+    def getNearestNeighboursOctree(self,push_point,k):
+        k_nn = []
+        (octNode,found) = self._octree.locateState(push_point)
+        if not found:
+            raise Exception("Could not find push point in oct tree")
+        k_nn = knn + octNode.vehicle_states
+        while len(k_nn) < k:
+            octNode = octNode.parent
+            for child in octNode.children:
+                if not octNode.has_children:
+                    k_nn += octNode.vehicle_states
+                if len(k_nn) >= k:
+                    break
+
+        return k_nn
 
     # get the nearest neighbours that are behind the push point
     def getNearestNeighboursToPushPoint(self,push_point,k):
@@ -363,7 +384,8 @@ class RRT:
         connected = False
         nodes = list(backwardsDict.keys()).copy()
         for node in nodes:
-            nearest_neighbours = self.getNearestNeighboursToPushPoint(node,int(self.num_nodes/15))
+            self._octree.addState(node)
+            nearest_neighbours = self.getNearestNeighboursOctree(node,int(self._num_nodes/15))
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:

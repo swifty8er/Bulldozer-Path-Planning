@@ -1,7 +1,7 @@
 import math
 from Vehicle import Vehicle
 class Octree:
-    def __init__(self,state : Vehicle ,max_distance,max_size=8):
+    def __init__(self,state : Vehicle ,parent ,max_distance,max_size=8):
         self._centreState = state
         self._max_distance = max_distance
         self._max_size = max_size
@@ -9,7 +9,19 @@ class Octree:
         self._children : Octree = [] #list of Octrees
         self._vehicle_states : Vehicle = [] #list of vehicles
         self._num_states = 0
+        self._parent = parent
 
+    @property
+    def max_distance(self):
+        return self._max_distance
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def has_children(self):
+        return self._has_children
 
     @property
     def children(self):
@@ -28,6 +40,19 @@ class Octree:
     @property
     def centreState(self):
         return self._centreState
+
+    def locateState(self,state):
+        if not self.has_children and state in self._vehicle_states:
+            return (self,True)
+        else:
+            for child in self.children:
+                (node,found) = child.locateState(state)
+                if found:
+                    return (node,found)
+                    break
+            return (None,False)
+
+
 
     def extend(self):
         self._has_children = True
@@ -57,9 +82,9 @@ class Octree:
         return closestChildIndex
 
     def generateChildTree(self,index):
-        parentState = self.__vehicle_states[index]
+        parentState = self._vehicle_states[index]
         new_max_dist = self.getMaxDistanceBetweenVehicleStatesAndCentreState()
-        return Octree(parentState,new_max_dist)
+        return Octree(parentState,self,new_max_dist)
 
     def addState(self,state : Vehicle):
         if self._has_children:

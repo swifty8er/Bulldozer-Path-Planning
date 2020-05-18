@@ -32,6 +32,9 @@
     <Compile Include="DrawRRT.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Octree.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pathPlanningTest.py" />
     <Compile Include="pController.py" />
     <Compile Include="ply.py" />
@@ -67,6 +70,9 @@
     <Compile Include="simpleSynchronousTest.py" />
     <Compile Include="simpleTest.py" />
     <Compile Include="synchronousImageTransmission.py" />
+    <Compile Include="TestOctree.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestRRT.py">
       <SubType>Code</SubType>
     </Compile>

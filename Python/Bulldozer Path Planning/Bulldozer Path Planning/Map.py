@@ -85,9 +85,15 @@ class Map:
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
         x_axis = []
         y_axis = []
-        for point in self._boundary:
-            x_axis.append(point[0])
-            y_axis.append(point[1])
+        for line in self._boundary:
+            p1 = line[0]
+            p2 = line[1]
+            (x1,y1) = p1
+            (x2,y2) = p2
+            x_axis.append(x1)
+            x_axis.append(x2)
+            y_axis.append(y1)
+            y_axis.append(y2)
         ax.plot(x_axis, y_axis, 'k-')
         
         for curr_obs in self._obstacles:

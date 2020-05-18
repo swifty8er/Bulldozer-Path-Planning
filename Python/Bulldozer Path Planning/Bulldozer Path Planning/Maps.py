@@ -334,7 +334,7 @@ class Maps:
         testMaps = []
         mapNum = 0
         for line in raw_mb.readlines():
-            if line.split()[0] == "Level":
+            if len(line.split()) > 1 and line.split()[0] == "Level":
                 i = 0
                 mapNum = int(line.split()[1])
             if i == 1:
@@ -346,40 +346,43 @@ class Maps:
                     l = []
                     for part in parts.split(','):
                         if j==0:
-                            l.append(float(part.strip('[')))
+                            l.append(float(part.strip().strip('[')))
                         elif j== 1:
-                            l.append(float(part.strip(']')))
+                            l.append(float(part.strip().strip(']')))
                             lineList.append(l)
                         elif j==2:
                             l = []
-                            l.append(float(part.strip('[')))
+                            l.append(float(part.strip().strip('[')))
                         elif j==3:
-                            l.append(float(part.strip(']')))
+                            l.append(float(part.strip().strip(']')))
                             lineList.append(l)
                         j+=1
                     lines.append(lineList)
             elif i==2:
                 goalPos = line.split()
                 for goal in goalPos:
-                    x = float(goal.split(',')[0].strip('['))
-                    y = float(goal.split(',')[1].strip(']'))
+                    x = float(goal.split(',')[0].strip().strip('['))
+                    y = float(goal.split(',')[1].strip().strip(']'))
                     newGoal = [x,y]
                     goals.append(newGoal)
             elif i==3:
                 diskPos = line.split()
                 for disk in diskPos:
-                    x = float(disk.split(',')[0].strip('['))
-                    y = float(disk.split(',')[1].strip(']'))
+                    x = float(disk.split(',')[0].strip().strip('['))
+                    y = float(disk.split(',')[1].strip().strip(']'))
                     newDisk = [x,y]
                     disks.append(newDisk)
             elif i==4:
                 vehiclePos = line
-                x = float(vehiclePos.split(',')[0].strip('['))
-                y = float(vehiclePos.split(',')[1].strip(']'))
+                x = float(vehiclePos.split(',')[0].strip().strip('['))
+                y = float(vehiclePos.split(',')[1].strip().strip(']'))
                 v = [x,y]
                 (minx,maxx,miny,maxy) = self.getMinMax(lines)
                 newMap = Map(mapNum,minx,miny,maxx,maxy,1,lines,[],0.45,0.45,goals,v,disks)
                 testMaps.append(newMap)
+                lines = []
+                goals = []
+                disks = []
 
             i+=1
 
