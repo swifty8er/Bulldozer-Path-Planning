@@ -84,7 +84,7 @@ for mm in mapNums:
     y_range = map.max_y - map.min_y
     num_nodes = int(x_range * y_range * 200)
     starting_xy = map.initial_vehicle_pos_xy
-    StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
+    StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],270) #change to random heading
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
     i = 0
     while i < StartingRRT.num_nodes:

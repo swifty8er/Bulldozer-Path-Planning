@@ -81,28 +81,37 @@ class RRT:
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
 
-    def addNearestNeighboursOctnode(self,k_nn,k,octnode):
+    def addNearestNeighboursOctnode(self,k_nn,k,octnode,push_point):
         if not octnode.has_children:
-            k_nn += octnode.vehicle_states
+            k_nn += self.addBehindStates(push_point,octnode.vehicle_states)
             return k_nn
         else:
            for child in octnode.children:
-               k_nn = self.addNearestNeighboursOctnode(k_nn,k,child)
+               k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
                if len(k_nn) >= k:
                    return k_nn
            return k_nn
 
+    def addBehindStates(self,push_point,states):
+        behindStates = []
+        for state in states:
+            if push_point.isAheadOf(state):
+                behindStates.append(state)
+        return behindStates
 
     def getNearestNeighboursOctree(self,push_point,k):
         k_nn = []
         (octNode,found) = self._octree.locateState(push_point)
         if not found:
             raise Exception("Could not find push point in oct tree")
-        k_nn += octNode.vehicle_states
+        k_nn += self.addBehindStates(push_point,octNode.vehicle_states)
         while len(k_nn) < k:
             octNode = octNode.parent
+            if octNode == None:
+                break
+
             for child in octNode.children:
-                k_nn = self.addNearestNeighboursOctnode(k_nn,k,child)
+                k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
                 if len(k_nn) >= k:
                     break
 
@@ -387,48 +396,45 @@ class RRT:
 
 
 
-    # Make the maximum number of connections between the push_point and the reversed positions and their nearest neighbours
+    # Make the maximum number of connections between the push_point and its nearest neighbours
     def connectPushPoint(self,push_point,axis=False):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
-        backwardsDict = self.populateBackwardsDict(push_point)
         connected = False
-        nodes = list(backwardsDict.keys()).copy()
-        for node in nodes:
-            self._octree.addState(node)
-            nearest_neighbours = self.getNearestNeighboursOctree(node,int(self._num_nodes/15))
-            for nn in nearest_neighbours:
-                bezier_new = nn.createBezierCurveControl(node)
-                if bezier_new != False:
-                    if isinstance(bezier_new,bezier.curve.Curve):
-                        self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
-                    else:
-                        self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                    if axis!=False:
-                        bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                    connected = True
+        self._octree.addState(push_point) #this is a problem, fix
+        nearest_neighbours = self.getNearestNeighboursOctree(push_point,int(self._num_nodes/15))
+        for nn in nearest_neighbours:
+            bezier_new = nn.createBezierCurveControl(push_point)
+            if bezier_new != False:
+                if isinstance(bezier_new,bezier.curve.Curve):
+                    self.addEdge(push_point,nn,(bezier_new,"F"),(bezier_new,"R"))
+                else:
+                    self.addEdge(push_point,nn,bezier_new,self.getInverseControl(bezier_new))
+                if axis!=False:
+                    bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                connected = True
 
 
         return connected
                    
 
 
-    def populateBackwardsDict(self,startingNode):
-        backwardsDict = {}
-        backwardsDict[startingNode] = {}
-        for control in self._controls_list:
-            newControl = self.randomiseControlPathLength(control)
-            (radius,deltaTheta,direction) = newControl
-            if direction == "RL" or direction == "RR" or direction == "R":
-                if not (self.isCollision(startingNode,newControl)):
-                    newNode = startingNode.applyControl(radius,deltaTheta,direction)
-                    u_inv = self.getInverseControl(newControl)
-                    if newNode not in backwardsDict:
-                        backwardsDict[newNode] = {}
-                    backwardsDict[newNode][startingNode] = u_inv
-                    backwardsDict[startingNode][newNode] = control
+    #def populateBackwardsDict(self,startingNode):
+    #    backwardsDict = {}
+    #    backwardsDict[startingNode] = {}
+    #    for control in self._controls_list:
+    #        newControl = self.randomiseControlPathLength(control)
+    #        (radius,deltaTheta,direction) = newControl
+    #        if direction == "RL" or direction == "RR" or direction == "R":
+    #            if not (self.isCollision(startingNode,newControl)):
+    #                newNode = startingNode.applyControl(radius,deltaTheta,direction)
+    #                u_inv = self.getInverseControl(newControl)
+    #                if newNode not in backwardsDict:
+    #                    backwardsDict[newNode] = {}
+    #                backwardsDict[newNode][startingNode] = u_inv
+    #                backwardsDict[startingNode][newNode] = control
 
-        return backwardsDict
+    #    return backwardsDict
 
     def drawEdge(self,n1,n2,axis,c):   
         if n1 in self.tree:
