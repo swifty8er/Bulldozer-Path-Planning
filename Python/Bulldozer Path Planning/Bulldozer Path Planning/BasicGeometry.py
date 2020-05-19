@@ -358,6 +358,14 @@ class BasicGeometry():
         y = y2 + t2*math.sin(math.radians(theta2))
         return (x,y)
 
+    @staticmethod
+    def vehicleDiskGoalAngle(veh_pose,disk_pos,goal_pos):
+        veh_pos = (veh_pose.x,veh_pose.y)
+        a = BasicGeometry.ptDist(veh_pos,disk_pos)
+        b = BasicGeometry.ptDist(disk_pos,goal_pos)
+        c = BasicGeometry.ptDist(goal_pos,veh_pos)
+        cosC = (a*a + b*b - c*c)/(2*a*b)
+        return math.degrees(math.acos(cosC))
 
     @staticmethod
     #find the perpendicuar distance between a point and a line if within the
