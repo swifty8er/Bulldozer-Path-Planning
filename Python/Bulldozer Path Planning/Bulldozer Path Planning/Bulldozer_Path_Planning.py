@@ -8,6 +8,7 @@ import sim
 import math
 import numpy as np
 import random
+import sys
 
 from Maps import Maps
 from VisibilityGraph import VisibilityGraph
@@ -22,7 +23,7 @@ from PQState import PQState
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
 
-
+sys.setrecursionlimit(2000)
 myMap = Maps()
 
 ControlsList = [
@@ -68,7 +69,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [2]
+mapNums = [1]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -82,7 +83,7 @@ for mm in mapNums:
     plt.show(block=False)
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
-    num_nodes = int(x_range * y_range * 200)
+    num_nodes = int(x_range * y_range * 100)
     starting_xy = map.initial_vehicle_pos_xy
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
@@ -116,7 +117,7 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.1)
         plt.show(block=False)
-        if not curr_state.connectToPreviousPose():
+        if not curr_state.connectToPreviousPose(ax1):
             continue
         if curr_state.isFinishState():
             break

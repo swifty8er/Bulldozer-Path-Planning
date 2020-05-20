@@ -365,7 +365,7 @@ class BasicGeometry():
         b = BasicGeometry.ptDist(disk_pos,goal_pos)
         c = BasicGeometry.ptDist(goal_pos,veh_pos)
         cosC = (a*a + b*b - c*c)/(2*a*b)
-        return math.degrees(math.acos(cosC))
+        return math.degrees(math.acos(round(cosC,2)))
 
     @staticmethod
     #find the perpendicuar distance between a point and a line if within the

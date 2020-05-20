@@ -81,16 +81,31 @@ class RRT:
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
 
-    def addNearestNeighboursOctnode(self,k_nn,k,octnode,push_point):
-        if not octnode.has_children:
-            k_nn += self.addBehindStates(push_point,octnode.vehicle_states)
-            return k_nn
+    #def addNearestNeighboursOctnode(self,k_nn,k,octnode,push_point):
+    #    if not octnode.has_children:
+    #        k_nn += self.addBehindStates(push_point,octnode.vehicle_states)
+    #        return k_nn
+    #    else:
+    #       for child in octnode.children:
+    #           k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
+    #           if len(k_nn) >= k:
+    #               return k_nn
+    #       return k_nn
+
+
+    def addNearestNeighboursOctnode(self,nearest_neighbours,octnode,push_point,depth):
+        if depth == 0:
+            return nearest_neighbours
         else:
-           for child in octnode.children:
-               k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
-               if len(k_nn) >= k:
-                   return k_nn
-           return k_nn
+            if not octnode.has_children:
+                nearest_neighbours += self.addBehindStates(push_point,octnode.vehicle_states)
+                return nearest_neighbours
+            else:
+                for child in octnode.children:
+                    nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neighbours,child,push_point,depth-1)
+                return nearest_neighbours
+               
+
 
     def addBehindStates(self,push_point,states):
         behindStates = []
@@ -99,24 +114,29 @@ class RRT:
                 behindStates.append(state)
         return behindStates
 
-    def getNearestNeighboursOctree(self,push_point,k):
-        k_nn = []
+    def getNearestNeighboursOctree(self,push_point,dist1,dist2):
+        nearest_neighbours = []
         (octNode,found) = self._octree.locateState(push_point)
         if not found:
             raise Exception("Could not find push point in oct tree")
-        k_nn += self.addBehindStates(push_point,octNode.vehicle_states)
-        while len(k_nn) < k:
+        nearest_neighbours += self.addBehindStates(push_point,octNode.vehicle_states)
+        while push_point.DistanceMetric(octNode.centreState) < dist2:
             octNode = octNode.parent
             if octNode == None:
                 break
-
+            dist = push_point.DistanceMetric(octNode.centreState)
+            if dist<dist1:
+                depth = 6
+            elif dist<dist2:
+                depth = 3
+            else:
+                break
             for child in octNode.children:
-                k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
-                if len(k_nn) >= k:
-                    break
+                nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neigbours,child,push_point,depth)
+               
 
 
-        return k_nn
+        return nearest_neighbours
 
     # get the nearest neighbours that are behind the push point
     def getNearestNeighboursToPushPoint(self,push_point,k):
@@ -314,7 +334,11 @@ class RRT:
         x_new = None
         u_new = None
         for control in self._controls_list:
-            newControl = self.randomiseControlPathLength(control)
+            randNum = random.randint(1,10)
+            if randNum<5:
+                newControl = self.randomiseControlPathLength(control)
+            else:
+                newControl = control
             if (not self.isCollision(x_near,newControl)):
                 #if self.testMoveCollision(x_near,control):
                 #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
@@ -404,7 +428,7 @@ class RRT:
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         for node in backwardsNodes:
             self._octree.addState(node) #this is a problem, fix
-            nearest_neighbours = self.getNearestNeighboursOctree(node,int(self._num_nodes/15))
+            nearest_neighbours = self.getNearestNeighboursOctree(node,1.0,2.0)
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
@@ -414,9 +438,10 @@ class RRT:
                         self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
                     if axis!=False:
                         bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                    print("Bezier curve connected to nearest neighbour (%.2f,%.2f,%.2f) which has distance metric = %.2f" % (nn.x,nn.y,nn.theta,node.DistanceMetric(nn)))
                     connected = True
 
-
+        exit(0)
         return connected
                    
 

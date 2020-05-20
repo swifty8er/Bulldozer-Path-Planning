@@ -34,7 +34,7 @@ class Pushing:
         if not found:
             return (curr_disk_pos,push_point)
         # do not push beyond a certain angle
-        elif BasicGeometry.vehicleDiskGoalAngle(bestPush[1],bestPush[0],closestGoal) < 140:
+        elif BasicGeometry.ptDist(closestGoal,curr_disk_pos) < 1.5* max_distance and BasicGeometry.vehicleDiskGoalAngle(bestPush[1],bestPush[0],closestGoal) < 140:
             return (curr_disk_pos,push_point)
         else:
             return bestPush

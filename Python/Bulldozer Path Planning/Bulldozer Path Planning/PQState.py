@@ -147,7 +147,8 @@ class PQState:
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
                     if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
-                        new_state = (next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+self.getEdgeLength(pose,next_pose)) #change this to use the arc path length
+                        new_g = self.getEdgeLength(pose,next_pose)
+                        new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
                         pq.put(new_state)
                           
 
@@ -356,18 +357,30 @@ class PQState:
                 if j == len(curr_path)-2 and i<len(self._vehicle_path)-1:
                     #push the disk
                     disk_being_pushed = self._pushed_disks[i]
-                    disk_pos_indices[disk_being_pushed] +=1
-                    
-                    fig, ax = plt.subplots(1,1)
+                    temp = disk_pos_indices[disk_being_pushed]
+                    disk_pos_indices[disk_being_pushed] = 0
+                    leftList = self._disk_paths[:disk_being_pushed]
+                    rightList = self._disk_paths[disk_being_pushed+1:]
+                    edge_path = self.generatePosesAlongEdge(curr_pose,next_pose)
+                    # push along a continuous path
+                    # deduce where the disk is from the vehicle pose
+                    for k in range(len(edge_path)):
+                        exact_pose = edge_path[k]
+                        disk_exact_point = [[[exact_pose.x+2*self._map.disk_radius*math.cos(math.radians(exact_pose.theta)),exact_pose.y+2*self._map.disk_radius*math.sin(math.radians(exact_pose.theta))]]]
+                        fig, ax = plt.subplots(1,1)
                    
-                    ax = self._map.displayMap(ax,next_pose,self._disk_paths,disk_pos_indices)
-                    fig.canvas.draw()       # draw the canvas, cache the renderer
-                    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-                    tp = fig.canvas.get_width_height()[::-1]
-                    newtp = (tp[0]*2,tp[1]*2)
-                    image  = image.reshape(newtp + (3,))
-                    solution_images.append(image)
-                    plt.close(fig)
+                        ax = self._map.displayMap(ax,edge_path[k],leftList+disk_exact_point+rightList,disk_pos_indices)
+                        fig.canvas.draw()       # draw the canvas, cache the renderer
+                        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+                        tp = fig.canvas.get_width_height()[::-1]
+                        newtp = (tp[0]*2,tp[1]*2)
+                        image  = image.reshape(newtp + (3,))
+                        solution_images.append(image)
+                        plt.close(fig)
+
+                    disk_pos_indices[disk_being_pushed] = temp + 1
+
+                
                 elif j == len(curr_path)-2 and i==len(self._vehicle_path)-1:
                     a = 0
                     for final_pos in self._disk_positions:
@@ -401,7 +414,6 @@ class PQState:
                         solution_images.append(image)
                         plt.close(fig)
 
-        #add the final disk positions to the state disk paths
         
         plt.close("all")
         return solution_images
