@@ -18,7 +18,7 @@ from MapState import MapState
 from Graph import Graph
 from RRT import RRT
 from RRT import Status
-from Octree import Octree
+from Quadtree import Quadtree
 from PQState import PQState
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
@@ -95,14 +95,14 @@ for mm in mapNums:
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
 
-    StartingOctree = Octree(StartVehiclePos,None,StartingRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos))
+    StartingQuadtree = Quadtree(StartVehiclePos,None,StartingRRT.computeMaxDistanceBetweenNodes(StartVehiclePos))
     for node in StartingRRT.tree:
         if node == StartVehiclePos:
             continue
-        StartingOctree.addState(node)
+        StartingQuadtree.addState(node)
 
-    print("Octree grown to size = ",StartingOctree.num_states)
-    StartingRRT.setOctree(StartingOctree)
+    print("Quadtree grown to size = ",StartingQuadtree.num_states)
+    StartingRRT.setQuadtree(StartingQuadtree)
 
     curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}

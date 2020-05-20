@@ -29,7 +29,7 @@ class RRT:
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
         self._num_nodes = num_nodes
-        self._octree = None
+        self._quadtree = None
     
     @property
     def num_nodes(self):
@@ -39,8 +39,8 @@ class RRT:
     def tree(self):
         return self._tree
 
-    def setOctree(self,octree):
-        self._octree = octree
+    def setQuadtree(self,quadtree):
+        self._quadtree = quadtree
     
     def initaliseTree(self,start_position):
         tree = {}
@@ -93,18 +93,6 @@ class RRT:
     #       return k_nn
 
 
-    def addNearestNeighboursOctnode(self,nearest_neighbours,octnode,push_point,depth):
-        if depth == 0:
-            return nearest_neighbours
-        else:
-            if not octnode.has_children:
-                nearest_neighbours += self.addBehindStates(push_point,octnode.vehicle_states)
-                return nearest_neighbours
-            else:
-                for child in octnode.children:
-                    nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neighbours,child,push_point,depth-1)
-                return nearest_neighbours
-               
 
 
     def addBehindStates(self,push_point,states):
@@ -114,48 +102,8 @@ class RRT:
                 behindStates.append(state)
         return behindStates
 
-    def getNearestNeighboursOctree(self,push_point,dist1,dist2):
-        nearest_neighbours = []
-        (octNode,found) = self._octree.locateState(push_point)
-        if not found:
-            raise Exception("Could not find push point in oct tree")
-        #if self._octree.locateCentreState(push_point):
-        #    print("Push point found as centre state in octree")
-        #    exit(0)
-        nearest_neighbours += self.addBehindStates(push_point,octNode.vehicle_states)
-        while push_point.DistanceMetric(octNode.centreState) < dist2:
-            octNode = octNode.parent
-            if octNode == None:
-                break
-            dist = push_point.DistanceMetric(octNode.centreState)
-            if dist<dist1:
-                depth = 20
-            elif dist<dist2:
-                depth = 10
-            else:
-                break
-            for child in octNode.children:
-                nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neighbours,child,push_point,depth)
-               
 
-        return nearest_neighbours
 
-    # get the nearest neighbours that are behind the push point
-    def getNearestNeighboursToPushPoint(self,push_point,k):
-        k_nn = []
-        for node in self.tree:
-            if push_point.isAheadOf(node):
-                dist = push_point.WithinAngleDistanceMetric(node)
-                if dist == math.inf:
-                    continue
-                if len(k_nn) < k:
-                    k_nn.append((dist,node))
-                elif dist < max(k_nn)[0]:
-                    k_nn.remove(max(k_nn))
-                    k_nn.append((dist,node))
-
-        nearest_neighbours = [i[1] for i in k_nn]
-        return nearest_neighbours
 
     def computeMaxDistanceMetricBetweenNodes(self,centre_node):
         max_dist = -1*math.inf
@@ -164,7 +112,16 @@ class RRT:
             if dist > max_dist:
                 max_dist = dist
         return max_dist
+    
 
+    def computeMaxDistanceBetweenNodes(self,centre_node):
+        max_dist = -1*math.inf
+        for node in self._tree:
+            dist = centre_node.EuclideanDistance(node)
+            if dist > max_dist:
+                max_dist = dist
+
+        return max_dist
 
 
     # searches the tree for the nearest node to x by some distance metric
@@ -429,8 +386,7 @@ class RRT:
         connected = False
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         for node in backwardsNodes:
-            self._octree.addState(node) #this is a problem, fix
-            nearest_neighbours = self.getNearestNeighboursOctree(node,1.0,2.0)
+            nearest_neighbours = self._quadtree.radialNearestNeighbours(node,3.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:
@@ -446,15 +402,12 @@ class RRT:
                     
         
         return connected
-                   
+     
+    #perform post processing on radial nearest neighbours
+    #currently just limit to behind states
+    #future - include angular check
     def postProcessNearestNeighbours(self,push_point,nearest_neighbours):
-        processed_nn = []
-        for nn in nearest_neighbours:
-            dist = push_point.EuclideanDistance(nn)
-            if dist >= 1.0 and dist <= 2.5:
-                processed_nn.append(nn)
-        
-        return processed_nn
+        return self.addBehindStates(push_point,nearest_neighbours)
 
     def enumerateBackwardsControls(self,startingNode):
         backwardsNodes = [startingNode]

@@ -76,7 +76,8 @@ class Test_TestOctree(unittest.TestCase):
 
 
 
-        nearestNeighbours = MyQuadtre.radialNearestNeighbours(savedNode,1.5,[])
-
+        nearestNeighbours = MyQuadtree.radialNearestNeighbours(savedNode,1.5,[])
+        for nn in nearestNeighbours:
+            print("Nearest neighbour (%.2f,%.2f) is within radius %.2f of query point (%.2f,%.2f) r = %.2f" % (nn.x,nn.y,1.5,savedNode.x,savedNode.y,savedNode.EuclideanDistance(nn)))
 if __name__ == '__main__':
     unittest.main()

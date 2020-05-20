@@ -1,3 +1,4 @@
+import math
 from Vehicle import Vehicle
 class Quadtree:
     def __init__(self,state : Vehicle ,parent ,max_distance,max_size=4):
