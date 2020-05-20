@@ -42,6 +42,15 @@ class Octree:
     def centreState(self):
         return self._centreState
 
+    def locateCentreState(self,state):
+        if self.centreState == state:
+            return True
+        else:
+            for child in self.children:
+                if child.locateCentreState(state):
+                    return True
+            return False
+
     def locateState(self,state):
         if not self.has_children and state in self._vehicle_states:
             return (self,True)

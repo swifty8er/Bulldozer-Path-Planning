@@ -119,6 +119,9 @@ class RRT:
         (octNode,found) = self._octree.locateState(push_point)
         if not found:
             raise Exception("Could not find push point in oct tree")
+        #if self._octree.locateCentreState(push_point):
+        #    print("Push point found as centre state in octree")
+        #    exit(0)
         nearest_neighbours += self.addBehindStates(push_point,octNode.vehicle_states)
         while push_point.DistanceMetric(octNode.centreState) < dist2:
             octNode = octNode.parent
@@ -126,15 +129,14 @@ class RRT:
                 break
             dist = push_point.DistanceMetric(octNode.centreState)
             if dist<dist1:
-                depth = 6
+                depth = 20
             elif dist<dist2:
-                depth = 3
+                depth = 10
             else:
                 break
             for child in octNode.children:
-                nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neigbours,child,push_point,depth)
+                nearest_neighbours = self.addNearestNeighboursOctnode(nearest_neighbours,child,push_point,depth)
                
-
 
         return nearest_neighbours
 
@@ -422,6 +424,7 @@ class RRT:
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
     def connectPushPoint(self,push_point,axis=False):
+        print("Connecting push point...")
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         connected = False
@@ -438,10 +441,9 @@ class RRT:
                         self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
                     if axis!=False:
                         bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                    print("Bezier curve connected to nearest neighbour (%.2f,%.2f,%.2f) which has distance metric = %.2f" % (nn.x,nn.y,nn.theta,node.DistanceMetric(nn)))
                     connected = True
-
-        exit(0)
+        
+        print("Done")
         return connected
                    
 
