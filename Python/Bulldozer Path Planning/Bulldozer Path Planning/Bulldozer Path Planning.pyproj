@@ -56,6 +56,9 @@
     <Compile Include="Push_RRT.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Quadtree.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RRT.py">
       <SubType>Code</SubType>
     </Compile>
@@ -71,6 +74,9 @@
     <Compile Include="simpleTest.py" />
     <Compile Include="synchronousImageTransmission.py" />
     <Compile Include="TestOctree.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TestQuadtree.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TestRRT.py">
