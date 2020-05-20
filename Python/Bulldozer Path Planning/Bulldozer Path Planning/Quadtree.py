@@ -9,10 +9,37 @@ class Quadtree:
         self._vehicle_states : Vehicle = [] #list of vehicles
         self._num_states = 0
         self._parent = parent
+
+    @property
+    def num_states(self):
+        return self._num_states
     
     @property
     def centreState(self):
         return self._centreState
+    
+    def radialNearestNeighbours(self,queryState,radius,nearest_neighbours):
+        if not self._has_children:
+            for vs in self._vehicle_states:
+                if vs.EuclideanDistance(queryState) < radius:
+                    nearest_neighbours.append(vs)
+            return nearest_neighbours
+        for child in self._children:
+            if child.overlapsSearchDisk(queryState,radius):
+                nearest_neighbours = child.radialNearestNeighbours(queryState,radius,nearest_neighbours)
+        return nearest_neighbours
+
+
+    def overlapsSearchDisk(self,queryState,radius):
+        q_prime = Vehicle(abs(queryState.x-self.centreState.x),abs(queryState.y-self.centreState.y),0)
+        new_vec = Vehicle(self._max_distance,self._max_distance,0)
+        if q_prime.x < self._max_distance:
+            return True
+        if q_prime.y < self._max_distance:
+            return True
+        if q_prime.EuclideanDistance(new_vec) < radius:
+            return True
+        return False
 
     def extend(self):
         self._has_children = True
