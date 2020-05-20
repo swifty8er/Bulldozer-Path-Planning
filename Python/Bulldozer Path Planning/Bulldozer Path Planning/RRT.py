@@ -424,7 +424,6 @@ class RRT:
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
     def connectPushPoint(self,push_point,axis=False):
-        print("Connecting push point...")
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         connected = False
@@ -432,6 +431,8 @@ class RRT:
         for node in backwardsNodes:
             self._octree.addState(node) #this is a problem, fix
             nearest_neighbours = self.getNearestNeighboursOctree(node,1.0,2.0)
+            nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
+            print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
@@ -442,11 +443,18 @@ class RRT:
                     if axis!=False:
                         bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
                     connected = True
+                    
         
-        print("Done")
         return connected
                    
-
+    def postProcessNearestNeighbours(self,push_point,nearest_neighbours):
+        processed_nn = []
+        for nn in nearest_neighbours:
+            dist = push_point.EuclideanDistance(nn)
+            if dist >= 1.0 and dist <= 2.5:
+                processed_nn.append(nn)
+        
+        return processed_nn
 
     def enumerateBackwardsControls(self,startingNode):
         backwardsNodes = [startingNode]

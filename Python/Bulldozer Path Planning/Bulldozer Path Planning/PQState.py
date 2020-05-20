@@ -194,7 +194,7 @@ class PQState:
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(5)
+        plt.pause(0.01)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):

@@ -156,6 +156,7 @@ class Vehicle:
 
     # Create a bezier control curve between the two vehicle, if a valid control exists
     def createBezierCurveControl(self,otherVehicle):
+        #print("Creating bezier curve control")
         #print("Creating bezier control curve between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta))
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(self.x,self.y,self.theta,otherVehicle.x,otherVehicle.y,otherVehicle.theta)
         if intersectionPoint == None:
@@ -226,6 +227,6 @@ class Vehicle:
         if (abs(tangentStart-self.theta) > MAX_ANGLE_DIFFERENCE) or (abs(tangentEnd-otherVehicle.theta) > MAX_ANGLE_DIFFERENCE):
             #print("Failed tangent angle is start=%.2f, end=%.2f" % (tangentStart,tangentEnd))
             return False
-
+        #print("Done, success")
         return curve
 
