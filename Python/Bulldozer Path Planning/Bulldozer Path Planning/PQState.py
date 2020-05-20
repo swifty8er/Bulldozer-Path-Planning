@@ -121,7 +121,14 @@ class PQState:
 
         return (closestGoal,found)
 
-
+    def rollBackDiskPush(self):
+        curr_disk_positions = []
+        for i in range(len(self._disk_positions)):
+            if i == self._disk_being_pushed:
+                curr_disk_positions.append(self._disk_paths[i][-1])
+            else:
+                curr_disk_positions.append(self._disk_positions[i])
+        return curr_disk_positions
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
             return True
@@ -141,12 +148,16 @@ class PQState:
                     self.drawPath(path,axis)
                 self._vehicle_path.append(path)
                 return True
+            if len(path)>0:
+                curr_disk_positions = self.rollBackDiskPush()
+            else:
+                curr_disk_positions = self._disk_positions
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 new_path = path.copy()
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
-                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._disk_positions) and not next_pose in visitedNodes:
+                    if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],curr_disk_positions) and not next_pose in visitedNodes:
                         new_g = self.getEdgeLength(pose,next_pose)
                         new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
                         pq.put(new_state)
