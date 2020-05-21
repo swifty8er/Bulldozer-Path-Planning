@@ -264,7 +264,7 @@ class PQState:
     def getContinuousAnglePushState(self,curr_disk_pos,closest_goal,disk_being_pushed):
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
-        push_point = Vehicle(curr_disk_pos[0]+self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
+        push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
         if self._RRT.connectPushPoint(push_point):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
@@ -410,7 +410,7 @@ class PQState:
             for j in range(len(curr_path)-1):
                 curr_pose = curr_path[j]
                 next_pose = curr_path[j+1]
-                if j == len(curr_path)-2 and i<len(self._vehicle_path)-1:
+                if j == len(curr_path)-2 and i<len(self._vehicle_path):
                     #push the disk
                     disk_being_pushed = self._pushed_disks[i]
                     temp = disk_pos_indices[disk_being_pushed]
@@ -435,25 +435,7 @@ class PQState:
                         plt.close(fig)
 
                     disk_pos_indices[disk_being_pushed] = temp + 1
-
-                
-                elif j == len(curr_path)-2 and i==len(self._vehicle_path)-1:
-                    a = 0
-                    for final_pos in self._disk_positions:
-                        self._disk_paths[a].append(final_pos)
-                        a+=1
-
-                    fig, ax = plt.subplots(1,1)
-                    final_indices = [-1] * len(self._disk_positions)
-                    ax = self._map.displayMap(ax,next_pose,self._disk_paths,final_indices)
-                    fig.canvas.draw()       # draw the canvas, cache the renderer
-                    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-                    tp = fig.canvas.get_width_height()[::-1]
-                    newtp = (tp[0]*2,tp[1]*2)
-                    image  = image.reshape(newtp + (3,))
-                    for b in range(375):
-                        solution_images.append(image) #freeze on the final frame for 15 seconds
-                    plt.close(fig)
+               
                 else:
                   
                     edge_path = self.generatePosesAlongEdge(curr_pose,next_pose)
