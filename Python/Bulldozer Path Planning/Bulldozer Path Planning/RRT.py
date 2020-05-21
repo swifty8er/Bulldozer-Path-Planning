@@ -378,6 +378,18 @@ class RRT:
         return (bool1,bool2)
 
 
+    def bezierEdgeObstaclesCollision(self,bezierCurve):
+        s = 0.0
+        edges = self._map.getMapEdgesAndObstacles()
+        while s<=1.0:
+            point = bezierCurve.evaluate(s)
+            for edge in edges:
+                if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
+                    return True
+            s+=0.02
+
+        return False
+
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
     def connectPushPoint(self,push_point,axis=False):
@@ -393,12 +405,15 @@ class RRT:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:
                     if isinstance(bezier_new,bezier.curve.Curve):
-                        self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
+                        if not self.bezierEdgeObstaclesCollision(bezier_new):
+                            self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
+                            if axis!=False:
+                                bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                            connected = True 
                     else:
-                        self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                    if axis!=False:
-                        bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                    connected = True
+                        if not self.isCollision(nn,bezier_new):
+                            self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
+                            connected = True
                     
         
         return connected

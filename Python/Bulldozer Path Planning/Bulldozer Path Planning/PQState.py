@@ -148,6 +148,7 @@ class PQState:
                 path.reverse()
                 if axis!=False:
                     self.drawPath(path,axis)
+                self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(path)
                 return True
             if len(path)>0:
@@ -253,6 +254,12 @@ class PQState:
             new_disk_paths = copy.deepcopy(self._disk_paths)
             new_disk_paths[disk_being_pushed].append(curr_disk_pos)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
+            new_g = self._g + gValue
+            for x in range(len(new_reached_goals)):
+                if new_reached_goals[x] and not self._reached_goals[x]:
+                    new_g = 0
+
+
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use A* where g = full path length
@@ -282,10 +289,15 @@ class PQState:
                 new_disk_paths = copy.deepcopy(self._disk_paths)
                 new_disk_paths[disk_being_pushed].append(curr_disk_pos)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)
+                new_g = self._g + gValue
+                for x in range(len(new_reached_goals)):
+                    if new_reached_goals[x] and not self._reached_goals[x]:
+                        new_g = 0
+
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
                 #use A* where g = full path length
-                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g)
            
         return False
 
@@ -403,6 +415,12 @@ class PQState:
         #dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
         #for curr_disk_path in disks_path:
         #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
+
+        #add all final disk positions to their path
+        for z in range(len(self._disk_positions)):
+            self._disk_paths[z].append(self._disk_positions[z])
+
+
         disk_pos_indices = [0]*len(self._disk_paths)
         for i in range(len(self._vehicle_path)):
             #get and plot vehicle position
@@ -431,7 +449,11 @@ class PQState:
                         tp = fig.canvas.get_width_height()[::-1]
                         newtp = (tp[0]*2,tp[1]*2)
                         image  = image.reshape(newtp + (3,))
-                        solution_images.append(image)
+                        if i == len(self._vehicle_path)-1 and k == len(edge_path) - 1:
+                            for t in range(175):
+                                solution_images.append(image)
+                        else:
+                            solution_images.append(image)
                         plt.close(fig)
 
                     disk_pos_indices[disk_being_pushed] = temp + 1
