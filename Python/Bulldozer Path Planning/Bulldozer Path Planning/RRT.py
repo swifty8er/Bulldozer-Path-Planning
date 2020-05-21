@@ -386,7 +386,7 @@ class RRT:
         connected = False
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         for node in backwardsNodes:
-            nearest_neighbours = self._quadtree.radialNearestNeighbours(node,3.0,[])
+            nearest_neighbours = self._quadtree.radialNearestNeighbours(node,2.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:
@@ -404,10 +404,15 @@ class RRT:
         return connected
      
     #perform post processing on radial nearest neighbours
-    #currently just limit to behind states
-    #future - include angular check
     def postProcessNearestNeighbours(self,push_point,nearest_neighbours):
-        return self.addBehindStates(push_point,nearest_neighbours)
+        nn = self.addBehindStates(push_point,nearest_neighbours)
+        processed_nn = []
+        for node in nn:
+            if push_point.EuclideanDistance(node) > 0.75:
+                if (1-math.cos(math.radians(abs(node.theta-push_point.theta)))) < 1.5:
+                    processed_nn.append(node)
+        return processed_nn
+
 
     def enumerateBackwardsControls(self,startingNode):
         backwardsNodes = [startingNode]

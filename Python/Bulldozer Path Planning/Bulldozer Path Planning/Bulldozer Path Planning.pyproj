@@ -32,9 +32,6 @@
     <Compile Include="DrawRRT.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Octree.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="pathPlanningTest.py" />
     <Compile Include="pController.py" />
     <Compile Include="ply.py" />
@@ -48,9 +45,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Pushing.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PushState.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Push_RRT.py">
@@ -73,9 +67,6 @@
     <Compile Include="simpleSynchronousTest.py" />
     <Compile Include="simpleTest.py" />
     <Compile Include="synchronousImageTransmission.py" />
-    <Compile Include="TestOctree.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="TestQuadtree.py">
       <SubType>Code</SubType>
     </Compile>

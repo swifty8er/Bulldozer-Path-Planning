@@ -129,6 +129,8 @@ class PQState:
             else:
                 curr_disk_positions.append(self._disk_positions[i])
         return curr_disk_positions
+
+
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
             return True
@@ -253,8 +255,37 @@ class PQState:
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
-            #use A* where g = distance between push points
+            #use A* where g = full path length
             return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
+           
+        return False
+
+
+    def getContinuousAnglePushState(self,curr_disk_pos,closest_goal,disk_being_pushed):
+        v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
+        phi = BasicGeometry.vector_angle(v)
+        push_point = Vehicle(curr_disk_pos[0]+self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
+        if self._RRT.connectPushPoint(push_point):
+            (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
+            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
+                gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
+                distance = push_point.EuclideanDistance(new_vehicle_pose)
+                new_edge = (distance,0,"F")
+                inv_edge = (distance,0,"R")
+                self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
+                new_disk_positions = copy.deepcopy(self._disk_positions)
+                new_disk_positions[disk_being_pushed] = new_disk_pos
+                #vehicle_path.append(push_point)
+                #vehicle_path.append(new_vehicle_pose)
+                #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
+                #new_vehicle_paths.append(vehicle_path)
+                new_disk_paths = copy.deepcopy(self._disk_paths)
+                new_disk_paths[disk_being_pushed].append(curr_disk_pos)
+                new_reached_goals = self.determineGoalsReached(new_disk_positions)
+                new_pushed_disks = self._pushed_disks.copy()
+                new_pushed_disks.append(disk_being_pushed)
+                #use A* where g = full path length
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
            
         return False
 
@@ -264,6 +295,13 @@ class PQState:
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._disk_positions[self._disk_being_pushed]
             if not self.diskInGoal(curr_disk_pos):
+                (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+                if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
+                    #attempt continuous angle push
+                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,self._disk_being_pushed)
+                    if continousPushState != False:
+                        resultingStates.append(continousPushState)
+                        print("Added continuous angle push state")
                 push_point = self._vehicle_pose
                 pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
                 if pushedState != False:
@@ -287,6 +325,13 @@ class PQState:
                 continue
             curr_disk_pos = self._disk_positions[i]
             if not self.diskInGoal(curr_disk_pos):
+                (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+                if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
+                    #attempt continuous angle push
+                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i)
+                    if continousPushState != False:
+                        resultingStates.append(continousPushState)
+                        print("Added continuous angle push state new disk")
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point):

@@ -4,6 +4,16 @@ from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
 
 class Pushing:
+
+    @staticmethod
+    def continuousPushDistance(push_point,curr_disk_pos,distance,map):
+        new_disk_pos = (curr_disk_pos[0]+distance*math.cos(math.radians(push_point.theta)),curr_disk_pos[1]+distance*math.sin(math.radians(push_point.theta)))
+        if not Pushing.pushingCollision(push_point,new_disk_pos,map):
+            new_vehicle_pose = Vehicle(push_point.x+distance*math.cos(math.radians(push_point.theta)),push_point.y+distance*math.sin(math.radians(push_point.theta)),push_point.theta)
+            return (new_disk_pos,new_vehicle_pose)
+        else:
+            return (curr_disk_pos,push_point)
+
     @staticmethod
     def pushDisk(push_point,curr_disk_pos,closestGoal,map,max_distance=(0.4*math.pi)/4.0,num_steps=50):
         bestPush = None
