@@ -46,14 +46,15 @@ for mm in mapNums:
     for x in range(10):
         x_points_middle = []
         y_points_middle = []
-        for i in range(6):
+        for i in range(5):
             x_points_middle.append(random.uniform(map.min_x,map.max_x))
             y_points_middle.append(random.uniform(map.min_y,map.max_y))
         x_points = x_points_start + x_points_middle + x_points_end
         y_points = y_points_start + y_points_middle + y_points_end
         nodes = np.asfortranarray([x_points,y_points])
-        curve = bezier.Curve(nodes,degree=9)
+        curve = bezier.Curve(nodes,degree=8)
         curve.plot(100,'red',ax=ax1)
+        print(curve.nodes)
         plt.draw()
         plt.pause(1)
         plt.show(block=False)
