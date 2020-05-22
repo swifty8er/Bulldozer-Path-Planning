@@ -382,7 +382,8 @@ class RRT:
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s<=1.0:
-            point = bezierCurve.evaluate(s)
+            point_list = bezierCurve.evaluate(s).tolist()
+            point = [i[0] for i in point_list]
             for edge in edges:
                 if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
                     return True
