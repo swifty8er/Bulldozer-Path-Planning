@@ -329,6 +329,18 @@ class BasicGeometry():
         return abs(numerator / denominator)
         
 
+    @staticmethod
+    def evaluateKappa(curve,t):
+        first_derivative_point_array = curve.evaluate_hodograph(t)
+        first_derivative_point = [i[0] for i in first_derivative_point_array]
+        (dx,dy) = first_derivative_point
+        (ddx,ddy) = BasicGeometry.getSecondDerivativeOfBezierCurve(curve,t)
+        numerator = dx * ddy - ddx * dy
+        denominator = pow(dx*dx + dy*dy, 1.5)
+        kappa = abs(numerator / denominator)
+        return kappa
+
+
 
     @staticmethod
     def getSecondDerivativeOfBezierCurve(bezierCurve,t):

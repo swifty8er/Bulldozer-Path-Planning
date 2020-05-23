@@ -9,14 +9,14 @@ MIN_RADIUS = 0.4
 KAPPA_MAX = 1.0/MIN_RADIUS
 
 
-def integrand(curve,t):
-    return pow(self.omega(curve,t),-2.0) * pow(self.gradMag(curve,t),-1.0)
+def integrand(t,curve):
+    return pow(omega(t,curve),-2.0) * pow(gradMag(t,curve),-1.0)
    
 
-def omega(curve,t):
-    return math.sqrt(pow((self.evaluateKappa(curve,t)/KAPPA_MAX),2.0))
+def omega(t,curve):
+    return math.sqrt(pow((BasicGeometry.evaluateKappa(curve,t)/KAPPA_MAX),2.0))
 
-def gradMag(curve,t):
+def gradMag(t,curve):
     first_derivative_point_array = curve.evaluate_hodograph(t)
     first_derivative_point = [i[0] for i in first_derivative_point_array]
     (dx,dy) = first_derivative_point
@@ -34,6 +34,12 @@ class GeneticAlgorithm:
         self._mutation_prob = mutation_prob
         self._disk_positions = disk_positions
         self._population = self.initalisePopulation()
+
+
+    @property
+    def population(self):
+        return self._population
+
 
     def testCollision(self,curve):
         edges = self._map.getMapEdgesAndObstacles()
@@ -54,7 +60,7 @@ class GeneticAlgorithm:
     def testRadiusOfCurvature(self,curve):
         s = 0.0
         while s <= 1.0:
-            kappa = self.evaluateKappa(curve,s)
+            kappa = BasicGeometry.evaluateKappa(curve,s)
             radiusOfCurvature = 1.0/kappa
             if radiusOfCurvature < MIN_RADIUS:
                 return False
@@ -62,19 +68,9 @@ class GeneticAlgorithm:
         return True
 
 
-    def evaluateKappa(self,curve,t):
-        first_derivative_point_array = curve.evaluate_hodograph(t)
-        first_derivative_point = [i[0] for i in first_derivative_point_array]
-        (dx,dy) = first_derivative_point
-        (ddx,ddy) = BasicGeometry.getSecondDerivativeOfBezierCurve(curve,t)
-        numerator = dx * ddy - ddx * dy
-        denominator = pow(dx*dx + dy*dy, 1.5)
-        kappa = abs(numerator / denominator)
-        return kappa
-
-
     def fitnessFunction(self,curve):
-        return integrate.quad(integrand,0,1,args=(curve))[0]
+        return curve.length
+        #return integrate.quad(integrand,0,1,args=(curve))[0]
 
     def initalisePopulation(self):
         population = []
@@ -84,7 +80,6 @@ class GeneticAlgorithm:
         y_points_end = [self._end_pose.y-math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
         x = 0
         while x < self._init_size and len(population) < self._population_size:
-            print("x = ",x)
             x_points_middle = []
             y_points_middle = []
             for i in range(self._num_control_points):
@@ -97,7 +92,7 @@ class GeneticAlgorithm:
             if self.testRadiusOfCurvature(curve) and self.testCollision(curve):
                 print("Found valid curve")
                 population.append(curve)
-            print(self.fitnessFunction(curve))
             x+=1
+        return population
             
         

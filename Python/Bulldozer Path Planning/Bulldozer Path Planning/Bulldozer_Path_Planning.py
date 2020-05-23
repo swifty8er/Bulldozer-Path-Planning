@@ -70,7 +70,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [3]
+mapNums = [1]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -81,9 +81,18 @@ for mm in mapNums:
     map.plotStartingMap(ax1)
     plt.draw()
     plt.pause(1)
-    v2 = Vehicle(2,2,75)
+    plt.show(block=False)
+    v2 = Vehicle(5,3.5,0)
     v1 = Vehicle(1,1,90)
+    start_time = time.time()
     GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,5,map.initial_disk_pos_xy)
+    for c in GA.population:
+        print(GA.fitnessFunction(c))
+        c.plot(100,'red',ax=ax1)
+    print("Completed in minutes = ",(time.time()-start_time)/60.0)
+    plt.draw()
+    plt.pause(5)
+    plt.show()
     #plt.show(block=False)
     #x_range = map.max_x - map.min_x
     #y_range = map.max_y - map.min_y
