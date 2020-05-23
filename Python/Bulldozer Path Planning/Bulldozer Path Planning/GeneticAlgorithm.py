@@ -43,10 +43,16 @@ class GeneticAlgorithm:
         return True
 
 
-    def evaluateKappa(self,curve,s):
-        cross_vec = np.cross(curve.evaluate_hodograph(s),curve.evaluate_hodograph(s).evaluate_hodograph(s))
+    def evaluateKappa(self,curve,t):
+        first_derivative_point_array = curve.evaluate_hodograph(t)
+        first_derivative_point = [i[0] for i in first_derivative_point_array]
+        (dx,dy) = first_derivative_point
+        (ddx,ddy) = BasicGeometry.getSecondDerivativeOfBezierCurve(curve,t)
+        numerator = dx * ddy - ddx * dy
+        denominator = pow(dx*dx + dy*dy, 1.5)
+        kappa = abs(numerator / denominator)
+        return kappa
 
-        np.linalg.norm(x)
 
     def initalisePopulation(self):
         population = []
