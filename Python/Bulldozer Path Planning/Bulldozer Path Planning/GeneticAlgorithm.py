@@ -1,7 +1,26 @@
 import bezier
 import random
+import math
 import numpy as np
 from BasicGeometry import BasicGeometry
+import scipy.integrate as integrate
+
+MIN_RADIUS = 0.4
+KAPPA_MAX = 1.0/MIN_RADIUS
+
+
+def integrand(curve,t):
+    return pow(self.omega(curve,t),-2.0) * pow(self.gradMag(curve,t),-1.0)
+   
+
+def omega(curve,t):
+    return math.sqrt(pow((self.evaluateKappa(curve,t)/KAPPA_MAX),2.0))
+
+def gradMag(curve,t):
+    first_derivative_point_array = curve.evaluate_hodograph(t)
+    first_derivative_point = [i[0] for i in first_derivative_point_array]
+    (dx,dy) = first_derivative_point
+    return math.sqrt(dx*dx + dy*dy)
 
 class GeneticAlgorithm:
     def __init__(self,map,start_pose,end_pose,population_size,crossover_prob,mutation_prob,init_size,num_control_points,disk_positions):
@@ -54,6 +73,9 @@ class GeneticAlgorithm:
         return kappa
 
 
+    def fitnessFunction(self,curve):
+        return integrate.quad(integrand,0,1,args=(curve))[0]
+
     def initalisePopulation(self):
         population = []
         x_points_start = [self._start_pose.x,self._start_pose.x+math.cos(math.radians(self._start_pose.theta))]
@@ -62,9 +84,10 @@ class GeneticAlgorithm:
         y_points_end = [self._end_pose.y-math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
         x = 0
         while x < self._init_size and len(population) < self._population_size:
+            print("x = ",x)
             x_points_middle = []
             y_points_middle = []
-            for i in range(self._num_num_control_points):
+            for i in range(self._num_control_points):
                 x_points_middle.append(random.uniform(self._map.min_x,self._map.max_x))
                 y_points_middle.append(random.uniform(self._map.min_y,self._map.max_y))
             x_points = x_points_start + x_points_middle + x_points_end
@@ -72,5 +95,9 @@ class GeneticAlgorithm:
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=self._num_control_points+3)
             if self.testRadiusOfCurvature(curve) and self.testCollision(curve):
+                print("Found valid curve")
                 population.append(curve)
+            print(self.fitnessFunction(curve))
             x+=1
+            
+        

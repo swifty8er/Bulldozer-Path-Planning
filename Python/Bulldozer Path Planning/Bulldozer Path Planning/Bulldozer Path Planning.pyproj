@@ -32,6 +32,9 @@
     <Compile Include="DrawRRT.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GeneticAlgorithm.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GeneticAlgorithmTests.py">
       <SubType>Code</SubType>
     </Compile>

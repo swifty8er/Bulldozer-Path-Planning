@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
+from GeneticAlgorithm import GeneticAlgorithm
 import bezier
 from Maps import Maps
 import math
@@ -42,48 +43,6 @@ for mm in mapNums:
     plt.show(block=False)
     #v1 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
     #v2 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
-    v2 = Vehicle(3,3,60)
+    v2 = Vehicle(2,2,75)
     v1 = Vehicle(1,1,90)
-    x_points_start = [v1.x,v1.x+math.cos(math.radians(v1.theta))]
-    x_points_end = [v2.x-math.cos(math.radians(v2.theta)),v2.x]
-    y_points_start = [v1.y,v1.y+math.sin(math.radians(v1.theta))]
-    y_points_end = [v2.y-math.sin(math.radians(v2.theta)),v2.y]
-    for x in range(100000):
-        x_points_middle = []
-        y_points_middle = []
-        for i in range(5):
-            x_points_middle.append(random.uniform(map.min_x,map.max_x))
-            y_points_middle.append(random.uniform(map.min_y,map.max_y))
-        x_points = x_points_start + x_points_middle + x_points_end
-        y_points = y_points_start + y_points_middle + y_points_end
-        nodes = np.asfortranarray([x_points,y_points])
-        curve = bezier.Curve(nodes,degree=8)
-        
-        t = 0.0
-        acceptable = True
-        while t <= 1.0:
-            first_derivative_point_array = curve.evaluate_hodograph(t)
-            first_derivative_point = [i[0] for i in first_derivative_point_array]
-            (dx,dy) = first_derivative_point
-            (ddx,ddy) = BasicGeometry.getSecondDerivativeOfBezierCurve(curve,t)
-            numerator = dx * ddy - ddx * dy
-            denominator = pow(dx*dx + dy*dy, 1.5)
-            kappa = abs(numerator / denominator)
-            roC = 1.0/kappa
-            if roC < 0.4:
-                print("Bad Curve")
-                acceptable = False
-                break
-            t += 0.001
-
-        if acceptable:
-            print("Acceptable curve found")
-            plt.cla()
-            map.plotStartingMap(ax1)
-            drawVehicle(v1,ax1,map)
-            drawVehicle(v2,ax1,map)
-            curve.plot(100,'red',ax=ax1)
-            plt.draw()
-            plt.pause(10)
-            plt.show(block=False)
-
+    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,5,map.initial_disk_pos_xy)
