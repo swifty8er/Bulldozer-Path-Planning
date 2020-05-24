@@ -1,5 +1,7 @@
 import bezier
 import numpy as np
+import math
+import random
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
 
@@ -19,7 +21,8 @@ class BezierLib():
             roC = 1.0/kappa
             if roC < MIN_RADIUS:
                 return False
-            t += 0.001
+            t += 0.0025
+
         return curve
 
 

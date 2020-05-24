@@ -82,75 +82,63 @@ for mm in mapNums:
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
-    v2 = Vehicle(5,3.5,0)
-    v1 = Vehicle(1,1,90)
+    x_range = map.max_x - map.min_x
+    y_range = map.max_y - map.min_y
+    num_nodes = int(x_range * y_range * 75)
+    starting_xy = map.initial_vehicle_pos_xy
+    StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
+    StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
+    i = 0
+    while i < StartingRRT.num_nodes:
+        print("i = ",i)
+        x_rand = StartingRRT.generateRandomState()
+        status = StartingRRT.extend(x_rand)
+        if (status == Status.ADVANCED or status == Status.REACHED):
+            i+=1
+
+    StartingQuadtree = Quadtree(StartVehiclePos,None,StartingRRT.computeMaxDistanceBetweenNodes(StartVehiclePos))
+    for node in StartingRRT.tree:
+        if node == StartVehiclePos:
+            continue
+        StartingQuadtree.addState(node)
+
+    print("Quadtree grown to size = ",StartingQuadtree.num_states)
+    StartingRRT.setQuadtree(StartingQuadtree)
+
+    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
+    visitedStates = {}
+    pq = queue.PriorityQueue()
+    pq.put(curr_state)
     start_time = time.time()
-    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,5,map.initial_disk_pos_xy)
-    for c in GA.population:
-        print(GA.fitnessFunction(c))
-        c.plot(100,'red',ax=ax1)
-    print("Completed in minutes = ",(time.time()-start_time)/60.0)
-    plt.draw()
-    plt.pause(5)
-    plt.show()
-    #plt.show(block=False)
-    #x_range = map.max_x - map.min_x
-    #y_range = map.max_y - map.min_y
-    #num_nodes = int(x_range * y_range * 150)
-    #starting_xy = map.initial_vehicle_pos_xy
-    #StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
-    #StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)
-    #i = 0
-    #while i < StartingRRT.num_nodes:
-    #    print("i = ",i)
-    #    x_rand = StartingRRT.generateRandomState()
-    #    status = StartingRRT.extend(x_rand)
-    #    if (status == Status.ADVANCED or status == Status.REACHED):
-    #        i+=1
 
-    #StartingQuadtree = Quadtree(StartVehiclePos,None,StartingRRT.computeMaxDistanceBetweenNodes(StartVehiclePos))
-    #for node in StartingRRT.tree:
-    #    if node == StartVehiclePos:
-    #        continue
-    #    StartingQuadtree.addState(node)
+    while not pq.empty():
+        curr_state = pq.get()
+        plt.cla()
+        curr_state.plotState(ax1)
+        plt.draw()
+        plt.pause(0.01)
+        plt.show(block=False)
+        print("Connnecting to previous pose with A* search")
+        if not curr_state.connectToPreviousPose():
+            continue
+        print("Done")
+        if curr_state.isFinishState():
+            break
+        if not curr_state in visitedStates:
+            visitedStates[curr_state] = True
+            new_states = curr_state.getResultingStates(ax1)
+            for state in new_states:
+                if not state in visitedStates:
+                    pq.put(state)
 
-    #print("Quadtree grown to size = ",StartingQuadtree.num_states)
-    #StartingRRT.setQuadtree(StartingQuadtree)
-
-    #curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
-    #visitedStates = {}
-    #pq = queue.PriorityQueue()
-    #pq.put(curr_state)
-    #start_time = time.time()
-
-    #while not pq.empty():
-    #    curr_state = pq.get()
-    #    plt.cla()
-    #    curr_state.plotState(ax1)
-    #    plt.draw()
-    #    plt.pause(0.01)
-    #    plt.show(block=False)
-    #    print("Connnecting to previous pose with A* search")
-    #    if not curr_state.connectToPreviousPose():
-    #        continue
-    #    print("Done")
-    #    if curr_state.isFinishState():
-    #        break
-    #    if not curr_state in visitedStates:
-    #        visitedStates[curr_state] = True
-    #        new_states = curr_state.getResultingStates(ax1)
-    #        for state in new_states:
-    #            if not state in visitedStates:
-    #                pq.put(state)
-
-    #if curr_state.isFinishState() == True:
-    #    print("Solved in minutes = ",(time.time() - start_time)/60)
-    #    #Save results as a gif
-    #    kwargs_write = {'fps':25.0, 'quantizer':'nq'}
-    #    file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
-    #    imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
-    #else:
-    #    print("Failed")
+    if curr_state.isFinishState() == True:
+        print("Solved in minutes = ",(time.time() - start_time)/60)
+        #Save results as a gif
+        kwargs_write = {'fps':25.0, 'quantizer':'nq'}
+        file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
+        imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
+    else:
+        print("Failed")
     #curr_state = MapState(map)
     #trans_table = TranspositionTable(curr_state.num_of_nodes, NUM_OF_BITS, TRANS_TABLE_SIZE)
     #pq = queue.PriorityQueue()

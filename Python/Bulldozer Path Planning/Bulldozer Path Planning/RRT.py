@@ -402,6 +402,7 @@ class RRT:
         for node in backwardsNodes:
             nearest_neighbours = self._quadtree.radialNearestNeighbours(node,2.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
+            print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:
                 bezier_new = BezierLib.createBezierCurveBetweenTwoVehicle(nn,node)
                 if bezier_new != False:
@@ -410,15 +411,16 @@ class RRT:
                         if axis!=False:
                             bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
                         connected = True 
-                v1 = Vehicle(nn.x,nn.y,(nn.theta+180)%360)
-                v2 = Vehicle(node.x,node.y,(node.theta+180)%360)
-                bezier_inv = BezierLib.createBezierCurveBetweenTwoVehicle(v1,v2)
-                if bezier_inv != False:
-                    if not self.bezierEdgeObstaclesCollision(bezier_inv):
-                        self.addEdge(node,nn,(bezier_inv,"R"),(bezier_inv,"F"))
-                        if axis != False:
-                            bezier_inv.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                        connected = True
+                        print("Successfully connected to push point")
+                #v1 = Vehicle(nn.x,nn.y,(nn.theta+180)%360)
+                #v2 = Vehicle(node.x,node.y,(node.theta+180)%360)
+                #bezier_inv = BezierLib.createBezierCurveBetweenTwoVehicle(v1,v2)
+                #if bezier_inv != False:
+                #    if not self.bezierEdgeObstaclesCollision(bezier_inv):
+                #        self.addEdge(node,nn,(bezier_inv,"R"),(bezier_inv,"F"))
+                #        if axis != False:
+                #            bezier_inv.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                #        connected = True
 
                   
                        

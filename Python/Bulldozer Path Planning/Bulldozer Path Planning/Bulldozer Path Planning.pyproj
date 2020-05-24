@@ -23,6 +23,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BezierLib.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Bulldozer_Path_Planning.py" />
     <Compile Include="BasicGeometry.py">
       <SubType>Code</SubType>
