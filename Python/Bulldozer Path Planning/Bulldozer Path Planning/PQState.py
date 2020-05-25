@@ -235,6 +235,23 @@ class PQState:
             i+=1
         return reached
 
+
+    def makeBezierConnectionToPreviousPose(self):
+        if self._previous_pose == None:
+            return True
+        degree = 3
+        iterations = 100
+        while degree < 12:
+            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,self._vehicle_pose,degree,iterations)
+            if bestCurve != False:
+                self._RRT.addEdge(self._vehicle_pose,self._previous_pose,(bestCurve,"F"),False)
+                return True
+            degree += 1
+            iterations *= 4
+        return False
+
+
+
     def getStateAfterPush(self,push_point,curr_disk_pos,disk_being_pushed,gValue):
         (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
         if not found:
@@ -272,7 +289,7 @@ class PQState:
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
-        if self._RRT.connectPushPoint(push_point):
+        if self._RRT.canConnectPushPoint(push_point):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
@@ -323,7 +340,7 @@ class PQState:
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point):
+                    if self._RRT.canConnectPushPoint(push_point):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
@@ -346,7 +363,7 @@ class PQState:
                         print("Added continuous angle push state new disk")
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point):
+                    if self._RRT.canConnectPushPoint(push_point):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
