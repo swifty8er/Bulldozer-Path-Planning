@@ -31,6 +31,7 @@ class RRT:
         self._controls_list = controls_list
         self._num_nodes = num_nodes
         self._quadtree = None
+        self._cachedNearestNeighbours = {}
     
     @property
     def num_nodes(self):
@@ -394,12 +395,17 @@ class RRT:
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
-    def canConnectPushPoint(self,push_point,axis=False):
+    def canConnectPushPoint(self,push_point,curr_disk_pos,axis=False):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
+        pos_tuple = (curr_disk_pos[0],curr_disk_pos[1])
+        if pos_tuple in self._cachedNearestNeighbours:
+            nearest_neighbours = self._cachedNearestNeighbours[pos_tuple]
+        else:
+            nearest_neighbours = self._quadtree.radialNearestNeighbours(push_point,2.5,[])
+            self._cachedNearestNeighbours[pos_tuple] = nearest_neighbours
         for node in backwardsNodes:
-            nearest_neighbours = self._quadtree.radialNearestNeighbours(node,2.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:

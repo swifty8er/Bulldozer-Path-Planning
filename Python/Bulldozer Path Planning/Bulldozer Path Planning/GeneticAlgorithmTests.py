@@ -29,7 +29,7 @@ def drawVehicle(v,axis,map):
 
 
 
-mapNums = [1]
+mapNums = [4]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -43,6 +43,8 @@ for mm in mapNums:
     plt.show(block=False)
     #v1 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
     #v2 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
-    v2 = Vehicle(2,2,75)
-    v1 = Vehicle(1,1,90)
-    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,5,map.initial_disk_pos_xy)
+    v2 = Vehicle(1.18,1.63,95.45)
+    v1 = Vehicle(1.54,1.74,120)
+    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,0,map.initial_disk_pos_xy,ax1)
+    for c in GA.population:
+        c.plot(100,'red',ax=ax1)

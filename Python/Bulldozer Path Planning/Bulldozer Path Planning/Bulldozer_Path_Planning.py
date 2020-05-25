@@ -119,7 +119,7 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         print("Connnecting to previous pose with bezier curve...")
-        if not curr_state.makeBezierConnectionToPreviousPose():
+        if not curr_state.makeBezierConnectionToPreviousPose(ax1):
             continue
         print("Done")
         if curr_state.isFinishState():

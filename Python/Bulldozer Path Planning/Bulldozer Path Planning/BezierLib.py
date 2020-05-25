@@ -1,6 +1,7 @@
 import bezier
 import numpy as np
 import math
+import queue
 import random
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
@@ -48,7 +49,7 @@ class BezierLib():
                 if map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
                     return False
             for disk_pos in disk_positions:
-                if 2 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                if 1.95 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
 
             s+= 0.005
@@ -56,12 +57,15 @@ class BezierLib():
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
+        print("Finding bezier curve connection between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (pose1.x,pose1.y,pose1.theta,pose2.x,pose2.y,pose2.theta))
         curves = []
         num_control_points = degree-3
-        x_points_start = [pose1.x,pose1.x+math.cos(math.radians(pose1.theta))]
-        x_points_end = [pose2.x-math.cos(math.radians(pose2.theta)),pose2.x]
-        y_points_start = [pose1.y,pose1.y+math.sin(math.radians(pose1.theta))]
-        y_points_end = [pose2.y-math.sin(math.radians(pose2.theta)),pose2.y]
+        dist = pose1.EuclideanDistance(pose2)
+        r = dist/5.0
+        x_points_start = [pose1.x,pose1.x+r*math.cos(math.radians(pose1.theta))]
+        x_points_end = [pose2.x-r*math.cos(math.radians(pose2.theta)),pose2.x]
+        y_points_start = [pose1.y,pose1.y+r*math.sin(math.radians(pose1.theta))]
+        y_points_end = [pose2.y-r*math.sin(math.radians(pose2.theta)),pose2.y]
         x = 0
         while x < iterations and len(curves) < max_num_candidates:
             x_points_middle = []
@@ -74,15 +78,19 @@ class BezierLib():
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=degree)
             if BezierLib.testRadiusOfCurvature(curve) and BezierLib.testCollision(curve,map,curr_disk_positions):
-                print("Found valid curve")
-                curves.append((curve.length,curve))
+                curves.append(curve)
             x+=1
 
         if len(curves) == 0:
             return False
         else:
-            curves.sort()
-            return curves[0][0]
+            bestCurve = None
+            shortestLength = math.inf
+            for c in curves:
+                if c.length < shortestLength:
+                    bestCurve = c
+
+            return bestCurve
 
 
 

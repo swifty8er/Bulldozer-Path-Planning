@@ -4,7 +4,7 @@ import math
 import numpy as np
 from BasicGeometry import BasicGeometry
 import scipy.integrate as integrate
-
+from matplotlib import pyplot as plt
 MIN_RADIUS = 0.4
 KAPPA_MAX = 1.0/MIN_RADIUS
 
@@ -23,7 +23,7 @@ def gradMag(t,curve):
     return math.sqrt(dx*dx + dy*dy)
 
 class GeneticAlgorithm:
-    def __init__(self,map,start_pose,end_pose,population_size,crossover_prob,mutation_prob,init_size,num_control_points,disk_positions):
+    def __init__(self,map,start_pose,end_pose,population_size,crossover_prob,mutation_prob,init_size,num_control_points,disk_positions,ax1):
         self._map = map
         self._start_pose = start_pose
         self._end_pose = end_pose
@@ -33,7 +33,7 @@ class GeneticAlgorithm:
         self._crossover_prob = crossover_prob
         self._mutation_prob = mutation_prob
         self._disk_positions = disk_positions
-        self._population = self.initalisePopulation()
+        self._population = self.initalisePopulation(ax1)
 
 
     @property
@@ -72,12 +72,12 @@ class GeneticAlgorithm:
         return curve.length
         #return integrate.quad(integrand,0,1,args=(curve))[0]
 
-    def initalisePopulation(self):
+    def initalisePopulation(self,ax1):
         population = []
-        x_points_start = [self._start_pose.x,self._start_pose.x+math.cos(math.radians(self._start_pose.theta))]
-        x_points_end = [self._end_pose.x-math.cos(math.radians(self._end_pose.theta)),self._end_pose.x]
-        y_points_start = [self._start_pose.y,self._start_pose.y+math.sin(math.radians(self._start_pose.theta))]
-        y_points_end = [self._end_pose.y-math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
+        x_points_start = [self._start_pose.x,self._start_pose.x+0.1*math.cos(math.radians(self._start_pose.theta))]
+        x_points_end = [self._end_pose.x-0.1*math.cos(math.radians(self._end_pose.theta)),self._end_pose.x]
+        y_points_start = [self._start_pose.y,self._start_pose.y+0.1*math.sin(math.radians(self._start_pose.theta))]
+        y_points_end = [self._end_pose.y-0.1*math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
         x = 0
         while x < self._init_size and len(population) < self._population_size:
             x_points_middle = []
@@ -89,6 +89,11 @@ class GeneticAlgorithm:
             y_points = y_points_start + y_points_middle + y_points_end
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=self._num_control_points+3)
+            print(curve.nodes)
+            curve.plot(100,'blue',ax=ax1)
+            plt.draw()
+            plt.pause(0.1)
+            plt.show()
             if self.testRadiusOfCurvature(curve) and self.testCollision(curve):
                 print("Found valid curve")
                 population.append(curve)

@@ -4,6 +4,7 @@ import bezier
 import copy
 import numpy as np
 from BasicGeometry import BasicGeometry
+from BezierLib import BezierLib
 from Pushing import Pushing
 from Vehicle import Vehicle
 from TranspositionTable import TranspositionTable
@@ -235,28 +236,84 @@ class PQState:
             i+=1
         return reached
 
+    def getProjectionHeuristic(self,curr_pose,dest_pose):
+        line = [math.cos(math.radians(dest_pose.theta)),math.sin(math.radians(dest_pose.theta))]
+        x_point = [curr_pose.x,curr_pose.y]
+        c = np.dot(line,x_point)/np.dot(line,line)
+        proj_vec = np.array(line)
+        proj_vec = proj_vec * c
+        mag = np.linalg.norm(proj_vec)
+        if mag == 0:
+            inv_mag = 1000000
+        else:
+            inv_mag = 1.0/mag
+        return inv_mag * (1.1-math.cos(math.radians(dest_pose.theta-curr_pose.theta)))
 
-    def makeBezierConnectionToPreviousPose(self):
+    def searchForBezierConnectablePoint(self,pose,dest_pose,curr_disk_positions,path,limit):
+        pq = queue.PriorityQueue()
+        starting_state = (self.getProjectionHeuristic(pose,dest_pose),pose,[],0)
+        pq.put(starting_state)
+        bestH = math.inf
+        bestPose = None
+        visitedPoses = {}
+        while not pq.empty() and i < limit:
+            curr_state = pq.get()
+            (f,curr_pose,new_path,g) = curr_state
+            curr_h = self.getProjectionHeurisitc(curr_pose,dest_pose)
+            if curr_h < 0.3:
+                new_path.append(curr_pose)
+                return (curr_pose,new_path)
+            if curr_h < bestH:
+                bestH = curr_h
+                bestPose = curr_pose
+
+            if curr_pose not in visitedPoses:
+                visitedPoses[curr_pose] = True
+                new_path = path.copy()
+                new_path.append(curr_pose)
+                for (next_pose,edge) in curr_pose.getNextPoses():
+                    self._RRT.addEdge(next_pose,curr_pose,edge,self._RRT.getInverseControl(edge))
+                    new_g = g + self.calcEdgeLength(edge)
+                    next_state = (new_g+self.getProjectionHeurisitic(next_pose,dest_pose),next_pose,new_path,new_g)
+                    pq.put(next_state)
+            i+=1
+
+
+    def makeBezierConnectionToPreviousPose(self,ax=False):
         if self._previous_pose == None:
             return True
         path = [self._vehicle_pose]
-        next_pose = self._RRT[self._vehicle_pose].keys()[0]
+        edges_to = list(self._RRT.tree[self._vehicle_pose].keys())
+        #print("There are edges from the current vehicle pose (%.2f,%.2f,%.2f) to" % (self._vehicle_pose.x,self._vehicle_pose.y,self._vehicle_pose.theta))
+        next_pose = edges_to[0]
+        path.append(next_pose)
+        if next_pose == self._previous_pose:
+            self._vehicle_path = copy.deepcopy(self._vehicle_path)
+            path.reverse()
+            self._vehicle_path.append(path)
+            return True
         curr_disk_positions = self.rollBackDiskPush()
+        (final_pose,path) = self.searchForBezierConnectablePoint(next_pose,self._previous_pose,curr_disk_positions,path,100)
+        exit(0)
         degree = 3
-        iterations = 100
+        iterations = 500
+        add = 500
         while degree < 12:
             print("Finding bezier curve with degree %d and iterations %d" % (degree,iterations))
-            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
+            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,final_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
-                self._RRT.addEdge(self._vehicle_pose,self._previous_pose,(bestCurve,"F"),False)
+                print("Found bezier connection")
+                self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),False)
+                #if ax!=False:
+                #   bestCurve.plot(100,'red',ax=ax)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
-                path.append(next_pose)
                 path.append(self._previous_pose)
                 path.reverse()
                 self._vehicle_path.append(path)
                 return True
             degree += 1
-            iterations *= 4
+            iterations += add
+            add *=2
         return False
 
 
@@ -298,7 +355,7 @@ class PQState:
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
-        if self._RRT.canConnectPushPoint(push_point):
+        if self._RRT.canConnectPushPoint(push_point,curr_disk_pos):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
@@ -349,7 +406,7 @@ class PQState:
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
                 for push_point in new_push_points:
-                    if self._RRT.canConnectPushPoint(push_point):
+                    if self._RRT.canConnectPushPoint(push_point,curr_disk_pos):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
@@ -372,7 +429,7 @@ class PQState:
                         print("Added continuous angle push state new disk")
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
-                    if self._RRT.canConnectPushPoint(push_point):
+                    if self._RRT.canConnectPushPoint(push_point,curr_disk_pos):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
