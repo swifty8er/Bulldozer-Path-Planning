@@ -261,6 +261,7 @@ class PQState:
 
 
     def searchForBezierConnectablePoint(self,pose,dest_pose,curr_disk_positions,path,limit):
+        print("Searching for bezier connectable point start pose = (%.2f,%.2f,%.2f) dest pose = (%.2f,%.2f,%.2f)" % (pose.x,pose.y,pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
         pq = queue.PriorityQueue()
         starting_state = (self.getProjectionHeuristic(pose,dest_pose),pose,[],0)
         pq.put(starting_state)
@@ -273,6 +274,7 @@ class PQState:
             curr_state = pq.get()
             (f,curr_pose,new_path,g) = curr_state
             curr_h = self.getProjectionHeuristic(curr_pose,dest_pose)
+            print("Current pose in a star is (%.2f,%.2f,%.2f)" % (curr_pose.x,curr_pose.y,curr_pose.theta))
             if curr_h < 0.3:
                 new_path.append(curr_pose)
                 return (curr_pose,path+new_path)
@@ -286,10 +288,10 @@ class PQState:
                 new_path = path.copy()
                 new_path.append(curr_pose)
                 for (next_pose,edge) in curr_pose.getNextPoses():
-                    if not self._RRT.isCollision(curr_pose,edge) and not self.RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
+                    if not self._RRT.isCollision(curr_pose,edge) and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         self._RRT.addEdge(next_pose,curr_pose,edge,self._RRT.getInverseControl(edge))
                         new_g = g + self.calcEdgeLength(edge)
-                        next_state = (new_g+self.getProjectionHeurisitic(next_pose,dest_pose),next_pose,new_path,new_g)
+                        next_state = (new_g+self.getProjectionHeuristic(next_pose,dest_pose),next_pose,new_path,new_g)
                         pq.put(next_state)
             i+=1
         if bestPose == None:
@@ -310,27 +312,26 @@ class PQState:
             self._vehicle_path.append(path)
             return True
         curr_disk_positions = self.rollBackDiskPush()
-        (final_pose,path) = self.searchForBezierConnectablePoint(next_pose,self._previous_pose,curr_disk_positions,path,100)
-        print("Connecting bezier curve between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (self._previous_pose.x,self._previous_pose.y,self._previous_pose.theta,final_pose.x,final_pose.y,final_pose.theta))
+        (final_pose,final_path) = self.searchForBezierConnectablePoint(self._previous_pose,next_pose,curr_disk_positions,path,100)
+        print("Reverse from post push pose (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose,theta))
+        print("Starting vehicle pose (prev pose) (%.2f,%.2f,%.2f)" % (self._previous_pose.x,self._previous_pose.y,self._previous_pose.theta))
+        print("Better staring pose (after reversing a star search) (%.2f,%.2f,%.2f)" % (final_pose.x,final_pose.y,final_pose.theta))
         degree = 3
         iterations = 500
-        add = 500
         while degree < 12:
             print("Finding bezier curve with degree %d and iterations %d" % (degree,iterations))
-            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,final_pose,self._map,curr_disk_positions,degree,iterations,50)
+            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(final_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
                 print("Found bezier connection")
                 self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),False)
-                #if ax!=False:
-                #   bestCurve.plot(100,'red',ax=ax)
+                if ax!=False:
+                   bestCurve.plot(100,'red',ax=ax)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
-                path.append(self._previous_pose)
                 path.reverse()
-                self._vehicle_path.append(path)
+                self._vehicle_path.append(final_path+path)
                 return True
             degree += 1
-            iterations += add
-            add *=2
+            iterations *= 1.5
         return False
 
 
@@ -508,14 +509,6 @@ class PQState:
     def plotSolution(self):
 
         solution_images = []
-        #all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
-        #curr_disk_index = [0]*len(disks_path)
-        #curr_disk_pos = []
-        #push_point_rng = [self.num_of_nodes, self.num_of_nodes + int(self.num_of_points/2) - 1]
-        #dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
-        #for curr_disk_path in disks_path:
-        #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
-
         #add all final disk positions to their path
         for z in range(len(self._disk_positions)):
             self._disk_paths[z].append(self._disk_positions[z])
