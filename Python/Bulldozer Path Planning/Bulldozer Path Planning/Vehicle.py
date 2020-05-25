@@ -4,6 +4,7 @@ import numpy as np
 from BasicGeometry import BasicGeometry
 MAX_ANGLE_DIFFERENCE = 5.0
 MIN_RADIUS = 0.4
+REVERSE_CONTROLS = [((0.4*math.pi)/4.0,0,"R"),(0.4,45,"RR"),(0.4,45,"RL")]
 class Vehicle:
     # initialise a vehicle, setting its x,y coord and heading
     def __init__(self,x,y,theta):
@@ -96,6 +97,13 @@ class Vehicle:
         euclidean_distance = BasicGeometry.ptDist(p1,p2)
         return euclidean_distance
 
+    #apply reverse and reverse left and right maximum controls to produce new poses
+    def getNextPoses(self):
+        resulting = []
+        for control in REVERSE_CONTROLS:
+            resulting_pose = self.applyControl(control[0],control[1],control[2])
+            resulting.append((resulting_pose,control))
+        return resulting
 
     def getCircleArcPoints(self,control,num_steps):
         angle = control[1]
