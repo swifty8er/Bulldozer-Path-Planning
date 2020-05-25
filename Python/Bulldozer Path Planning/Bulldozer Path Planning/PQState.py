@@ -3,6 +3,7 @@ import queue
 import bezier
 import copy
 import numpy as np
+import time
 from BasicGeometry import BasicGeometry
 from BezierLib import BezierLib
 from Pushing import Pushing
@@ -247,8 +248,15 @@ class PQState:
             inv_mag = 1000000
         else:
             inv_mag = 1.0/mag
-        return inv_mag * (1.1-math.cos(math.radians(abs(dest_pose.theta-curr_pose.theta))))
 
+        print("Inside projection heuristic between curr_pose = (%.2f,%.2f,%.2f) and dest_pose = (%.2f,%.2f,%.2f)" %(curr_pose.x,curr_pose.y,curr_pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
+        print("Inverse magnitude = ",inv_mag)
+        angular_similarity = ((1.1-math.cos(math.radians(abs(dest_pose.theta-curr_pose.theta))))*5)
+        print("Angular similiarity = ",angular_similarity)
+        total = inv_mag * angular_similarity
+        print("Total h value = ",total)
+        time.sleep(5)
+        return total
     def calcEdgeLength(self,edge):
         try:
             (radius,deltaTheta,direction) = edge
@@ -288,6 +296,8 @@ class PQState:
                 new_path = path.copy()
                 new_path.append(curr_pose)
                 for (next_pose,edge) in curr_pose.getNextPoses():
+                    print("Next pose is (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose.theta))
+                    time.sleep(2)
                     if not self._RRT.isCollision(curr_pose,edge) and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         self._RRT.addEdge(next_pose,curr_pose,edge,self._RRT.getInverseControl(edge))
                         new_g = g + self.calcEdgeLength(edge)
@@ -313,9 +323,10 @@ class PQState:
             return True
         curr_disk_positions = self.rollBackDiskPush()
         (final_pose,final_path) = self.searchForBezierConnectablePoint(self._previous_pose,next_pose,curr_disk_positions,path,100)
-        print("Reverse from post push pose (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose,theta))
+        print("Reverse from post push pose (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose.theta))
         print("Starting vehicle pose (prev pose) (%.2f,%.2f,%.2f)" % (self._previous_pose.x,self._previous_pose.y,self._previous_pose.theta))
         print("Better staring pose (after reversing a star search) (%.2f,%.2f,%.2f)" % (final_pose.x,final_pose.y,final_pose.theta))
+        time.sleep(10)
         degree = 3
         iterations = 500
         while degree < 12:
