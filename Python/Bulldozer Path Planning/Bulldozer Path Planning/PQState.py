@@ -239,12 +239,21 @@ class PQState:
     def makeBezierConnectionToPreviousPose(self):
         if self._previous_pose == None:
             return True
+        path = [self._vehicle_pose]
+        next_pose = self._RRT[self._vehicle_pose].keys()[0]
+        curr_disk_positions = self.rollBackDiskPush()
         degree = 3
         iterations = 100
         while degree < 12:
-            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,self._vehicle_pose,degree,iterations)
+            print("Finding bezier curve with degree %d and iterations %d" % (degree,iterations))
+            bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(self._previous_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
                 self._RRT.addEdge(self._vehicle_pose,self._previous_pose,(bestCurve,"F"),False)
+                self._vehicle_path = copy.deepcopy(self._vehicle_path)
+                path.append(next_pose)
+                path.append(self._previous_pose)
+                path.reverse()
+                self._vehicle_path.append(path)
                 return True
             degree += 1
             iterations *= 4
