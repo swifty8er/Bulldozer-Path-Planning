@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import bezier
+from scipy import special as sp
 
 
 class BasicGeometry():

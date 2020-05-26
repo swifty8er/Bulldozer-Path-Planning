@@ -169,8 +169,11 @@ class PQState:
                     path = path[:startIndex+1] + path[endIndex:]
                     print("Smoothed path")
                     self.drawPath(path,ax1)
+                    startIndex = endIndex
+                    endIndex = len(path)-1
                 else:
                     endIndex -= 1
+        return path
 
 
     def connectToPreviousPose(self,axis=False):
@@ -188,12 +191,14 @@ class PQState:
             if pose == previousPose:
                 path.append(pose)
                 path.reverse()
+                if axis!=False:
+                    print("Unsmoothed path is")
+                    self.drawPath(path,axis)
                 if len(path)>2:
                     smoothed_path = self.bezierSmoothPath(path[:-1],self.rollBackDiskPush(),axis)
                 else:
                     smoothed_path = path[:-1]
-                if axis!=False:
-                    self.drawPath(path,axis)
+                
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(smoothed_path+[path[-1]])
                 return True
@@ -247,8 +252,15 @@ class PQState:
         return length
 
 
+
+
+
     def drawPath(self,path,ax):
         plt.cla()
+        self.plotState(ax)
+        plt.draw()
+        plt.pause(0.1)
+        plt.show(block=False)
         for i in range(len(path)-1):
             curr_node = path[i]
             next_node = path[i+1]

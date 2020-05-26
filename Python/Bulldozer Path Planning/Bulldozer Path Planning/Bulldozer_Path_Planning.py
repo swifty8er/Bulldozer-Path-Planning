@@ -118,7 +118,7 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         print("Connnecting to previous pose with A* search")
-        if not curr_state.connectToPreviousPose():
+        if not curr_state.connectToPreviousPose(ax1):
             continue
         print("Done")
         if curr_state.isFinishState():
