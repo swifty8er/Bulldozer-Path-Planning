@@ -326,7 +326,51 @@ class BasicGeometry():
         numerator = dx * ddy - ddx * dy
         denominator = pow(dx*dx + dy*dy, 1.5)
         return abs(numerator / denominator)
-        
+    
+    
+    @staticmethod
+    def evaluateKappa(curve,t):
+        first_derivative_point_array = curve.evaluate_hodograph(t)
+        first_derivative_point = [i[0] for i in first_derivative_point_array]
+        (dx,dy) = first_derivative_point
+        (ddx,ddy) = BasicGeometry.getSecondDerivativeOfBezierCurve(curve,t)
+        numerator = dx * ddy - ddx * dy
+        denominator = pow(dx*dx + dy*dy, 1.5)
+        kappa = abs(numerator / denominator)
+        return kappa
+
+
+
+    @staticmethod
+    def getSecondDerivativeOfBezierCurve(bezierCurve,t):
+        originalControlPoints = bezierCurve.nodes
+        x_points = originalControlPoints[0]
+        y_points = originalControlPoints[1]
+        points = []
+        for i in range(len(x_points)):
+            points.append((x_points[i],y_points[i]))
+        n = bezierCurve.degree
+        first_derivative_points = BasicGeometry.reduceControlPoints(points,n)
+        second_derivative_points = BasicGeometry.reduceControlPoints(first_derivative_points,n-1)
+        k = n-1
+        x_sum = 0
+        y_sum = 0
+        for i in range(k):
+            bin = sp.comb(k,i)
+            rest = bin*pow((1-t),(k-i))*pow(t,i)
+            x_sum += rest*second_derivative_points[i][0]
+            y_sum += rest*second_derivative_points[i][1]
+        return (x_sum,y_sum)
+
+
+
+    @staticmethod
+    def reduceControlPoints(points,n):
+        new_points = []
+        for i in range(n):
+            new_point = (n*(points[i+1][0]-points[i][0]),n*(points[i+1][1]-points[i][1]))
+            new_points.append(new_point)
+        return new_points
 
 
     @staticmethod
