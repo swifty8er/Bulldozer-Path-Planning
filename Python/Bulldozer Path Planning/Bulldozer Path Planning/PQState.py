@@ -4,6 +4,7 @@ import bezier
 import copy
 import numpy as np
 from BasicGeometry import BasicGeometry
+from BezierLib import BezierLib
 from Pushing import Pushing
 from Vehicle import Vehicle
 from TranspositionTable import TranspositionTable
@@ -131,6 +132,47 @@ class PQState:
         return curr_disk_positions
 
 
+    def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=2000,max_degree=5):
+        degree = 3
+        iterations = starting_num_iterations
+        while degree <= max_degree:
+            bezier_curve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,self._map,curr_disk_positions,degree,iterations,50)
+            if bezier_curve != False:
+                return (True,bezier_curve,"F")
+            rev_p1 = Vehicle(pose1.x,pose1.y,(pose1.theta+180)%360)
+            rev_p2 = Vehicle(pose2.x,pose2.y,(pose2.theta+180)%360)
+            inv_bezier = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(rev_p1,rev_p2,self._map,curr_disk_positions,degree,iterations,50)
+            if inv_bezier != False:
+                return (True,inv_bezier,"R")
+            degree += 1
+            iterations *= 2.0
+        return (False,None,None)
+
+
+    def bezierSmoothPath(self,path,curr_disk_pos,ax1=False):
+        startIndex = 0
+        endIndex = len(path) - 1
+        while endIndex > startIndex:
+            pose1 = path[startIndex]
+            pose2 = path[endIndex]
+            if pose2 in self._RRT.tree[pose1]:
+                startIndex = endIndex
+                endIndex = len(path)-1
+            else:
+                (successful,bezier_curve,direction) = self.connectBezierCurveBetweenTwoPoses(pose1,pose2,curr_disk_pos)
+                if successful:
+                    if direction == "F":
+                        opp_direction = "R"
+                    else:
+                        opp_direction = "F"
+                    self._RRT.addEdge(pose2,pose1,(bezier_curve,direction),(bezier_curve,opp_direction))
+                    path = path[:startIndex+1] + path[endIndex:]
+                    print("Smoothed path")
+                    self.drawPath(path,ax1)
+                else:
+                    endIndex -= 1
+
+
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
             return True
@@ -146,10 +188,14 @@ class PQState:
             if pose == previousPose:
                 path.append(pose)
                 path.reverse()
+                if len(path)>2:
+                    smoothed_path = self.bezierSmoothPath(path[:-1],self.rollBackDiskPush(),axis)
+                else:
+                    smoothed_path = path[:-1]
                 if axis!=False:
                     self.drawPath(path,axis)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
-                self._vehicle_path.append(path)
+                self._vehicle_path.append(smoothed_path+[path[-1]])
                 return True
             if len(path)>0:
                 curr_disk_positions = self.rollBackDiskPush()
@@ -202,13 +248,14 @@ class PQState:
 
 
     def drawPath(self,path,ax):
+        plt.cla()
         for i in range(len(path)-1):
             curr_node = path[i]
             next_node = path[i+1]
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(0.01)
+        plt.pause(5)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):
