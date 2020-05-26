@@ -249,14 +249,15 @@ class PQState:
         else:
             inv_mag = 1.0/mag
 
-        print("Inside projection heuristic between curr_pose = (%.2f,%.2f,%.2f) and dest_pose = (%.2f,%.2f,%.2f)" %(curr_pose.x,curr_pose.y,curr_pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
-        print("Inverse magnitude = ",inv_mag)
+        #print("Inside projection heuristic between curr_pose = (%.2f,%.2f,%.2f) and dest_pose = (%.2f,%.2f,%.2f)" %(curr_pose.x,curr_pose.y,curr_pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
+        #print("Inverse magnitude = ",inv_mag)
         angular_similarity = ((1.1-math.cos(math.radians(abs(dest_pose.theta-curr_pose.theta))))*5)
-        print("Angular similiarity = ",angular_similarity)
+        #print("Angular similiarity = ",angular_similarity)
         total = inv_mag * angular_similarity
-        print("Total h value = ",total)
-        time.sleep(5)
+        #print("Total h value = ",total)
         return total
+
+
     def calcEdgeLength(self,edge):
         try:
             (radius,deltaTheta,direction) = edge
@@ -268,28 +269,63 @@ class PQState:
             raise Exception("Invalid edge passed to calc edge length function")
 
 
-    def searchForBezierConnectablePoint(self,pose,dest_pose,curr_disk_positions,path,limit):
-        print("Searching for bezier connectable point start pose = (%.2f,%.2f,%.2f) dest pose = (%.2f,%.2f,%.2f)" % (pose.x,pose.y,pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
+    def findBetterPointWithRRT(self,start_pose,dest_pose,curr_disk_positions,path,limit):
         pq = queue.PriorityQueue()
-        starting_state = (self.getProjectionHeuristic(pose,dest_pose),pose,[],0)
+        starting_state = (self.getProjectionHeuristic(start_pose,dest_pose),start_pose,[],0,0)
         pq.put(starting_state)
         bestH = math.inf
-        bestPose = None
+        bestPose = start_pose
         bestPath = []
         visitedPoses = {}
         i = 0
         while not pq.empty() and i < limit:
             curr_state = pq.get()
-            (f,curr_pose,new_path,g) = curr_state
+            (f,curr_pose,new_path,g,times_reversed) = curr_state
             curr_h = self.getProjectionHeuristic(curr_pose,dest_pose)
-            print("Current pose in a star is (%.2f,%.2f,%.2f)" % (curr_pose.x,curr_pose.y,curr_pose.theta))
-            if curr_h < 0.3:
+            if times_reversed > 0 and curr_h < 0.3:
                 new_path.append(curr_pose)
                 return (curr_pose,path+new_path)
-            if curr_h < bestH:
+            if times_reversed > 0 and curr_h < bestH:
                 bestH = curr_h
                 bestPose = curr_pose
-                best_path = new_path
+                bestPath = new_path
+            if curr_pose not in visitedPoses:
+                visitedPoses[curr_pose] = True
+                next_path = new_path.copy()
+                next_path.append(curr_pose)
+                for next_pose in self._RRT.tree[curr_pose]:
+                    if not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
+                        new_g = g + self.getEdgeLength(curr_pose,next_pose)
+                        new_f = new_g + self.getProjectionHeuristic(next_pose,dest_pose)
+                        print("Adding state with f = ",new_f)
+                        next_state = (new_f,next_pose,new_path,new_g,times_reversed+1)
+                        pq.put(next_state)
+            i+=1
+        return (bestPose,path+bestPath)
+
+
+    def searchForBezierConnectablePoint(self,pose,dest_pose,curr_disk_positions,path,limit):
+        print("Searching for bezier connectable point start pose = (%.2f,%.2f,%.2f) dest pose = (%.2f,%.2f,%.2f)" % (pose.x,pose.y,pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
+        pq = queue.PriorityQueue()
+        starting_state = (self.getProjectionHeuristic(pose,dest_pose),pose,[],0,0)
+        pq.put(starting_state)
+        bestH = math.inf
+        bestPose = pose
+        bestPath = []
+        visitedPoses = {}
+        i = 0
+        while not pq.empty() and i < limit:
+            curr_state = pq.get()
+            (f,curr_pose,new_path,g,times_reversed) = curr_state
+            curr_h = self.getProjectionHeuristic(curr_pose,dest_pose)
+            print("Current pose in a star is (%.2f,%.2f,%.2f)" % (curr_pose.x,curr_pose.y,curr_pose.theta))
+            if times_reversed > 0 and curr_h < 0.3:
+                new_path.append(curr_pose)
+                return (curr_pose,path+new_path)
+            if times_reversed > 0 and curr_h < bestH:
+                bestH = curr_h
+                bestPose = curr_pose
+                bestPath = new_path
 
             if curr_pose not in visitedPoses:
                 visitedPoses[curr_pose] = True
@@ -297,16 +333,16 @@ class PQState:
                 new_path.append(curr_pose)
                 for (next_pose,edge) in curr_pose.getNextPoses():
                     print("Next pose is (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose.theta))
-                    time.sleep(2)
                     if not self._RRT.isCollision(curr_pose,edge) and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         self._RRT.addEdge(next_pose,curr_pose,edge,self._RRT.getInverseControl(edge))
                         new_g = g + self.calcEdgeLength(edge)
-                        next_state = (new_g+self.getProjectionHeuristic(next_pose,dest_pose),next_pose,new_path,new_g)
+                        new_f = new_g + self.getProjectionHeuristic(next_pose,dest_pose)
+                        print("Adding state with f = ",new_f)
+                        next_state = (new_f,next_pose,new_path,new_g,times_reversed+1)
                         pq.put(next_state)
             i+=1
-        if bestPose == None:
-            raise Exception("A star search for bezier connection point failed")
-        return (bestPose,path+best_path)
+        
+        return (bestPose,path+bestPath)
 
     def makeBezierConnectionToPreviousPose(self,ax=False):
         if self._previous_pose == None:
@@ -322,11 +358,11 @@ class PQState:
             self._vehicle_path.append(path)
             return True
         curr_disk_positions = self.rollBackDiskPush()
-        (final_pose,final_path) = self.searchForBezierConnectablePoint(self._previous_pose,next_pose,curr_disk_positions,path,100)
+        (final_pose,final_path) = self.findBetterPointWithRRT(self._previous_pose,next_pose,curr_disk_positions,path,100)
         print("Reverse from post push pose (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose.theta))
         print("Starting vehicle pose (prev pose) (%.2f,%.2f,%.2f)" % (self._previous_pose.x,self._previous_pose.y,self._previous_pose.theta))
         print("Better staring pose (after reversing a star search) (%.2f,%.2f,%.2f)" % (final_pose.x,final_pose.y,final_pose.theta))
-        time.sleep(10)
+        time.sleep(12)
         degree = 3
         iterations = 500
         while degree < 12:

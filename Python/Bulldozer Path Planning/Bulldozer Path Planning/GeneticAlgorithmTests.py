@@ -41,10 +41,11 @@ for mm in mapNums:
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
+    curr_disk_pos = [[1,3.5],[2.75,2.25]]
     #v1 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
     #v2 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
-    v2 = Vehicle(1.27,1.63,95.45)
-    v1 = Vehicle(1.54,1.74,120)
-    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,0,map.initial_disk_pos_xy,ax1)
+    v2 = Vehicle(1.85,2.25,360)
+    v1 = Vehicle(3.21,1.38,332.53)
+    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,0,curr_disk_pos,ax1)
     for c in GA.population:
         c.plot(100,'red',ax=ax1)
