@@ -57,7 +57,11 @@ class BezierLib():
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
+        if iterations > 15000:
+            iterations = 15000
+        
         print("Finding bezier curve connection between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (pose1.x,pose1.y,pose1.theta,pose2.x,pose2.y,pose2.theta))
+        
         curves = []
         num_control_points = degree-3
         dist = pose1.EuclideanDistance(pose2)

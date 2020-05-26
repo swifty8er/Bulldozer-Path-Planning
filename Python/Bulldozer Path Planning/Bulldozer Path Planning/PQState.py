@@ -134,6 +134,7 @@ class PQState:
 
 
     def connectToPreviousPose(self,axis=False):
+        print("Connecting to previous pose. A* search..")
         if self._previous_pose == None:
             return True
         pq = queue.PriorityQueue()
@@ -165,9 +166,11 @@ class PQState:
                     if not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],curr_disk_positions) and not next_pose in visitedNodes:
                         new_g = self.getEdgeLength(pose,next_pose)
                         new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
+                        print("Added A* state to priority queue")
                         pq.put(new_state)
                           
-
+        print("A* search connection to previous pose failed")
+        time.sleep(15)
         return False
 
 
@@ -249,12 +252,8 @@ class PQState:
         else:
             inv_mag = 1.0/mag
 
-        #print("Inside projection heuristic between curr_pose = (%.2f,%.2f,%.2f) and dest_pose = (%.2f,%.2f,%.2f)" %(curr_pose.x,curr_pose.y,curr_pose.theta,dest_pose.x,dest_pose.y,dest_pose.theta))
-        #print("Inverse magnitude = ",inv_mag)
         angular_similarity = ((1.1-math.cos(math.radians(abs(dest_pose.theta-curr_pose.theta))))*5)
-        #print("Angular similiarity = ",angular_similarity)
         total = inv_mag * angular_similarity
-        #print("Total h value = ",total)
         if c > 0:
             return (total+1)**2
         else:
@@ -301,7 +300,6 @@ class PQState:
                     if edge != False and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         new_g = g + self.getEdgeLength(curr_pose,next_pose)
                         new_f = new_g + self.getProjectionHeuristic(next_pose,dest_pose)
-                        print("Adding state with f = ",new_f)
                         next_state = (new_f,next_pose,new_path,new_g,times_reversed+1)
                         pq.put(next_state)
             i+=1
@@ -363,26 +361,26 @@ class PQState:
             return True
         curr_disk_positions = self.rollBackDiskPush()
         (final_pose,final_path) = self.findBetterPointWithRRT(self._previous_pose,next_pose,curr_disk_positions,path,100)
-        print("Reverse from post push pose (%.2f,%.2f,%.2f)" % (next_pose.x,next_pose.y,next_pose.theta))
-        print("Starting vehicle pose (prev pose) (%.2f,%.2f,%.2f)" % (self._previous_pose.x,self._previous_pose.y,self._previous_pose.theta))
-        print("Better staring pose (after reversing a star search) (%.2f,%.2f,%.2f)" % (final_pose.x,final_pose.y,final_pose.theta))
-        time.sleep(12)
         degree = 3
-        iterations = 500
-        while degree < 12:
-            print("Finding bezier curve with degree %d and iterations %d" % (degree,iterations))
+        iterations = 2000
+        while degree < 8:
             bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(final_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
-                print("Found bezier connection")
                 self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),(bestCurve,"R"))
                 if ax!=False:
                    bestCurve.plot(100,'red',ax=ax)
+                   plt.draw()
+                   plt.pause(1)
+                   plt.show(block=False)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 path.reverse()
                 self._vehicle_path.append(final_path+path)
                 return True
             degree += 1
             iterations *= 1.5
+
+        print("Bezier curve connection to previous pose failed")
+        time.sleep(15)
         return False
 
 
@@ -475,11 +473,14 @@ class PQState:
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
                 for push_point in new_push_points:
+                    print("Considering push point (%.2f,%.2f,%.2f) on same disk" % (push_point.x,push_point.y,push_point.theta))
                     if self._RRT.canConnectPushPoint(push_point,curr_disk_pos):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
                             print("Added pushing state from new push point on same disk")
+                    else:
+                        print("Could not connect to push point")
                        
                     
              
