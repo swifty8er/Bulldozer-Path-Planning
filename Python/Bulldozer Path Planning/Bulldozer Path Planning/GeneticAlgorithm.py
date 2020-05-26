@@ -73,13 +73,15 @@ class GeneticAlgorithm:
         #return integrate.quad(integrand,0,1,args=(curve))[0]
 
     def initalisePopulation(self,ax1):
+        print("Initialising population...")
         population = []
-        x_points_start = [self._start_pose.x,self._start_pose.x+0.1*math.cos(math.radians(self._start_pose.theta))]
-        x_points_end = [self._end_pose.x-0.1*math.cos(math.radians(self._end_pose.theta)),self._end_pose.x]
-        y_points_start = [self._start_pose.y,self._start_pose.y+0.1*math.sin(math.radians(self._start_pose.theta))]
-        y_points_end = [self._end_pose.y-0.1*math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
+        x_points_start = [self._start_pose.x,self._start_pose.x+math.cos(math.radians(self._start_pose.theta))]
+        x_points_end = [self._end_pose.x-math.cos(math.radians(self._end_pose.theta)),self._end_pose.x]
+        y_points_start = [self._start_pose.y,self._start_pose.y+math.sin(math.radians(self._start_pose.theta))]
+        y_points_end = [self._end_pose.y-math.sin(math.radians(self._end_pose.theta)),self._end_pose.y]
         x = 0
         while x < self._init_size and len(population) < self._population_size:
+            print("x = ",x)
             x_points_middle = []
             y_points_middle = []
             for i in range(self._num_control_points):
@@ -89,13 +91,16 @@ class GeneticAlgorithm:
             y_points = y_points_start + y_points_middle + y_points_end
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=self._num_control_points+3)
-            print(curve.nodes)
             curve.plot(100,'blue',ax=ax1)
             plt.draw()
-            plt.pause(0.1)
-            plt.show()
+            plt.pause(0.001)
+            plt.show(block=False)
             if self.testRadiusOfCurvature(curve) and self.testCollision(curve):
                 print("Found valid curve")
+                curve.plot(100,'red',ax=ax1)
+                plt.draw()
+                plt.pause(0.1)
+                plt.show(block=False)
                 population.append(curve)
             x+=1
         return population

@@ -46,6 +46,6 @@ for mm in mapNums:
     #v2 = Vehicle(random.uniform(map.min_x,map.max_x),random.uniform(map.min_y,map.max_y),random.uniform(0,360))
     v2 = Vehicle(1.85,2.25,360)
     v1 = Vehicle(3.21,1.38,332.53)
-    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,0,curr_disk_pos,ax1)
-    for c in GA.population:
-        c.plot(100,'red',ax=ax1)
+    print("Starting GA...")
+    GA = GeneticAlgorithm(map,v1,v2,30,0.95,0.01,10000,1,curr_disk_pos,ax1)
+    print("Done")

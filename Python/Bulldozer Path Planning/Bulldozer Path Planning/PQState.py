@@ -255,7 +255,10 @@ class PQState:
         #print("Angular similiarity = ",angular_similarity)
         total = inv_mag * angular_similarity
         #print("Total h value = ",total)
-        return total
+        if c > 0:
+            return (total+1)**2
+        else:
+            return total
 
 
     def calcEdgeLength(self,edge):
@@ -294,7 +297,8 @@ class PQState:
                 next_path = new_path.copy()
                 next_path.append(curr_pose)
                 for next_pose in self._RRT.tree[curr_pose]:
-                    if not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
+                    edge = self._RRT.tree[curr_pose][next_pose]
+                    if edge != False and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         new_g = g + self.getEdgeLength(curr_pose,next_pose)
                         new_f = new_g + self.getProjectionHeuristic(next_pose,dest_pose)
                         print("Adding state with f = ",new_f)
@@ -370,7 +374,7 @@ class PQState:
             bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(final_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
                 print("Found bezier connection")
-                self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),False)
+                self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),(bestCurve,"R"))
                 if ax!=False:
                    bestCurve.plot(100,'red',ax=ax)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
