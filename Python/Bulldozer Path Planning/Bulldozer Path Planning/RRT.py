@@ -395,7 +395,7 @@ class RRT:
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
-    def canConnectPushPoint(self,push_point,curr_disk_pos,num_tries=30,axis=False):
+    def canConnectPushPoint(self,push_point,curr_disk_pos,axis=False):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
@@ -405,7 +405,7 @@ class RRT:
         else:
             nearest_neighbours = self._quadtree.radialNearestNeighbours(push_point,2.5,[])
             self._cachedNearestNeighbours[pos_tuple] = nearest_neighbours
-        num_connections = 0
+        connected = False
         for node in backwardsNodes:
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             for nn in nearest_neighbours:
@@ -415,9 +415,8 @@ class RRT:
                         self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
                         if axis!=False:
                             bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                        num_connections += 1
-                        if num_connections >= num_tries:
-                            return True
+                        
+                        connected = True
                 #v1 = Vehicle(nn.x,nn.y,(nn.theta+180)%360)
                 #v2 = Vehicle(node.x,node.y,(node.theta+180)%360)
                 #bezier_inv = BezierLib.createBezierCurveBetweenTwoVehicle(v1,v2)
@@ -431,10 +430,7 @@ class RRT:
                   
                        
         
-        if num_connections > 0:
-            return True
-        else:
-            return False
+        return connected
      
     #perform post processing on radial nearest neighbours
     def postProcessNearestNeighbours(self,push_point,nearest_neighbours):

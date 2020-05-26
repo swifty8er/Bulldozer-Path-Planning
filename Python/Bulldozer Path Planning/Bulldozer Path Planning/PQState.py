@@ -366,15 +366,11 @@ class PQState:
         while degree < 8:
             bestCurve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(final_pose,next_pose,self._map,curr_disk_positions,degree,iterations,50)
             if bestCurve != False:
-                self._RRT.addEdge(final_pose,self._previous_pose,(bestCurve,"F"),(bestCurve,"R"))
-                if ax!=False:
-                   bestCurve.plot(100,'red',ax=ax)
-                   plt.draw()
-                   plt.pause(1)
-                   plt.show(block=False)
+                self._RRT.addEdge(final_pose,next_pose,(bestCurve,"F"),(bestCurve,"R"))
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 path.reverse()
-                self.drawPath(final_path+path,ax)
+                if ax!=False:
+                    self.drawPath(final_path+path,ax)
                 self._vehicle_path.append(final_path+path)
                 return True
             degree += 1
