@@ -213,7 +213,7 @@ class PQState:
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(0.01)
+        plt.pause(10)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):
@@ -300,7 +300,7 @@ class PQState:
                     if edge != False and not self._RRT.nodeWithinRadiusOfDirtPile(next_pose,curr_disk_positions):
                         new_g = g + self.getEdgeLength(curr_pose,next_pose)
                         new_f = new_g + self.getProjectionHeuristic(next_pose,dest_pose)
-                        next_state = (new_f,next_pose,new_path,new_g,times_reversed+1)
+                        next_state = (new_f,next_pose,next_path,new_g,times_reversed+1)
                         pq.put(next_state)
             i+=1
         return (bestPose,path+bestPath)
@@ -374,6 +374,7 @@ class PQState:
                    plt.show(block=False)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 path.reverse()
+                self.drawPath(final_path+path,ax)
                 self._vehicle_path.append(final_path+path)
                 return True
             degree += 1
