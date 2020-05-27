@@ -69,7 +69,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [4]
+mapNums = [3]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -83,7 +83,7 @@ for mm in mapNums:
     plt.show(block=False)
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
-    num_nodes = int(x_range * y_range * 150)
+    num_nodes = int(x_range * y_range * 200)
     starting_xy = map.initial_vehicle_pos_xy
     StartVehiclePos = Vehicle(starting_xy[0],starting_xy[1],90) #change to random heading
     StartingRRT = RRT(map,StartVehiclePos,ControlsList,num_nodes)

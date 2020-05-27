@@ -1,6 +1,7 @@
 import math
 import queue
 import bezier
+import time
 import copy
 import numpy as np
 from BasicGeometry import BasicGeometry
@@ -24,7 +25,7 @@ class PQState:
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
-        self._f = self._g + self.calculateHeuristicValue()
+        self._f = self.calculateHeuristicValue() #greedy search for now
 
     
     @property
@@ -132,20 +133,20 @@ class PQState:
         return curr_disk_positions
 
 
-    def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=2000,max_degree=5):
+    def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=500,max_degree=5):
         degree = 3
         iterations = starting_num_iterations
         while degree <= max_degree:
-            bezier_curve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,self._map,curr_disk_positions,degree,iterations,50)
+            bezier_curve = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,self._map,curr_disk_positions,degree,iterations,25)
             if bezier_curve != False:
                 return (True,bezier_curve,"F")
             rev_p1 = Vehicle(pose1.x,pose1.y,(pose1.theta+180)%360)
             rev_p2 = Vehicle(pose2.x,pose2.y,(pose2.theta+180)%360)
-            inv_bezier = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(rev_p1,rev_p2,self._map,curr_disk_positions,degree,iterations,50)
+            inv_bezier = BezierLib.getBestBezierCurveConnectionBetweenTwoPoses(rev_p1,rev_p2,self._map,curr_disk_positions,degree,iterations,25)
             if inv_bezier != False:
                 return (True,inv_bezier,"R")
             degree += 1
-            iterations *= 2.0
+            iterations *= 1.5
         return (False,None,None)
 
 
@@ -153,8 +154,6 @@ class PQState:
         startIndex = 0
         endIndex = len(path) - 1
         while endIndex > startIndex:
-            print("Start index = ",startIndex)
-            print("End index = ",endIndex)
             pose1 = path[startIndex]
             pose2 = path[endIndex]
             if pose2 in self._RRT.tree[pose1]:
@@ -169,8 +168,6 @@ class PQState:
                         opp_direction = "F"
                     self._RRT.addEdge(pose2,pose1,(bezier_curve,direction),(bezier_curve,opp_direction))
                     path = path[:startIndex+1] + path[endIndex:]
-                    print("Smoothed path")
-                    self.drawPath(path,ax1)
                     startIndex = endIndex
                     endIndex = len(path)-1
                 else:
@@ -193,16 +190,11 @@ class PQState:
             if pose == previousPose:
                 path.append(pose)
                 path.reverse()
-                if axis!=False:
-                    print("Unsmoothed path is")
-                    self.drawPath(path,axis)
                 if len(path)>2:
                     smoothed_path = self.bezierSmoothPath(path[:-1],self.rollBackDiskPush(),axis)
                 else:
                     smoothed_path = path[:-1]
-                finalPath = smoothed_path + [path[-1]]
-                print("Final path is")
-                self.drawPath(finalPath,axis)
+                finalPath = smoothed_path.copy() + [path[-1]]
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(finalPath)
                 return True
@@ -320,6 +312,8 @@ class PQState:
             new_g = self._g + gValue
             for x in range(len(new_reached_goals)):
                 if new_reached_goals[x] and not self._reached_goals[x]:
+                    print("Goal reached, g = 0")
+                    time.sleep(10)
                     new_g = 0
 
 
@@ -355,6 +349,8 @@ class PQState:
                 new_g = self._g + gValue
                 for x in range(len(new_reached_goals)):
                     if new_reached_goals[x] and not self._reached_goals[x]:
+                        print("Goal reached, g = 0")
+                        time.sleep(10)
                         new_g = 0
 
                 new_pushed_disks = self._pushed_disks.copy()
@@ -426,26 +422,25 @@ class PQState:
                 if edge != False: #this check should no longer be necessary
                     if isinstance(edge[0],bezier.curve.Curve):
                         (bezierEdge,direction) = edge
-                        if direction == "F":
-                            s = 0.0
-                            while s<1.0:
-                                point_list = bezierEdge.evaluate(s).tolist()
-                                real_point = [point_list[0][0],point_list[1][0]]
-                                next_list = bezierEdge.evaluate(s+0.025).tolist()
+                        s = 0.0
+                        while s<1.0:
+                            point_list = bezierEdge.evaluate(s).tolist()
+                            real_point = [point_list[0][0],point_list[1][0]]
+                            if s==0:
+                                heading = n1.theta
+                            else:
+                                if direction == "F":
+                                    next_list = bezierEdge.evaluate(s+0.025).tolist()
+                                    
+                                else:
+                                    next_list = bezierEdge.evaluate(s-0.025).tolist()
                                 real_next = [next_list[0][0],next_list[1][0]]
-                                newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
-                                poses.append(newPose)
-                                s+=0.025
-                        else:
-                            s=1.0-0.025
-                            while s>0:
-                                point_list = bezierEdge.evaluate(s).tolist()
-                                real_point = [point_list[0][0],point_list[1][0]]
-                                next_list = bezierEdge.evaluate(s+0.025).tolist()
-                                real_next = [next_list[0][0],next_list[1][0]]
-                                newPose = Vehicle(real_point[0],real_point[1],math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next))))
-                                poses.append(newPose)
-                                s-=0.025
+                                heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next)))
+                            
+                            newPose = Vehicle(real_point[0],real_point[1],heading)
+                            poses.append(newPose)
+                            s+=0.025
+                        
                     else:
                         (radius,theta,direction) = edge
                         if direction == "F" or direction == "R":
@@ -469,7 +464,6 @@ class PQState:
         return poses
 
     def plotSolution(self):
-
         solution_images = []
         #all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
         #curr_disk_index = [0]*len(disks_path)

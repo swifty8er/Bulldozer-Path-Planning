@@ -30,6 +30,7 @@ class BezierLib():
     @staticmethod
     def testCurve(curve,map,curr_disk_positions):
         s = 0.0
+        edges = map.getMapEdgesAndObstacles()
         while s <= 1.0:
             kappa = BasicGeometry.evaluateKappa(curve,s)
             radiusOfCurvature = 1.0/kappa
@@ -40,20 +41,15 @@ class BezierLib():
             for edge in edges:
                 if map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
                     return False
-            for disk_pos in disk_positions:
+            for disk_pos in curr_disk_positions:
                 if 1.95 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-            s+= 0.001
+            s+= 0.005
         return True
 
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
-        if iterations > 15000:
-            iterations = 15000
-        
-        print("Finding bezier curve connection between (%.2f,%.2f,%.2f) and (%.2f,%.2f,%.2f)" % (pose1.x,pose1.y,pose1.theta,pose2.x,pose2.y,pose2.theta))
-        
         curves = []
         num_control_points = degree-3
         dist = pose1.EuclideanDistance(pose2)

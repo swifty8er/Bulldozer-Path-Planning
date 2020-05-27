@@ -424,7 +424,7 @@ class RRT:
         nn = self.addBehindStates(push_point,nearest_neighbours)
         processed_nn = []
         for node in nn:
-            if push_point.EuclideanDistance(node) > 0.75:
+            if push_point.EuclideanDistance(node) > 0.25:
                 if (1-math.cos(math.radians(abs(node.theta-push_point.theta)))) < 1.5:
                     processed_nn.append(node)
         return processed_nn
