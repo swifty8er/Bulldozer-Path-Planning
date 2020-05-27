@@ -401,7 +401,6 @@ class RRT:
         for node in backwardsNodes:
             nearest_neighbours = self._quadtree.radialNearestNeighbours(node,2.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
-            print("Found %d nearest neighbours" % len(nearest_neighbours))
             for nn in nearest_neighbours:
                 bezier_new = nn.createBezierCurveControl(node)
                 if bezier_new != False:

@@ -129,8 +129,9 @@ for mm in mapNums:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:
-        curr_state.bezierSmoothSolutionPath()
-        print("Solved in minutes = ",(time.time() - start_time)/60)
+        print("Solved, bezier smoothing solution path...")
+        curr_state.bezierSmoothSolutionPath(ax1)
+        print("Done in minutes = ",(time.time() - start_time)/60)
         #Save results as a gif
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'

@@ -37,8 +37,8 @@ class PQState:
         return self._vehicle_pose
 
     @property
-    def disk_positions(self):
-        return self._disk_positions
+    def curr_disk_positions(self):
+        return self._curr_disk_positions
 
     def __lt__(self,other):
         return self.f < other.f
@@ -56,7 +56,7 @@ class PQState:
     def __hash__(self):
         h = 0
         h = h^self.vehicle_pose.__hash__()
-        for pos in self.disk_positions:
+        for pos in self._curr_disk_positions:
             t = (pos[0],pos[1])
             h = h^hash(t)
         return h
@@ -124,13 +124,7 @@ class PQState:
         return (closestGoal,found)
 
     def rollBackDiskPush(self):
-        curr_disk_positions = []
-        for i in range(len(self._curr_disk_positions)):
-            if i == self._disk_being_pushed:
-                curr_disk_positions.append(self._disk_paths[i][-1])
-            else:
-                curr_disk_positions.append(self._curr_disk_positions[i])
-        return curr_disk_positions
+        return self._past_disk_positions[-1]
 
 
     def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=500,max_degree=5):
@@ -149,13 +143,19 @@ class PQState:
             iterations *= 1.5
         return (False,None,None)
 
-    def bezierSmoothSolutionPath(self):
+    def bezierSmoothSolutionPath(self,ax=False):
         i = 0
         final_path = []
         for path in self._vehicle_path:
-            curr_disk_pos = self._past_disk_positions[i]
-            finalPose = [path[-1]]
-            new_path = self.bezierSmoothPath(path,curr_disk_pos) + finalPose
+            print("Bezier smoothing path number %d" % (i))
+            if len(path) > 2:
+                curr_disk_pos = self._past_disk_positions[i]
+                finalPose = [path[-1]]
+                new_path = self.bezierSmoothPath(path[:-1],curr_disk_pos,ax) + finalPose
+            else:
+                new_path = path
+            print("Smoothed path is")
+            self.drawPath(new_path,ax)
             final_path.append(new_path)
             i+=1
 
@@ -180,6 +180,7 @@ class PQState:
                         opp_direction = "F"
                     self._RRT.addEdge(pose2,pose1,(bezier_curve,direction),(bezier_curve,opp_direction))
                     path = path[:startIndex+1] + path[endIndex:]
+                    
                     startIndex = endIndex
                     endIndex = len(path)-1
                 else:
@@ -462,9 +463,9 @@ class PQState:
         #for curr_disk_path in disks_path:
         #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
 
-        final_disk_positions = self._past_disk_positions.append(self._curr_disk_positions)
+        final_disk_positions = self._past_disk_positions
+        final_disk_positions.append(self._curr_disk_positions)
         disk_index = 0
-        disk_pos_indices = [0]*len(self._disk_paths)
         for i in range(len(self._vehicle_path)):
             #get and plot vehicle position
             curr_path = self._vehicle_path[i]
@@ -483,7 +484,7 @@ class PQState:
                     # deduce where the disk is from the vehicle pose
                     for k in range(len(edge_path)):
                         exact_pose = edge_path[k]
-                        disk_exact_point = [[[exact_pose.x+2*self._map.disk_radius*math.cos(math.radians(exact_pose.theta)),exact_pose.y+2*self._map.disk_radius*math.sin(math.radians(exact_pose.theta))]]]
+                        disk_exact_point = [[exact_pose.x+2*self._map.disk_radius*math.cos(math.radians(exact_pose.theta)),exact_pose.y+2*self._map.disk_radius*math.sin(math.radians(exact_pose.theta))]]
                         fig, ax = plt.subplots(1,1)
                    
                         ax = self._map.displayMap(ax,edge_path[k],leftList+disk_exact_point+rightList)
@@ -508,7 +509,7 @@ class PQState:
 
                         fig, ax = plt.subplots(1,1)
                    
-                        ax = self._map.displayMap(ax,edge_path[k],self._disk_paths,disk_pos_indices)
+                        ax = self._map.displayMap(ax,edge_path[k],curr_disk_positions)
                         fig.canvas.draw()       # draw the canvas, cache the renderer
                         image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
                         tp = fig.canvas.get_width_height()[::-1]
