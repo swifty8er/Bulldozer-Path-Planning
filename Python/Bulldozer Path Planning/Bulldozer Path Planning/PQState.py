@@ -153,6 +153,8 @@ class PQState:
         startIndex = 0
         endIndex = len(path) - 1
         while endIndex > startIndex:
+            print("Start index = ",startIndex)
+            print("End index = ",endIndex)
             pose1 = path[startIndex]
             pose2 = path[endIndex]
             if pose2 in self._RRT.tree[pose1]:
@@ -198,9 +200,11 @@ class PQState:
                     smoothed_path = self.bezierSmoothPath(path[:-1],self.rollBackDiskPush(),axis)
                 else:
                     smoothed_path = path[:-1]
-                
+                finalPath = smoothed_path + [path[-1]]
+                print("Final path is")
+                self.drawPath(finalPath,axis)
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
-                self._vehicle_path.append(smoothed_path+[path[-1]])
+                self._vehicle_path.append(finalPath)
                 return True
             if len(path)>0:
                 curr_disk_positions = self.rollBackDiskPush()

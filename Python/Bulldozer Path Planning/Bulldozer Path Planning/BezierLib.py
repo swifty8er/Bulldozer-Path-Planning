@@ -26,23 +26,15 @@ class BezierLib():
 
         return curve
 
+
     @staticmethod
-    def testRadiusOfCurvature(curve):
+    def testCurve(curve,map,curr_disk_positions):
         s = 0.0
         while s <= 1.0:
             kappa = BasicGeometry.evaluateKappa(curve,s)
             radiusOfCurvature = 1.0/kappa
             if radiusOfCurvature < MIN_RADIUS:
                 return False
-            s += 0.001
-        return True
-
-
-    @staticmethod
-    def testCollision(curve,map,disk_positions):
-        edges = map.getMapEdgesAndObstacles()
-        s = 0.0
-        while s<=1.0:
             point_list = curve.evaluate(s)
             point = [i[0] for i in point_list]
             for edge in edges:
@@ -51,9 +43,9 @@ class BezierLib():
             for disk_pos in disk_positions:
                 if 1.95 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-
-            s+= 0.005
+            s+= 0.001
         return True
+
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
@@ -81,7 +73,7 @@ class BezierLib():
             y_points = y_points_start + y_points_middle + y_points_end
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=degree)
-            if BezierLib.testRadiusOfCurvature(curve) and BezierLib.testCollision(curve,map,curr_disk_positions):
+            if BezierLib.testCurve(curve,map,curr_disk_positions):
                 curves.append(curve)
             x+=1
 
