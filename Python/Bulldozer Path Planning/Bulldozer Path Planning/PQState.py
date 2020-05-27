@@ -13,13 +13,13 @@ from matplotlib import pyplot as plt
 
 
 class PQState:
-    def __init__(self,map,vehicle_pose,previous_pose,disk_positions,vehicle_path,disk_paths,reached_goals,disk_being_pushed,pushed_disks,rrt,g):
+    def __init__(self,map,vehicle_pose,previous_pose,curr_disk_positions,vehicle_path,past_disk_positions,reached_goals,disk_being_pushed,pushed_disks,rrt,g):
         self._map = map
         self._vehicle_pose = vehicle_pose
         self._previous_pose = previous_pose
-        self._disk_positions = disk_positions
+        self._curr_disk_positions = curr_disk_positions
         self._vehicle_path = vehicle_path
-        self._disk_paths = disk_paths
+        self._past_disk_positions = past_disk_positions
         self._reached_goals = reached_goals
         self._pushed_disks = pushed_disks
         self._RRT = rrt
@@ -46,7 +46,7 @@ class PQState:
 
     def plotState(self,ax,line_width=2):
         self._map.plotMapBoundaryObstacles(ax)
-        for disk_pos in self._disk_positions:
+        for disk_pos in self._curr_disk_positions:
             disk_circle = BasicGeometry.circlePoints(disk_pos, self._map.disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
         self.drawVehiclePose(ax)
@@ -71,7 +71,7 @@ class PQState:
     def calculateHeuristicValue(self):
         reached = self._reached_goals.copy()
         h = 0
-        for disk in self._disk_positions:
+        for disk in self._curr_disk_positions:
             #check if disk in goal
             if not self.diskInGoal(disk):
                 (closestGoal,found) = self.getClosestGoalEuclidean(disk,reached)
@@ -125,11 +125,11 @@ class PQState:
 
     def rollBackDiskPush(self):
         curr_disk_positions = []
-        for i in range(len(self._disk_positions)):
+        for i in range(len(self._curr_disk_positions)):
             if i == self._disk_being_pushed:
                 curr_disk_positions.append(self._disk_paths[i][-1])
             else:
-                curr_disk_positions.append(self._disk_positions[i])
+                curr_disk_positions.append(self._curr_disk_positions[i])
         return curr_disk_positions
 
 
@@ -148,6 +148,18 @@ class PQState:
             degree += 1
             iterations *= 1.5
         return (False,None,None)
+
+    def bezierSmoothSolutionPath(self):
+        i = 0
+        final_path = []
+        for path in self._vehicle_path:
+            curr_disk_pos = self._past_disk_positions[i]
+            finalPose = [path[-1]]
+            new_path = self.bezierSmoothPath(path,curr_disk_pos) + finalPose
+            final_path.append(new_path)
+            i+=1
+
+        self._vehicle_path = final_path
 
 
     def bezierSmoothPath(self,path,curr_disk_pos,ax1=False):
@@ -190,18 +202,13 @@ class PQState:
             if pose == previousPose:
                 path.append(pose)
                 path.reverse()
-                if len(path)>2:
-                    smoothed_path = self.bezierSmoothPath(path[:-1],self.rollBackDiskPush(),axis)
-                else:
-                    smoothed_path = path[:-1]
-                finalPath = smoothed_path.copy() + [path[-1]]
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
-                self._vehicle_path.append(finalPath)
+                self._vehicle_path.append(path)
                 return True
             if len(path)>0:
                 curr_disk_positions = self.rollBackDiskPush()
             else:
-                curr_disk_positions = self._disk_positions
+                curr_disk_positions = self._curr_disk_positions
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 new_path = path.copy()
@@ -300,27 +307,20 @@ class PQState:
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-            new_disk_positions = copy.deepcopy(self._disk_positions)
+            new_disk_positions = copy.deepcopy(self._curr_disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
             #vehicle_path.append(push_point)
             #vehicle_path.append(new_vehicle_pose)
             #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
             #new_vehicle_paths.append(vehicle_path)
-            new_disk_paths = copy.deepcopy(self._disk_paths)
-            new_disk_paths[disk_being_pushed].append(curr_disk_pos)
+            new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
+            new_past_disk_positions.append(self._curr_disk_positions)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
             new_g = self._g + gValue
-            for x in range(len(new_reached_goals)):
-                if new_reached_goals[x] and not self._reached_goals[x]:
-                    print("Goal reached, g = 0")
-                    time.sleep(10)
-                    new_g = 0
-
-
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use A* where g = full path length
-            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
+            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
            
         return False
 
@@ -337,26 +337,20 @@ class PQState:
                 new_edge = (distance,0,"F")
                 inv_edge = (distance,0,"R")
                 self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-                new_disk_positions = copy.deepcopy(self._disk_positions)
+                new_disk_positions = copy.deepcopy(self._curr_disk_positions)
                 new_disk_positions[disk_being_pushed] = new_disk_pos
                 #vehicle_path.append(push_point)
                 #vehicle_path.append(new_vehicle_pose)
                 #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
                 #new_vehicle_paths.append(vehicle_path)
-                new_disk_paths = copy.deepcopy(self._disk_paths)
-                new_disk_paths[disk_being_pushed].append(curr_disk_pos)
+                new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
+                new_past_disk_positions.append(self._curr_disk_positions)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)
                 new_g = self._g + gValue
-                for x in range(len(new_reached_goals)):
-                    if new_reached_goals[x] and not self._reached_goals[x]:
-                        print("Goal reached, g = 0")
-                        time.sleep(10)
-                        new_g = 0
-
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
                 #use A* where g = full path length
-                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_disk_paths,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g)
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g)
            
         return False
 
@@ -364,7 +358,7 @@ class PQState:
         resultingStates = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
-            curr_disk_pos = self._disk_positions[self._disk_being_pushed]
+            curr_disk_pos = self._curr_disk_positions[self._disk_being_pushed]
             if not self.diskInGoal(curr_disk_pos):
                 (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
@@ -372,12 +366,10 @@ class PQState:
                     continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,self._disk_being_pushed)
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
-                        print("Added continuous angle push state")
                 push_point = self._vehicle_pose
                 pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
                 if pushedState != False:
                     resultingStates.append(pushedState)
-                    print("Added pushing state from current pose")
            
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
@@ -386,15 +378,14 @@ class PQState:
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
-                            print("Added pushing state from new push point on same disk")
                        
                     
              
         # finally consider navigating to the push points of all other disks
-        for i in range(len(self._disk_positions)):
+        for i in range(len(self._curr_disk_positions)):
             if i == self._disk_being_pushed:
                 continue
-            curr_disk_pos = self._disk_positions[i]
+            curr_disk_pos = self._curr_disk_positions[i]
             if not self.diskInGoal(curr_disk_pos):
                 (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
@@ -402,14 +393,12 @@ class PQState:
                     continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i)
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
-                        print("Added continuous angle push state new disk")
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
-                            print("Added pushing state from push point on new disk")
                         
         return resultingStates
 
@@ -473,25 +462,22 @@ class PQState:
         #for curr_disk_path in disks_path:
         #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
 
-        #add all final disk positions to their path
-        for z in range(len(self._disk_positions)):
-            self._disk_paths[z].append(self._disk_positions[z])
-
-
+        final_disk_positions = self._past_disk_positions.append(self._curr_disk_positions)
+        disk_index = 0
         disk_pos_indices = [0]*len(self._disk_paths)
         for i in range(len(self._vehicle_path)):
             #get and plot vehicle position
             curr_path = self._vehicle_path[i]
+            curr_disk_positions = final_disk_positions[disk_index]
             for j in range(len(curr_path)-1):
                 curr_pose = curr_path[j]
                 next_pose = curr_path[j+1]
                 if j == len(curr_path)-2 and i<len(self._vehicle_path):
                     #push the disk
-                    disk_being_pushed = self._pushed_disks[i]
-                    temp = disk_pos_indices[disk_being_pushed]
-                    disk_pos_indices[disk_being_pushed] = 0
-                    leftList = self._disk_paths[:disk_being_pushed]
-                    rightList = self._disk_paths[disk_being_pushed+1:]
+                  
+                    disk_being_pushed = self._pushed_disks[i] # i = disk_index
+                    leftList = curr_disk_positions[:disk_being_pushed]
+                    rightList = curr_disk_positions[disk_being_pushed+1:]
                     edge_path = self.generatePosesAlongEdge(curr_pose,next_pose)
                     # push along a continuous path
                     # deduce where the disk is from the vehicle pose
@@ -500,7 +486,7 @@ class PQState:
                         disk_exact_point = [[[exact_pose.x+2*self._map.disk_radius*math.cos(math.radians(exact_pose.theta)),exact_pose.y+2*self._map.disk_radius*math.sin(math.radians(exact_pose.theta))]]]
                         fig, ax = plt.subplots(1,1)
                    
-                        ax = self._map.displayMap(ax,edge_path[k],leftList+disk_exact_point+rightList,disk_pos_indices)
+                        ax = self._map.displayMap(ax,edge_path[k],leftList+disk_exact_point+rightList)
                         fig.canvas.draw()       # draw the canvas, cache the renderer
                         image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
                         tp = fig.canvas.get_width_height()[::-1]
@@ -513,7 +499,7 @@ class PQState:
                             solution_images.append(image)
                         plt.close(fig)
 
-                    disk_pos_indices[disk_being_pushed] = temp + 1
+                    disk_index += 1
                
                 else:
                   

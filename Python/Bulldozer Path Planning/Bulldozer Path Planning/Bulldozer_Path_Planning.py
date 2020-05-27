@@ -69,7 +69,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [3]
+mapNums = [5]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -104,7 +104,7 @@ for mm in mapNums:
     print("Quadtree grown to size = ",StartingQuadtree.num_states)
     StartingRRT.setQuadtree(StartingQuadtree)
 
-    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[[] for x in range(len(map.initial_disk_pos_xy))],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
+    curr_state = PQState(map,StartVehiclePos,None,map.initial_disk_pos_xy,[],[],[False]*len(map.goal_pos_xy),-1,[],StartingRRT,0)
     visitedStates = {}
     pq = queue.PriorityQueue()
     pq.put(curr_state)
@@ -117,10 +117,8 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.01)
         plt.show(block=False)
-        print("Connnecting to previous pose with A* search")
         if not curr_state.connectToPreviousPose(ax1):
             continue
-        print("Done")
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
@@ -131,6 +129,7 @@ for mm in mapNums:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:
+        curr_state.bezierSmoothSolutionPath()
         print("Solved in minutes = ",(time.time() - start_time)/60)
         #Save results as a gif
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}

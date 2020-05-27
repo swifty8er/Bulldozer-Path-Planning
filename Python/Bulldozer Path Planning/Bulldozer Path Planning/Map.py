@@ -114,7 +114,7 @@ class Map:
                 ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
        
 
-    def displayMap(self,ax,vehicle_pos,disk_positions,disk_indicies, line_width=2):
+    def displayMap(self,ax,vehicle_pos,curr_disk_positions, line_width=2):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])
         x_axis = []
         y_axis = []
@@ -148,12 +148,9 @@ class Map:
         dx = r*math.cos(math.radians(vehicle_pos.theta))
         dy = r*math.sin(math.radians(vehicle_pos.theta))
         ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
-        a = 0
-        for index in disk_indicies:
-            disk_pos = disk_positions[a][index]
+        for disk_pos in curr_disk_positions:
             disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
-            a+=1
         return ax
 
 
