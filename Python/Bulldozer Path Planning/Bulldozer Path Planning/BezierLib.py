@@ -19,7 +19,10 @@ class BezierLib():
         t = 0.0
         while t<=1.0:
             kappa = BasicGeometry.evaluateKappa(curve,t)
-            roC = 1.0/kappa
+            if round(kappa,2) == 0:
+                roC = math.inf
+            else:
+                roC = 1.0/kappa
             if roC < MIN_RADIUS:
                 return False
             t += 0.0025
@@ -33,7 +36,10 @@ class BezierLib():
         edges = map.getMapEdgesAndObstacles()
         while s <= 1.0:
             kappa = BasicGeometry.evaluateKappa(curve,s)
-            radiusOfCurvature = 1.0/kappa
+            if round(kappa,2) == 0:
+                radiusOfCurvature = math.inf
+            else:
+                radiusOfCurvature = 1.0/kappa
             if radiusOfCurvature < MIN_RADIUS:
                 return False
             point_list = curve.evaluate(s)

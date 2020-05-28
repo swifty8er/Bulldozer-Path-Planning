@@ -147,15 +147,12 @@ class PQState:
         i = 0
         final_path = []
         for path in self._vehicle_path:
-            print("Bezier smoothing path number %d" % (i))
             if len(path) > 2:
                 curr_disk_pos = self._past_disk_positions[i]
                 finalPose = [path[-1]]
                 new_path = self.bezierSmoothPath(path[:-1],curr_disk_pos,ax) + finalPose
             else:
                 new_path = path
-            print("Smoothed path is")
-            self.drawPath(new_path,ax)
             final_path.append(new_path)
             i+=1
 

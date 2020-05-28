@@ -69,7 +69,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [5]
+mapNums = [6]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -129,7 +129,7 @@ for mm in mapNums:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:
-        print("Solved, bezier smoothing solution path...")
+        print("Solved, bezier smoothing path...")
         curr_state.bezierSmoothSolutionPath(ax1)
         print("Done in minutes = ",(time.time() - start_time)/60)
         #Save results as a gif

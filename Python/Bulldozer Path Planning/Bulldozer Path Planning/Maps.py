@@ -331,13 +331,17 @@ class Maps:
         lines = []
         goals = []
         disks = []
+        obstacles = []
         testMaps = []
         mapNum = 0
+        numLines = -1000
         for line in raw_mb.readlines():
             if len(line.split()) > 1 and line.split()[0] == "Level":
                 i = 0
                 mapNum = int(line.split()[1])
             if i == 1:
+                numLines = int(line.strip())
+            if i == 2:
                 lineSegments = line.split()
                 j = 0
                 for parts in lineSegments:
@@ -358,31 +362,54 @@ class Maps:
                             lineList.append(l)
                         j+=1
                     lines.append(lineList)
-            elif i==2:
+            elif i==3:
                 goalPos = line.split()
                 for goal in goalPos:
                     x = float(goal.split(',')[0].strip().strip('['))
                     y = float(goal.split(',')[1].strip().strip(']'))
                     newGoal = [x,y]
                     goals.append(newGoal)
-            elif i==3:
+            elif i==4:
                 diskPos = line.split()
                 for disk in diskPos:
                     x = float(disk.split(',')[0].strip().strip('['))
                     y = float(disk.split(',')[1].strip().strip(']'))
                     newDisk = [x,y]
                     disks.append(newDisk)
-            elif i==4:
+            elif i==5:
                 vehiclePos = line
                 x = float(vehiclePos.split(',')[0].strip().strip('['))
                 y = float(vehiclePos.split(',')[1].strip().strip(']'))
                 v = [x,y]
+            elif i == 6:
+                obstacleSegments = line.split()
+                j = 0
+                for parts in obstacleSegments:
+                    j = 0
+                    obstacleList = []
+                    obs = []
+                    for part in parts.split(','):
+                        if j==0:
+                            obs.append(float(part.strip().strip('[')))
+                        elif j== 1:
+                            obs.append(float(part.strip().strip(']')))
+                            obstacleList.append(obs)
+                        elif j==2:
+                            obs = []
+                            obs.append(float(part.strip().strip('[')))
+                        elif j==3:
+                            obs.append(float(part.strip().strip(']')))
+                            obstacleList.append(obs)
+                        j+=1
+                    obstacles.append(obstacleList)
+            if i == numLines + 1:
                 (minx,maxx,miny,maxy) = self.getMinMax(lines)
-                newMap = Map(mapNum,minx,miny,maxx,maxy,1,lines,[],0.45,0.45,goals,v,disks)
+                newMap = Map(mapNum,minx,miny,maxx,maxy,1,lines,obstacles,0.45,0.45,goals,v,disks)
                 testMaps.append(newMap)
                 lines = []
                 goals = []
                 disks = []
+                obstacles = []
 
             i+=1
 
