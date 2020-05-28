@@ -11,25 +11,17 @@ MIN_RADIUS = 0.4
 
 class BezierLib():
     @staticmethod
-    def createBezierCurveBetweenTwoVehicle(v1,v2):
+    def createBezierCurveBetweenTwoVehicle(v1,v2,map,disk_positions):
         dist = v1.EuclideanDistance(v2)
         r = dist/4.0
         x_points = [v1.x,v1.x+r*math.cos(math.radians(v1.theta)),v2.x-r*math.cos(math.radians(v2.theta)),v2.x]
         y_points = [v1.y,v1.y+r*math.sin(math.radians(v1.theta)),v2.y-r*math.sin(math.radians(v2.theta)),v2.y]
         nodes = np.asfortranarray([x_points,y_points])
         curve = bezier.Curve(nodes,degree=3)
-        t = 0.0
-        while t<=1.0:
-            kappa = BasicGeometry.evaluateKappa(curve,t)
-            if round(kappa,2) == 0:
-                roC = math.inf
-            else:
-                roC = 1.0/kappa
-            if roC < MIN_RADIUS:
-                return False
-            t += 0.005
-
-        return curve
+        if BezierLib.testCurve(curve,map,disk_positions):
+            return curve
+        else:
+            return False
 
 
     @staticmethod

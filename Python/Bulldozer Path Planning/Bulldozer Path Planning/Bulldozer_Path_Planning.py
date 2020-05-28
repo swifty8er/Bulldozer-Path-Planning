@@ -112,11 +112,11 @@ for mm in mapNums:
 
     while not pq.empty():
         curr_state = pq.get()
-        #plt.cla()
-        #curr_state.plotState(ax1)
-        #plt.draw()
-        #plt.pause(0.01)
-        #plt.show(block=False)
+        plt.cla()
+        curr_state.plotState(ax1)
+        plt.draw()
+        plt.pause(0.01)
+        plt.show(block=False)
         if not curr_state.connectToPreviousPose(ax1):
             continue
         if curr_state.isFinishState():
