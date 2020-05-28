@@ -82,19 +82,6 @@ class RRT:
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
 
-    #def addNearestNeighboursOctnode(self,k_nn,k,octnode,push_point):
-    #    if not octnode.has_children:
-    #        k_nn += self.addBehindStates(push_point,octnode.vehicle_states)
-    #        return k_nn
-    #    else:
-    #       for child in octnode.children:
-    #           k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
-    #           if len(k_nn) >= k:
-    #               return k_nn
-    #       return k_nn
-
-
-
 
     def addBehindStates(self,push_point,states):
         behindStates = []
@@ -198,81 +185,6 @@ class RRT:
 
                 return False
 
-            else:
-                pass
-                # two circles intersection wont work, could try looking for closest approach between two circular paths
-            #else:
-            #    (radius,deltaTheta,direction) = edge_arc
-            #    if direction == "F" or direction == "R":
-            #        line = [[n1.x,n1.y],[n2.x,n2.y]]
-            #        for pos in dirt_pile_positions:
-            #            if BasicGeometry.doesCircleIntersectLine(pos,self._map.disk_radius,line):
-            #                return True
-            #    else:
-            #        if direction == "FL" or direction == "RL":
-            #            p = n1.x + radius*math.cos(math.radians(n1.theta)+math.pi/2)
-            #            q = n1.y + radius*math.sin(math.radians(n1.theta)+math.pi/2)
-            #        else:
-            #            p = n1.x + radius*math.cos(math.radians(n1.theta)-math.pi/2)
-            #            q = n1.y + radius*math.sin(math.radians(n1.theta)-math.pi/2)
-            #        circle_2_centre = (p,q)
-            #        for pos in dirt_pile_positions:
-            #            (p1,p2) = BasicGeometry.twoCirclesIntersectionPoints(self._map.disk_radius,pos,radius,circle_2_centre)
-            #            (x1,y1) = p1
-            #            (x2,y2) = p2
-            #            if (x1 != None and y1 != None):
-            #                v1 = BasicGeometry.vec_from_points(circle_2_centre,p1)
-            #                theta_1 = BasicGeometry.vector_angle(v1)
-            #            else:
-            #                theta_1 = None
-            #            if (x2 != None and y2 != None):
-            #                v2 = BasicGeometry.vec_from_points(circle_2_centre,p2)
-            #                theta_2 = BasicGeometry.vector_angle(v2)
-            #            else:
-            #                theta_2 = None
-
-
-
-            #            v3 = BasicGeometry.vec_from_points(circle_2_centre,(n1.x,n1.y))
-            #            v4 = BasicGeometry.vec_from_points(circle_2_centre,(n2.x,n2.y))
-
-            #            theta_3 = BasicGeometry.vector_angle(v3)
-            #            theta_4 = BasicGeometry.vector_angle(v4)
-
-            #            if (theta_4 < theta_3):
-            #                if (abs(math.degrees(theta_3-theta_4)-deltaTheta)<1):
-
-            #                    if (theta_1 != None and theta_4 <= theta_1 and theta_1 <= theta_3):
-            #                        return True
-            #                    elif (theta_2 != None and theta_4 <= theta_2 and theta_2 <= theta_3):
-            #                        return True
-            #                elif (abs(math.degrees(2*math.pi - (theta_3-theta_4))-deltaTheta)<1):
-            #                    if (theta_1 != None and 0<=theta_1 and theta_1<=theta_4):
-            #                        return True
-            #                    elif (theta_2 != None and 0<=theta_2 and theta_2<=theta_4):
-            #                        return True
-            #                    elif (theta_1 != None and 2*math.pi >= theta_1 and theta_1 >= theta_3):
-            #                        return True
-            #                    elif (theta_2 != None and 2*math.pi >= theta_2 and theta_2 >= theta_3):
-            #                        return True
-                                  
-            #            else:
-            #                if (abs(math.degrees(theta_4-theta_3)-deltaTheta)<1):
-            #                    if (theta_1 != None and theta_3 <= theta_1 and theta_1 <= theta_4):
-            #                        return True
-            #                    elif (theta_2 != None and theta_3 <= theta_2 and theta_2 <= theta_4):
-            #                        return True
-            #                elif (abs(math.degrees(2*math.pi - (theta_4-theta_3))-deltaTheta)<0.1):
-            #                    if (theta_1 != None and 0<= theta_1 and theta_1 <= theta_3):
-            #                        return True
-            #                    elif (theta_2 != None and 0<= theta_2 and theta_2 <= theta_3):
-            #                        return True
-            #                    elif (theta_1 != None and 2*math.pi>=theta_1 and theta_1 >= theta_4):
-            #                        return True
-            #                    elif (theta_2 != None and 2*math.pi>=theta_2 and theta_2 >= theta_4):
-            #                        return True
-
-
         return False
 
     def randomiseControlPathLength(self,control):
@@ -300,8 +212,6 @@ class RRT:
             else:
                 newControl = control
             if (not self.isCollision(x_near,newControl)):
-                #if self.testMoveCollision(x_near,control):
-                #    print("Found collision not detected by algorithm from (%.2f,%.2f,%.2f) under control (%.2f,%.2f,%s)" % (x_near.x,x_near.y,x_near.theta,control[0],control[1],control[2]))
                 x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
                 dist = x.DistanceMetric(x_test,1)
                 if dist < min_dist: 
@@ -314,34 +224,9 @@ class RRT:
         else:
             return (True,x_new,u_new) # returns a bool if successful, and the new state and control used
 
-    #def addBackwardsVertex(self,x_new,tree):
-    #    if not x_new in tree:
-    #        tree[x_new] = {}
-    #    for key in tree.keys():
-    #        tree[x_new][key] = False
-    #        tree[key][x_new] = False
-
-    ## Add the vertex to the tree
-    #def addVertex(self,x_new):
-    #    if x_new in self._tree:
-    #        print("Adding vertex to tree that already exists (%.2f,%.2f,%.2f)" % (x_new.x,x_new.y,x_new.theta))
-    #        return True
-    #    else:
-    #        self._tree[x_new] = {}
-    #        for key in self._tree.keys():
-    #            self._tree[x_new][key] = False
-    #            self._tree[key][x_new] = False
-    #        return False
-
     def hasVertex(self,x):
         return ( x in self._tree )
 
-    #def addBackwardsEdge(self,x_new,x_near,u_new,u_inv,tree):
-    #    if tree[x_new][x_near] == u_inv or tree[x_near][x_new] == u_new:
-    #        return True
-    #    tree[x_new][x_near] = u_inv
-    #    tree[x_near][x_new] = u_new
-    #    return False
 
     #u_new from x_near to x_new
     #u_inv from x_new to x_near
