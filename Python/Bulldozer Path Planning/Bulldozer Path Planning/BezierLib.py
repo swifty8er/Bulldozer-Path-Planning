@@ -11,14 +11,32 @@ MIN_RADIUS = 0.4
 
 class BezierLib():
     @staticmethod
+    def getInverseCurve(curve):
+        nodes = curve.nodes
+        i = 0
+        x_points = []
+        y_points = []
+        for n in nodes:
+            for num in n:
+                if i == 0:
+                    x_points.append(num)
+                else:
+                    y_points.append(num)
+            i+=1
+        x_points.reverse()
+        y_points.reverse()
+        inv_nodes = np.asfortranarray([x_points,y_points])
+        inv_curve = bezier.Curve(inv_nodes,curve.degree)
+        return inv_curve
+
+
+    @staticmethod
     def createBezierCurveBetweenTwoVehicle(v1,v2,map,disk_positions):
         distance = v1.EuclideanDistance(v2)
         r = distance / 4.0
         x_points = [v1.x,v1.x+r*math.cos(math.radians(v1.theta)),v2.x-r*math.cos(math.radians(v2.theta)),v2.x]
         y_points = [v1.y,v1.y+r*math.sin(math.radians(v1.theta)),v2.y-r*math.sin(math.radians(v2.theta)),v2.y]
         nodes = np.asfortranarray([x_points,y_points])
-        controlPoint1 = [v1.x+r*math.cos(math.radians(v1.theta)),v1.y+r*math.sin(math.radians(v1.theta))]
-        controlPoint2 = [v2.x-r*math.cos(math.radians(v2.theta)),v2.y-r*math.sin(math.radians(v2.theta))]
         curve = bezier.Curve(nodes,degree=3)
         if BezierLib.testCurve(curve,map,disk_positions):
             return curve

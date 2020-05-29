@@ -174,7 +174,7 @@ class PQState:
                         opp_direction = "R"
                     else:
                         opp_direction = "F"
-                    self._RRT.addEdge(pose2,pose1,(bezier_curve,direction),(bezier_curve,opp_direction))
+                    self._RRT.addEdge(pose2,pose1,(bezier_curve,direction),(BezierLib.getInverseCurve(bezier_curve),opp_direction))
                     path = path[:startIndex+1] + path[endIndex:]
                     
                     startIndex = endIndex
@@ -360,7 +360,7 @@ class PQState:
                 (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
                     #attempt continuous angle push
-                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,self._disk_being_pushed)
+                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,self._disk_being_pushed,axis)
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
                 push_point = self._vehicle_pose
@@ -371,7 +371,7 @@ class PQState:
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
+                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions,axis):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
@@ -387,12 +387,12 @@ class PQState:
                 (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
                     #attempt continuous angle push
-                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i)
+                    continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i,axis)
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
+                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions,axis):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
@@ -417,7 +417,6 @@ class PQState:
                             else:
                                 if direction == "F":
                                     next_list = bezierEdge.evaluate(s+0.025).tolist()
-                                    
                                 else:
                                     next_list = bezierEdge.evaluate(s-0.025).tolist()
                                 real_next = [next_list[0][0],next_list[1][0]]
