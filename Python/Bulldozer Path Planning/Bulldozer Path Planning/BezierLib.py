@@ -11,24 +11,19 @@ MIN_RADIUS = 0.4
 
 class BezierLib():
     @staticmethod
-    def createBezierCurveBetweenTwoVehicle(v1,v2):
-        x_points = [v1.x,v1.x+math.cos(math.radians(v1.theta)),v2.x-math.cos(math.radians(v2.theta)),v2.x]
-        y_points = [v1.y,v1.y+math.sin(math.radians(v1.theta)),v2.y-math.sin(math.radians(v2.theta)),v2.y]
+    def createBezierCurveBetweenTwoVehicle(v1,v2,map,disk_positions):
+        distance = v1.EuclideanDistance(v2)
+        r = distance / 4.0
+        x_points = [v1.x,v1.x+r*math.cos(math.radians(v1.theta)),v2.x-r*math.cos(math.radians(v2.theta)),v2.x]
+        y_points = [v1.y,v1.y+r*math.sin(math.radians(v1.theta)),v2.y-r*math.sin(math.radians(v2.theta)),v2.y]
         nodes = np.asfortranarray([x_points,y_points])
+        controlPoint1 = [v1.x+r*math.cos(math.radians(v1.theta)),v1.y+r*math.sin(math.radians(v1.theta))]
+        controlPoint2 = [v2.x-r*math.cos(math.radians(v2.theta)),v2.y-r*math.sin(math.radians(v2.theta))]
         curve = bezier.Curve(nodes,degree=3)
-        t = 0.0
-        while t<=1.0:
-            kappa = BasicGeometry.evaluateKappa(curve,t)
-            if round(kappa,2) == 0:
-                roC = math.inf
-            else:
-                roC = 1.0/kappa
-            if roC < MIN_RADIUS:
-                return False
-            t += 0.0025
-
-        return curve
-
+        if BezierLib.testCurve(curve,map,disk_positions):
+            return curve
+        else:
+            return False
 
     @staticmethod
     def testCurve(curve,map,curr_disk_positions):
@@ -50,7 +45,7 @@ class BezierLib():
             for disk_pos in curr_disk_positions:
                 if 1.95 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-            s+= 0.005
+            s+= 0.015
         return True
 
 

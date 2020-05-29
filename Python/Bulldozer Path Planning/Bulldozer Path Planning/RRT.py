@@ -5,6 +5,7 @@ import time
 from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
+from BezierLib import BezierLib
 import random
 import math
 from matplotlib import pyplot as plt
@@ -30,6 +31,7 @@ class RRT:
         self._controls_list = controls_list
         self._num_nodes = num_nodes
         self._quadtree = None
+        self._cachedNearestNeighbours = {}
     
     @property
     def num_nodes(self):
@@ -393,27 +395,34 @@ class RRT:
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
-    def connectPushPoint(self,push_point,axis=False):
+    def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=10):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         connected = False
+        pos_tuple = (curr_disk_pos[0],curr_disk_pos[1])
+        if pos_tuple in self._cachedNearestNeighbours:
+            nearest_neighbours = self._cachedNearestNeighbours[pos_tuple]
+        else:
+            nearest_neighbours = self._quadtree.radialNearestNeighbours(push_point,1.5,[])
+            self._cachedNearestNeighbours[pos_tuple] = nearest_neighbours
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
+        nc = 0
         for node in backwardsNodes:
-            nearest_neighbours = self._quadtree.radialNearestNeighbours(node,2.0,[])
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             for nn in nearest_neighbours:
-                bezier_new = nn.createBezierCurveControl(node)
+                bezier_new = BezierLib.createBezierCurveBetweenTwoVehicle(nn,node,self._map,curr_disk_positions)
                 if bezier_new != False:
-                    if isinstance(bezier_new,bezier.curve.Curve):
-                        if not self.bezierEdgeObstaclesCollision(bezier_new):
-                            self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
-                            if axis!=False:
-                                bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                            connected = True 
-                    else:
-                        if not self.isCollision(nn,bezier_new):
-                            self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                            connected = True
+                    if not self.bezierEdgeObstaclesCollision(bezier_new):
+                        self.addEdge(node,nn,(bezier_new,"F"),(bezier_new,"R"))
+                        if axis!=False:
+                            bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                            plt.draw()
+                            plt.pause(0.1)
+                            plt.show(block=False)
+                        connected = True 
+                        nc += 1
+                        if nc > num_connections:
+                            return True
                     
         
         return connected
@@ -423,8 +432,8 @@ class RRT:
         nn = self.addBehindStates(push_point,nearest_neighbours)
         processed_nn = []
         for node in nn:
-            if push_point.EuclideanDistance(node) > 0.25:
-                if (1-math.cos(math.radians(abs(node.theta-push_point.theta)))) < 1.5:
+            if push_point.EuclideanDistance(node) > 0.5:
+                if (1-math.cos(math.radians(abs(node.theta-push_point.theta)))) < 1.25:
                     processed_nn.append(node)
         return processed_nn
 

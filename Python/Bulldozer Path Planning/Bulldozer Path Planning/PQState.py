@@ -55,7 +55,6 @@ class PQState:
     # a hacky zobrist hash - does not use random numbers
     def __hash__(self):
         h = 0
-        h = h^self.vehicle_pose.__hash__()
         for pos in self._curr_disk_positions:
             t = (pos[0],pos[1])
             h = h^hash(t)
@@ -323,11 +322,11 @@ class PQState:
         return False
 
 
-    def getContinuousAnglePushState(self,curr_disk_pos,closest_goal,disk_being_pushed):
+    def getContinuousAnglePushState(self,curr_disk_pos,closest_goal,disk_being_pushed,ax=False):
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
-        if self._RRT.connectPushPoint(push_point):
+        if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions,ax):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
@@ -372,7 +371,7 @@ class PQState:
                 # next consider navigating to a different push point on the current disk
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,self._vehicle_pose.theta)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point):
+                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
@@ -393,7 +392,7 @@ class PQState:
                         resultingStates.append(continousPushState)
                 new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius)
                 for push_point in new_push_points:
-                    if self._RRT.connectPushPoint(push_point):
+                    if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
                         if pushedState != False:
                             resultingStates.append(pushedState)
