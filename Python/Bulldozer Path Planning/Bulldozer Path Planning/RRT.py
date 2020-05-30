@@ -409,12 +409,10 @@ class RRT:
             nearest_neighbours = self._quadtree.radialNearestNeighbours(push_point,2.0,[])
             self._cachedNearestNeighbours[pos_tuple] = nearest_neighbours
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
+        nc = 0
         for node in backwardsNodes:
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
-            length = len(nearest_neighbours)
-            i = 0
-            while i < length:
-                nn = nearest_neighbours[i]
+            for nn in nearest_neighbours:
                 bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
                 if bezier_new != False:
                     if isinstance(bezier_new,bezier.curve.Curve):
@@ -426,12 +424,15 @@ class RRT:
                                 plt.pause(0.1)
                                 plt.show(block=False)
                             connected = True 
+                            nc += 1
                     else:
                         if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
                             self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
                             connected = True
+                            nc+=1
+                if nc > num_connections:
+                    return True
                    
-                i+=1
 
                     
         
