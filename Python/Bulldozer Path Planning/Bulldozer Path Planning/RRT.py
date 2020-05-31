@@ -28,11 +28,13 @@ class RRT:
         self._start_position = start_position
         if self.testStateCollision(start_position): #this test is flawed
             raise Exception("Attempted to initialise the RRT with a colliding state")
+        self._centre_state = self._map.getCentreState()
         self._tree = self.initaliseTree(start_position)
         self._controls_list = controls_list
         self._num_nodes = num_nodes
         self._quadtree = None
         self._cachedNearestNeighbours = {}
+        self._max_distance_metric = 0
     
     @property
     def num_nodes(self):
@@ -107,6 +109,8 @@ class RRT:
 
 
 
+    def saveMaxDistanceMetric(self):
+        self._max_distance_metric = self.computeMaxDistanceMetricBetweenNodes(self._centre_state)
 
     def computeMaxDistanceMetricBetweenNodes(self,centre_node):
         max_dist = -1*math.inf
@@ -125,7 +129,7 @@ class RRT:
                 max_dist = dist
 
         return max_dist
-
+    
 
     # searches the tree for the nearest node to x by some distance metric
     def nearestNeighbour(self,x):
@@ -412,35 +416,29 @@ class RRT:
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         nc = 0
         for node in backwardsNodes:
-            failedTree = DistMetree(self._map.getCentreState(),None,self.computeMaxDistanceMetricBetweenNodes(self._map.getCentreState()),180.0)
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             for nn in nearest_neighbours:
-                if not failedTree.stateWithinRadiusOfQuery(nn,0.1):
-                    bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
-                    if bezier_new != False:
-                        if isinstance(bezier_new,bezier.curve.Curve):
-                            if not self.bezierEdgeObstaclesCollision(bezier_new):
-                                self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
-                                if axis!=False:
-                                    bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                                    plt.draw()
-                                    plt.pause(0.1)
-                                    plt.show(block=False)
-                                connected = True 
-                                nc += 1
-                        else:
-                            if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
-                                self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                                connected = True
-                                nc+=1
+                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
+                if bezier_new != False:
+                    if isinstance(bezier_new,bezier.curve.Curve):
+                        if not self.bezierEdgeObstaclesCollision(bezier_new):
+                            self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
+                            if axis!=False:
+                                bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                                plt.draw()
+                                plt.pause(0.1)
+                                plt.show(block=False)
+                            connected = True 
+                            nc += 1
                     else:
-                        failedTree.addState(nn)
-                    if nc > num_connections:
-                        return True
-                   
+                        if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
+                            self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
+                            connected = True
+                            nc+=1
 
-                    
-        
+                if nc > num_connections:
+                    return True
+
         return connected
      
     #perform post processing on radial nearest neighbours

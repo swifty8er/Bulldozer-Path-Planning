@@ -36,13 +36,13 @@ class BezierLib():
             return False
         if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
             dist = abs(v1.x-v2.x)
-            if self.x<otherVehicle.x:
+            if v1.x<v2.x:
                 return (dist,0,"F")
             else:
                 return (dist,0,"R")
         elif intersectionPoint[0] == None and intersectionPoint[1] == math.inf:
             dist = abs(v1.y-v2.y)
-            if self.y<otherVehicle.y:
+            if v1.y<v2.y:
                 return (dist,0,"F")
             else:
                 return (dist,0,"R")

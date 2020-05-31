@@ -94,7 +94,7 @@ for mm in mapNums:
         status = StartingRRT.extend(x_rand)
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
-
+    StartingRRT.saveMaxDistanceMetric()
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
         if node == StartVehiclePos:
