@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import math
 
 from BasicGeometry import BasicGeometry
-
+from Vehicle import Vehicle
 class Map:
     #A list of attributes that specify the size, shape and starting positions of a Continous Sokoban problem
 
@@ -79,6 +79,9 @@ class Map:
 
     def getMapEdgesAndObstacles(self):
         return self._boundary + self._obstacles
+
+    def getCentreState(self):
+        return Vehicle((self._max_x - self._min_x)/2.0, (self._max_y - self._min_y) / 2.0, 0)
 
 
     def plotMapBoundaryObstacles(self,ax,line_width=2):

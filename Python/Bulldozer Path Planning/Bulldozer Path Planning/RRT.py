@@ -6,6 +6,7 @@ from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
 from BezierLib import BezierLib
+from DistMetree import DistMetree
 import random
 import math
 from matplotlib import pyplot as plt
@@ -411,27 +412,31 @@ class RRT:
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         nc = 0
         for node in backwardsNodes:
+            failedTree = DistMetree(self._map.getCentreState(),None,self.computeMaxDistanceMetricBetweenNodes(self._map.getCentreState()),180.0)
             nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
             for nn in nearest_neighbours:
-                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
-                if bezier_new != False:
-                    if isinstance(bezier_new,bezier.curve.Curve):
-                        if not self.bezierEdgeObstaclesCollision(bezier_new):
-                            self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
-                            if axis!=False:
-                                bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                                plt.draw()
-                                plt.pause(0.1)
-                                plt.show(block=False)
-                            connected = True 
-                            nc += 1
+                if not failedTree.stateWithinRadiusOfQuery(nn,0.1):
+                    bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
+                    if bezier_new != False:
+                        if isinstance(bezier_new,bezier.curve.Curve):
+                            if not self.bezierEdgeObstaclesCollision(bezier_new):
+                                self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
+                                if axis!=False:
+                                    bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                                    plt.draw()
+                                    plt.pause(0.1)
+                                    plt.show(block=False)
+                                connected = True 
+                                nc += 1
+                        else:
+                            if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
+                                self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
+                                connected = True
+                                nc+=1
                     else:
-                        if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
-                            self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                            connected = True
-                            nc+=1
-                if nc > num_connections:
-                    return True
+                        failedTree.addState(nn)
+                    if nc > num_connections:
+                        return True
                    
 
                     
