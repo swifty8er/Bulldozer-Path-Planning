@@ -3,6 +3,7 @@ import math
 from RRT import RRT
 from RRT import Status
 from Quadtree import Quadtree
+from DistMetree import DistMetree
 from Vehicle import Vehicle
 from Maps import Maps
 from BasicGeometry import BasicGeometry
@@ -58,26 +59,18 @@ class Test_TestOctree(unittest.TestCase):
             status = MyRRT.extend(x_rand)
             if (status == Status.ADVANCED or status == Status.REACHED):
                 i+=1
-        print("Initalising Quadtree..")
-        MyQuadtree = Quadtree(StartVehiclePos,None,MyRRT.computeMaxDistanceBetweenNodes(StartVehiclePos))
-        print("Building Quadtree...")
-        j = 0
-        savedNode = None
+        print("Initialising DistMetree")
+        MyDistMetree = DistMetree(StartVehiclePos,None,MyRRT.computeMaxDistanceMetricBetweenNodes(StartVehiclePos),180.0)
+        i = 0
         for node in MyRRT.tree:
-            if node == StartVehiclePos:
-                continue
-            MyQuadtree.addState(node)
-            if j == 500:
-                savedNode = node
-
-            j+=1
-
-        print("Quadtree grown to size = ",MyQuadtree.num_states)
-
-
-
-        nearestNeighbours = MyQuadtree.radialNearestNeighbours(savedNode,1.5,[])
-        for nn in nearestNeighbours:
-            print("Nearest neighbour (%.2f,%.2f) is within radius %.2f of query point (%.2f,%.2f) r = %.2f" % (nn.x,nn.y,1.5,savedNode.x,savedNode.y,savedNode.EuclideanDistance(nn)))
+            MyDistMetree.addState(node)
+            i += 1
+            if i > MyRRT.num_nodes / 4.0:
+                break
+        for n in MyRRT.tree:
+            if MyDistMetree.stateWithinRadiusOfQuery(n,0.1):
+                print("Node (%.2f,%.2f,%.2f) has similar state in octree" % (n.x,n.y,n.theta))
+            else:
+                print("No similar state")
 if __name__ == '__main__':
     unittest.main()

@@ -31,8 +31,8 @@ class DistMetree:
         for child in self._children:
             if child.overlapsSearchBall(queryState,radius):
                 result = child.stateWithinRadiusOfQuery(queryState,radius)
-            if result:
-                return True
+                if result:
+                    return True
         return False
 
 
@@ -52,17 +52,6 @@ class DistMetree:
             return True
         return False
 
-
-    def overlapsSearchDisk(self,queryState,radius):
-        q_prime = Vehicle(abs(queryState.x-self.centreState.x),abs(queryState.y-self.centreState.y),0)
-        new_vec = Vehicle(self._max_distance,self._max_distance,0)
-        if q_prime.x < self._max_distance:
-            return True
-        if q_prime.y < self._max_distance:
-            return True
-        if q_prime.EuclideanDistance(new_vec) < radius:
-            return True
-        return False
 
     def extend(self):
         self._has_children = True
