@@ -66,12 +66,12 @@ class Pushing:
     def getContinuousPushAngle(curr_disk_pos,closest_goal):
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
-        return ((math.degrees(phi)-180)%360,phi)
+        return (math.degrees(phi)-180)%360
 
     # Find the push points for the vehicle to push the given disk with its boundary
     @staticmethod
     def getPushPoints(disk_pos,disk_radius,closest_goal,curr_heading=-1):
-        (continuousPushAngle,phi) = Pushing.getContinuousPushAngle(disk_pos,closest_goal)
+        continuousPushAngle = Pushing.getContinuousPushAngle(disk_pos,closest_goal)
         push_points = []
         angle = 0
         while (angle<=2*math.pi):
