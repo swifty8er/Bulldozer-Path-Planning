@@ -323,7 +323,7 @@ class PQState:
 
 
     def getContinuousAnglePushState(self,curr_disk_pos,closest_goal,disk_being_pushed,ax=False):
-        continuousPushAngle = Pushing.getContinuousPushAngle(curr_disk_pos,closest_goal)
+        (continuousPushAngle,phi) = Pushing.getContinuousPushAngle(curr_disk_pos,closest_goal)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),continuousPushAngle)
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions,ax):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
