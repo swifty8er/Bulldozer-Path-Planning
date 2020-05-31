@@ -22,17 +22,35 @@ class DistMetree:
     @property
     def centreState(self):
         return self._centreState
-    
-    def radialNearestNeighbours(self,queryState,radius,nearest_neighbours):
+
+    def stateWithinRadiusOfQuery(self,queryState,radius):
         if not self._has_children:
             for vs in self._vehicle_states:
-                if vs.EuclideanDistance(queryState) < radius:
-                    nearest_neighbours.append(vs)
-            return nearest_neighbours
+                if vs.DistanceMetric(queryState) < radius:
+                    return True
         for child in self._children:
-            if child.overlapsSearchDisk(queryState,radius):
-                nearest_neighbours = child.radialNearestNeighbours(queryState,radius,nearest_neighbours)
-        return nearest_neighbours
+            if child.overlapsSearchBall(queryState,radius):
+                result = child.stateWithinRadiusOfQuery(queryState,radius)
+            if result:
+                return True
+        return False
+
+
+    def overlapsSearchBall(self,queryState,radius):
+        q_prime = Vehicle(abs(queryState.x-self.centreState.x),abs(queryState.y-self.centreState.y),(abs(queryState.theta)-self.centreState.theta)%360)
+        new_vehicle_1 = Vehicle(self._max_euclidean_dist,self._max_euclidean_dist,(self.centreState.theta+self._delta_angle)%360)
+        new_vehicle_2 = Vehicle(self._max_euclidean_dist,self._max_euclidean_dist,(self.centreState.theta-self._delta_angle)%360)
+        if q_prime.x < self._max_euclidean_dist:
+            return True
+        if q_prime.y < self._max_euclidean_dist:
+            return True
+        if q_prime.theta <= self._delta_angle:
+            return True
+        if q_prime.DistanceMetric(new_vehicle_1) < radius:
+            return True
+        if q_prime.DistanceMetric(new_vehicle_2) < radius:
+            return True
+        return False
 
 
     def overlapsSearchDisk(self,queryState,radius):
@@ -95,7 +113,7 @@ class DistMetree:
         elif i == 7:
             return Vehicle(self.centreState.x-half_dist,self.centreState.y-half_dist,new_angle_2)
         else:
-            raise Exception("Invalud index %d passed to get parent state" % (i))
+            raise Exception("Invalid index %d passed to get parent state" % (i))
 
     def addState(self,state : Vehicle):
         if self._has_children:
