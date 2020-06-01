@@ -381,7 +381,7 @@ class Maps:
                 x = float(vehiclePos.split(',')[0].strip().strip('['))
                 y = float(vehiclePos.split(',')[1].strip().strip(']'))
                 v = [x,y]
-            elif i == 6:
+            elif i>0 and  i <= numLines + 1:
                 obstacleSegments = line.split()
                 j = 0
                 for parts in obstacleSegments:
@@ -401,7 +401,8 @@ class Maps:
                             obs.append(float(part.strip().strip(']')))
                             obstacleList.append(obs)
                         j+=1
-                    obstacles.append(obstacleList)
+                    if len(obstacleList) > 0:
+                        obstacles.append(obstacleList)
             if i == numLines + 1:
                 (minx,maxx,miny,maxy) = self.getMinMax(lines)
                 newMap = Map(mapNum,minx,miny,maxx,maxy,1,lines,obstacles,0.45,0.45,goals,v,disks)

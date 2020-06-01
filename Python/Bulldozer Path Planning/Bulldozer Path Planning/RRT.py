@@ -395,7 +395,7 @@ class RRT:
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
-    def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=10):
+    def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=40):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         connected = False
@@ -443,7 +443,8 @@ class RRT:
         nn = self.addBehindStates(push_point,nearest_neighbours)
         processed_nn = []
         for node in nn:
-            if push_point.EuclideanDistance(node) > 0.5:
+            dist = push_point.EuclideanDistance(node)
+            if dist >= 0.5 and dist <= 1.5:
                 if (1-math.cos(math.radians(abs(node.theta-push_point.theta)))) < 1.25:
                     processed_nn.append(node)
         return processed_nn
