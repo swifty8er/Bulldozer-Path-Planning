@@ -69,7 +69,7 @@ file_out = open("TimingData/Results.txt",'w')
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [1]
+mapNums = [3,6,1,4,5,2]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -98,7 +98,6 @@ for mm in mapNums:
     StartingRRT.draw(ax1)
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
-        print("Adding node (%.2f,%.2f,%.2f) to quadtree" % (node.x,node.y,node.theta))
         StartingQuadtree.addState(node)
 
     print("Quadtree grown to size = ",StartingQuadtree.num_states)
@@ -118,8 +117,8 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         if not curr_state.connectToPreviousPose(ax1):
-            if curr_state.growRRTAndConnectToPushPoint() and not curr_state.connectToPreviousPose(ax1):
-                continue
+            #if curr_state.growRRTAndConnectToPushPoint() and not curr_state.connectToPreviousPose(ax1):
+            continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
@@ -138,7 +137,7 @@ for mm in mapNums:
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
         imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
-        file_out.write("Map %d solved in %.2f minutes" % (map.number,solveTime))
+        file_out.write("Map %d solved in %.2f minutes \n" % (map.number,solveTime))
     else:
         print("Failed")
 file_out.close()

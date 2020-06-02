@@ -1,7 +1,7 @@
 import math
 from Vehicle import Vehicle
 class DistMetree:
-    def __init__(self,state : Vehicle ,parent ,max_dist_metric,delta_angle,level,max_size=8):
+    def __init__(self,state : Vehicle ,parent ,max_dist_metric,delta_angle,level,max_size=8,max_depth=10):
         self._centreState = state
         self._max_distance_metric = max_dist_metric
         self._centre_angle = state.theta
@@ -9,6 +9,7 @@ class DistMetree:
         self._max_angular_dist = 1.0 - math.cos(math.radians(self._delta_angle))
         self._max_euclidean_dist = self._max_distance_metric - self._max_angular_dist
         self._max_size = max_size
+        self._max_depth = max_depth
         self._has_children = False
         self._children : DistMetree = [] #list of DistMetrees
         self._vehicle_states : Vehicle = [] #list of vehicles
@@ -144,10 +145,11 @@ class DistMetree:
             raise Exception("Invalid index %d passed to get parent state" % (i))
 
     def addState(self,state : Vehicle):
-        #print("Adding state at level %d" % (self._level))
+        print("Adding state at level %d" % (self._level))
+        print("This level has children = %d and num vehicle states = %d" % (self._has_children,len(self._vehicle_states)))
         if self._has_children:
             self.addStateToChild(state)
-        elif len(self._vehicle_states) >= self._max_size:
+        elif len(self._vehicle_states) >= self._max_size and self._level < self._max_depth:
             self.extend()
             for vs in self._vehicle_states:
                 self.addStateToChild(vs)
