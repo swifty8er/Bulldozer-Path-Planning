@@ -23,6 +23,22 @@ class DistMetree:
     def centreState(self):
         return self._centreState
 
+
+    def nearestNeighbour(self,queryState):
+        if not self._has_children:
+            shortest_dist = math.inf
+            nn = None
+            for vs in self._vehicle_states:
+                dist = vs.DistanceMetric(queryState)
+                if dist < shortest_dist:
+                    shortest_dist = dist
+                    nn = vs
+            if nn == None:
+                raise Exception("Error in distmetree nn function")
+            return nn
+        else:
+            return self._children[self.findClosestChildIndex(queryState)].nearestNeighbour(queryState)
+
     def stateWithinRadiusOfQuery(self,queryState,radius):
         if not self._has_children:
             for vs in self._vehicle_states:

@@ -65,11 +65,13 @@ class RRT:
         return Vehicle(new_x,new_y,new_theta)
 
     def extend(self,x_rand):
-        nearest_neighbour = self.nearestNeighbour(x_rand)
+        #nearest_neighbour = self.nearestNeighbour(x_rand)
+        nearest_neighbour = self._distMetree.nearestNeighbour(x_rand)
         (result,x_new,u_new) = self.generateNewState(x_rand,nearest_neighbour)
         if result:
             u_inv = self.getInverseControl(u_new) 
             (bool1,bool2) = self.addEdge(x_new,nearest_neighbour,u_new,u_inv)
+            self._distMetree.addState(x_new)
             if (x_new == x_rand):
                 return Status.REACHED
             elif bool1 or bool2:
@@ -84,18 +86,6 @@ class RRT:
         (radius,theta,direction) = u_new
         directionDict = {'F':'R','FL':'RL','FR':'RR','RL':'FL','R':'F','RR':'FR'}
         return (radius,theta,directionDict[direction])
-
-    #def addNearestNeighboursOctnode(self,k_nn,k,octnode,push_point):
-    #    if not octnode.has_children:
-    #        k_nn += self.addBehindStates(push_point,octnode.vehicle_states)
-    #        return k_nn
-    #    else:
-    #       for child in octnode.children:
-    #           k_nn = self.addNearestNeighboursOctnode(k_nn,k,child,push_point)
-    #           if len(k_nn) >= k:
-    #               return k_nn
-    #       return k_nn
-
 
 
 
@@ -126,6 +116,7 @@ class RRT:
                 max_dist = dist
 
         return max_dist
+
 
 
     # searches the tree for the nearest node to x by some distance metric
