@@ -1,7 +1,7 @@
 import math
 from Vehicle import Vehicle
 class DistMetree:
-    def __init__(self,state : Vehicle ,parent ,max_dist_metric,delta_angle,max_size=8):
+    def __init__(self,state : Vehicle ,parent ,max_dist_metric,delta_angle,level,max_size=8):
         self._centreState = state
         self._max_distance_metric = max_dist_metric
         self._centre_angle = state.theta
@@ -11,9 +11,15 @@ class DistMetree:
         self._max_size = max_size
         self._has_children = False
         self._children : DistMetree = [] #list of DistMetrees
-        self._vehicle_states : Vehicle = [state] #list of vehicles
+        self._vehicle_states : Vehicle = [] #list of vehicles
         self._num_states = 0
         self._parent = parent
+        self._level = level
+
+
+    @property 
+    def has_children(self):
+        return self._has_children
 
     @property
     def num_states(self):
@@ -22,6 +28,10 @@ class DistMetree:
     @property
     def centreState(self):
         return self._centreState
+
+    @property
+    def vehicle_states(self):
+        return self._vehicle_states
 
 
     def nearestNeighbour(self,queryState):
@@ -37,7 +47,7 @@ class DistMetree:
                 raise Exception("Error in distmetree nn function")
             return nn
         else:
-            return self._children[self.findClosestChildIndex(queryState)].nearestNeighbour(queryState)
+            return self._children[self.closestChildWithStatesOrChildren(queryState)].nearestNeighbour(queryState)
 
     def stateWithinRadiusOfQuery(self,queryState,radius):
         if not self._has_children:
@@ -73,8 +83,21 @@ class DistMetree:
         self._has_children = True
         self._children = list([self.generateChildTree(index) for index in range(self._max_size)])
 
-
-
+    def closestChildWithStatesOrChildren(self,state:Vehicle):
+        shortest_dist = math.inf
+        closestChildIndex = -1
+        i = 0
+        for child in self._children:
+            if child.has_children or len(child.vehicle_states) > 0:
+                dist = state.DistanceMetric(child.centreState)
+                if dist < shortest_dist:
+                    shortest_dist = dist
+                    closestChildIndex = i
+            i+=1
+        if i == -1:
+            raise Exception("Error in dist metree find closest child with states or children")
+        return closestChildIndex
+    
     def findClosestChildIndex(self, state : Vehicle):
         shortest_dist = math.inf
         closestChildIndex = -1
@@ -93,14 +116,14 @@ class DistMetree:
         parentState = self.getParentState(index)
         new_delta_angle = self._delta_angle / 2.0
         new_max_dist_metric = (self._max_euclidean_dist / 2.0) + (1 - math.cos(math.radians(new_delta_angle)))
-        return DistMetree(parentState,self,new_max_dist_metric,new_delta_angle)
+        return DistMetree(parentState,self,new_max_dist_metric,new_delta_angle,self._level+1)
    
 
     def getParentState(self,i):
         half_dist = self._max_euclidean_dist/2.0
         half_delta_angle = self._delta_angle / 2.0
-        new_angle_1 = self._centre_angle - self._delta_angle
-        new_angle_2 = self._centre_angle + self._delta_angle
+        new_angle_1 = (self._centre_angle - self._delta_angle)%360
+        new_angle_2 = (self._centre_angle + self._delta_angle)%360
         if i == 0:
             return Vehicle(self.centreState.x+half_dist,self.centreState.y+half_dist,new_angle_1)
         elif i == 1:

@@ -97,8 +97,7 @@ for mm in mapNums:
     print("RRT growth complete")
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
-        if node == StartVehiclePos:
-            continue
+        print("Adding node (%.2f,%.2f,%.2f) to quadtree" % (node.x,node.y,node.theta))
         StartingQuadtree.addState(node)
 
     print("Quadtree grown to size = ",StartingQuadtree.num_states)

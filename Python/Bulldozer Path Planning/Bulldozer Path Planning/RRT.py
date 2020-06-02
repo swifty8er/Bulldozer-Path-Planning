@@ -33,8 +33,8 @@ class RRT:
         self._num_nodes = num_nodes
         self._quadtree = None
         self._cachedNearestNeighbours = {}
-        self._distMetree = DistMetree(self._map.getCentreState(),None,self.computeMaxDistanceMetricBetweenNodes(self._map.getCentreState()),180.0)
-    
+        self._distMetree = self.initialiseDistMetree()
+       
     @property
     def num_nodes(self):
         return self._num_nodes
@@ -46,6 +46,11 @@ class RRT:
     def setQuadtree(self,quadtree):
         self._quadtree = quadtree
     
+    def initialiseDistMetree(self):
+        dmt = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState())+1,180.0,0)
+        dmt.addState(self._start_position)
+        return dmt
+
     def initaliseTree(self,start_position):
         tree = {}
         tree[start_position] = {}

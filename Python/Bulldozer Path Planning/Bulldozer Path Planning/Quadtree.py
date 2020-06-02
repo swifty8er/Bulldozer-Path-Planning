@@ -78,7 +78,7 @@ class Quadtree:
         elif i == 3:
             return Vehicle(self.centreState.x-half_dist,self.centreState.y-half_dist,0)
         else:
-            raise Exception("Invalud index %d passed to get parent state" % (i))
+            raise Exception("Invalid index %d passed to get parent state" % (i))
 
     def addState(self,state : Vehicle):
         if self._has_children:

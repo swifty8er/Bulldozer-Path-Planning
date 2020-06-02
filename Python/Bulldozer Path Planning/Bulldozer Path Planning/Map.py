@@ -77,6 +77,9 @@ class Map:
     def initial_disk_pos_xy(self):
         return self._initial_disk_poses_xy
 
+    def getExtremeState(self):
+        return Vehicle(self._max_x,self._max_y,180.0)
+
 
     def getCentreState(self):
         return Vehicle((self._max_x-self._min_x)/2.0,(self._max_y-self._min_y)/2.0,0)
