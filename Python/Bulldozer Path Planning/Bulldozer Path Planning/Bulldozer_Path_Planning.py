@@ -95,6 +95,7 @@ for mm in mapNums:
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
     print("RRT growth complete")
+    StartingRRT.draw(ax1)
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
         print("Adding node (%.2f,%.2f,%.2f) to quadtree" % (node.x,node.y,node.theta))

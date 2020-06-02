@@ -420,7 +420,9 @@ class RRT:
                     else:
                         (x_points,y_points) = n1.getCircleArcPoints(edge,25)
                         ax.plot(x_points,y_points,'k-',linewidth=1)
-
+        plt.draw()
+        plt.pause(1)
+        plt.show(block=False)
 
 
 
