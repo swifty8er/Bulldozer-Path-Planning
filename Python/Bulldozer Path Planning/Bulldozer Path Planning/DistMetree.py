@@ -11,7 +11,7 @@ class DistMetree:
         self._max_size = max_size
         self._has_children = False
         self._children : DistMetree = [] #list of DistMetrees
-        self._vehicle_states : Vehicle = [] #list of vehicles
+        self._vehicle_states : Vehicle = [state] #list of vehicles
         self._num_states = 0
         self._parent = parent
 
