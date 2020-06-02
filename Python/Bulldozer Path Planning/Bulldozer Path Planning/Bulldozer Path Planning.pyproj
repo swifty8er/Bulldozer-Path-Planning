@@ -32,6 +32,9 @@
     </Compile>
     <Compile Include="complexCommandTest.py" />
     <Compile Include="depth_image_encoding.py" />
+    <Compile Include="DistMetree.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DrawRRT.py">
       <SubType>Code</SubType>
     </Compile>

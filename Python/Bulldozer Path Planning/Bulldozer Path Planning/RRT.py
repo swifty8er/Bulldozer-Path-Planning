@@ -6,6 +6,7 @@ from enum import Enum
 from Vehicle import Vehicle
 from BasicGeometry import BasicGeometry
 from BezierLib import BezierLib
+from DistMetree import DistMetree
 import random
 import math
 from matplotlib import pyplot as plt
@@ -32,6 +33,7 @@ class RRT:
         self._num_nodes = num_nodes
         self._quadtree = None
         self._cachedNearestNeighbours = {}
+        self._distMetree = DistMetree(self._map.getCentreState(),None,self.computeMaxDistanceMetricBetweenNodes(self._map.getCentreState()),180.0)
     
     @property
     def num_nodes(self):
