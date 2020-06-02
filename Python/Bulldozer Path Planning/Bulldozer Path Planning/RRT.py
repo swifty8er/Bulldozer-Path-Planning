@@ -307,7 +307,7 @@ class RRT:
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
-    def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=40):
+    def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=10):
         if push_point in self.tree: #if push point is already connected to tree, return true
             return True
         connected = False

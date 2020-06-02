@@ -145,8 +145,6 @@ class DistMetree:
             raise Exception("Invalid index %d passed to get parent state" % (i))
 
     def addState(self,state : Vehicle):
-        print("Adding state at level %d" % (self._level))
-        print("This level has children = %d and num vehicle states = %d" % (self._has_children,len(self._vehicle_states)))
         if self._has_children:
             self.addStateToChild(state)
         elif len(self._vehicle_states) >= self._max_size and self._level < self._max_depth:

@@ -129,7 +129,8 @@ for mm in mapNums:
                     pq.put(state)
 
     if curr_state.isFinishState() == True:
-        print("Solved, bezier smoothing path...")
+        initTime = (time.time() - start_time)/60.0
+        print("Solved in initial time %.2f minutes, bezier smoothing path..." % (initTime))
         curr_state.bezierSmoothSolutionPath(ax1)
         solveTime  = ( time.time() - start_time ) /60
         print("Done in minutes = ",solveTime)
@@ -137,7 +138,7 @@ for mm in mapNums:
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
         imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
-        file_out.write("Map %d solved in %.2f minutes \n" % (map.number,solveTime))
+        file_out.write("Map %d solved in %.2f minutes [A* search completed in %.2f minutes] \n" % (map.number,solveTime,initTime))
     else:
         print("Failed")
 file_out.close()
