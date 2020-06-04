@@ -69,7 +69,7 @@ file_out = open("TimingData/Results.txt",'w')
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [3,6,1,4,5,2]
+mapNums = [1,2,3,4,5,6]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -117,8 +117,8 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         if not curr_state.connectToPreviousPose(ax1):
-            #if curr_state.growRRTAndConnectToPushPoint() and not curr_state.connectToPreviousPose(ax1):
-            continue
+            if curr_state.growRRTAndConnectToPushPoint() and not curr_state.connectToPreviousPose(ax1):
+                continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:

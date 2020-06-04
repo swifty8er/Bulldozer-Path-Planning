@@ -69,6 +69,23 @@ class RRT:
         new_theta = random.uniform(0,360)
         return Vehicle(new_x,new_y,new_theta)
 
+    def extendSubtree(self,subtree,distmetree,x_rand,curr_disk_positions):
+        nn = distmetree.nearestNeighbour(x_rand)
+        (result,x_new,u_new) = self.generateNewState(x_rand,nn,curr_disk_positions)
+        if result:
+            u_inv = self.getInverseControl(u_new)
+            if x_new not in subtree:
+                subtree[x_new] = {}
+            subtree[x_new][nn] = u_inv
+            if nn not in subtree:
+                subtree[nn] = {}
+            subtree[nn][x_new] = u_new
+
+            distmetree.addState(x_new)
+            return x_new
+        else:
+            return False
+
     def extend(self,x_rand):
         #nearest_neighbour = self.nearestNeighbour(x_rand)
         nearest_neighbour = self._distMetree.nearestNeighbour(x_rand)
@@ -213,7 +230,7 @@ class RRT:
             return (radius,newTheta,direction)
 
     # generates a new state from x near in the direction towards x using the available controls
-    def generateNewState(self,x,x_near):
+    def generateNewState(self,x,x_near,curr_disk_positions=False):
         min_dist = math.inf
         x_new = None
         u_new = None
@@ -224,12 +241,13 @@ class RRT:
             else:
                 newControl = control
             if (not self.isCollision(x_near,newControl)):
-                x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
-                dist = x.DistanceMetric(x_test,1)
-                if dist < min_dist: 
-                    min_dist = dist
-                    x_new = x_test
-                    u_new = newControl
+                if not curr_disk_positions or not self.edgeCollidesWithDirtPile(x_near,x_new,newControl,curr_disk_positions):
+                    x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
+                    dist = x.DistanceMetric(x_test,1)
+                    if dist < min_dist: 
+                        min_dist = dist
+                        x_new = x_test
+                        u_new = newControl
 
         if (x_new == None):
             return (False,Vehicle(0,0,0),(0,0,0)) #dummy second and third values
@@ -292,14 +310,16 @@ class RRT:
 
     def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions):
         subRRT = self.initaliseTree(starting_pose)
+        tempDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
+        tempDistmetree.addState(starting_pose)
         for i in range(700):
             if i % 2 == 0:
                 rand_pose = push_point
             else:
                 rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
 
-            new_pose = self.extendSubtree(subRRT,rand_pose,curr_disk_positions)
-            if self.attemptBezierConnection(new_pose,push_point,curr_disk_positions):
+            new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
+            if new_pose != False and self.attemptBezierConnection(new_pose,push_point,curr_disk_positions):
                 self.addSubRRTToTree(subRRT)
                 return True
         return False
