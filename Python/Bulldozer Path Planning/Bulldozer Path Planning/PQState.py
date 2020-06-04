@@ -186,7 +186,7 @@ class PQState:
 
     def growRRTAndConnectToPushPoint(self,axis=False):
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(self._previous_pose,push_point,self._curr_disk_positions)
+        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(self._previous_pose,push_point,self._curr_disk_positions,axis)
 
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:

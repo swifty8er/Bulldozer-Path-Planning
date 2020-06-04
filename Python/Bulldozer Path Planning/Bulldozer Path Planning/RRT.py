@@ -56,6 +56,19 @@ class RRT:
         tree[start_position] = {}
         return tree
 
+    def generateRandomStateNonCollidingWithDisk(self,curr_disk_positions):
+        randState = self.genRandState()
+        while (self.testStateCollision(randState) or self.testDiskCollision(randState,curr_disk_positions)):
+            randState = self.genRandState()
+        return randState
+
+    def testDiskCollision(self,state,curr_disk_positions):
+        point = (state.x,state.y)
+        for disk_pos in curr_disk_positions:
+            if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                return True
+        return False
+
     def generateRandomState(self):
         randState = self.genRandState()
         while (self.testStateCollision(randState)):
@@ -241,9 +254,9 @@ class RRT:
             else:
                 newControl = control
             if (not self.isCollision(x_near,newControl)):
-                if not curr_disk_positions or not self.edgeCollidesWithDirtPile(x_near,x_new,newControl,curr_disk_positions):
-                    x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
-                    dist = x.DistanceMetric(x_test,1)
+                x_test = x_near.applyControl(newControl[0],newControl[1],newControl[2])
+                if not curr_disk_positions or not self.edgeCollidesWithDirtPile(x_near,x_test,newControl,curr_disk_positions):
+                    dist = x.DistanceMetric(x_test)
                     if dist < min_dist: 
                         min_dist = dist
                         x_new = x_test
@@ -295,6 +308,21 @@ class RRT:
         return (bool1,bool2)
 
 
+    def testBezierCurve(self,bezierCurve,curr_disk_positions):
+        s = 0.0
+        edges = self._map.getMapEdgesAndObstacles()
+        while s <= 1.0:
+            point_list = bezierCurve.evaluate(s).tolist()
+            point = [i[0] for i in point_list]
+            for edge in edges:
+                if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
+                    return False
+            for disk_pos in curr_disk_positions:
+                if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                    return False
+            s += 0.01
+        return True
+
     def bezierEdgeObstaclesCollision(self,bezierCurve):
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
@@ -308,7 +336,7 @@ class RRT:
 
         return False
 
-    def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions):
+    def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions,ax=False):
         subRRT = self.initaliseTree(starting_pose)
         tempDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
         tempDistmetree.addState(starting_pose)
@@ -319,10 +347,30 @@ class RRT:
                 rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
 
             new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
-            if new_pose != False and self.attemptBezierConnection(new_pose,push_point,curr_disk_positions):
+            if new_pose != False and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
+                self.drawSubtree(subRRT,ax)
                 self.addSubRRTToTree(subRRT)
                 return True
         return False
+
+
+    def addSubRRTToTree(self,subRRT):
+        for n1 in subRRT:
+            for n2 in subRRT[n1]:
+                self.addEdge(n1,n2,subRRT[n2][n1],subRRT[n1][n2])
+
+
+
+    def attemptBezierConnection(self,subRRT,pose1,pose2,disk_positions):
+        bezier_curve = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(pose1,pose2)
+        if bezier_curve != False:
+            if self.testBezierCurve(bezier_curve,disk_positions):
+                subRRT[pose1][pose2] = (bezier_curve,"F")
+                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
+                return True
+        return False
+
+
 
 
 
@@ -423,6 +471,28 @@ class RRT:
         else:
             print("Edge from (%.2f,%.2f,%.2f) to (%.2f,%.2f,%.2f) does not exist" % (n1.x,n1.y,n1.theta,n2.x,n2.y,n2.theta))
 
+
+    def drawSubtree(self,subtree,ax):
+        if ax!= False:
+            for n1 in subtree:
+                for n2 in subtree[n1]:
+                    edge = subtree[n1][n2]
+                    if isinstance(edge[0],bezier.curve.Curve):
+                        edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
+                    else:
+                        try:
+                            (radius,theta,direction) = edge
+                        except:
+                            raise Exception("Invalid subtree edge found")
+                        if direction == 'F' or direction == 'R':
+                            ax.plot([n1.x,n2.x],[n1.y,n2.y],'k-',linewidth=1)
+                        else:
+                            (x_points,y_points) = n1.getCircleArcPoints(edge,25)
+                            ax.plot(x_points,y_points,'k-',linewidth=1)
+            plt.draw()
+            plt.pause(1)
+            plt.show(block=False)
+            time.sleep(15)
 
     def draw(self,ax):
         for n1 in self.tree.keys():
