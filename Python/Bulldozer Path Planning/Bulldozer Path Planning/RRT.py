@@ -348,9 +348,12 @@ class RRT:
 
             new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
             if new_pose != False and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
+                print("SubRRT success!")
                 self.drawSubtree(subRRT,ax)
                 self.addSubRRTToTree(subRRT)
                 return True
+        print("SubRRT failure :(")
+        self.drawSubtree(subRRT,ax)
         return False
 
 
@@ -365,7 +368,11 @@ class RRT:
         bezier_curve = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(pose1,pose2)
         if bezier_curve != False:
             if self.testBezierCurve(bezier_curve,disk_positions):
+                if pose1 not in subRRT:
+                    subRRT[pose1] = {}
                 subRRT[pose1][pose2] = (bezier_curve,"F")
+                if pose2 not in subRRT:
+                    subRRT[pose2] = {}
                 subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
                 return True
         return False
