@@ -131,7 +131,7 @@ for mm in mapNums:
     if curr_state.isFinishState() == True:
         initTime = (time.time() - start_time)/60.0
         print("Solved in initial time %.2f minutes, bezier smoothing path..." % (initTime))
-        curr_state.bezierSmoothSolutionPath(ax1)
+        #curr_state.bezierSmoothSolutionPath(ax1)
         solveTime  = ( time.time() - start_time ) /60
         print("Done in minutes = ",solveTime)
         #Save results as a gif

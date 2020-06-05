@@ -59,6 +59,8 @@ class Pushing:
                 return True
             if BasicGeometry.circleArcIntersectsLine(disk_pos,map.disk_radius,edge):
                 return True
+            if map.disk_radius - BasicGeometry.point2LineDist(edge,disk_pos) > np.finfo(np.float32).eps:
+                return True
         return False
 
 
