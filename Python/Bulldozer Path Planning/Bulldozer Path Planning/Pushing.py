@@ -75,14 +75,14 @@ class Pushing:
     @staticmethod
     def getPushPointsFromHeatmap(disk_pos,map,curr_heading=-1):
         push_points = []
-        dx = round(disk_pos[0]%0.05,2)
-        if dx > 0.02:
-            x = disk_pos[0] + (0.05-dx)
+        dx = round(disk_pos[0]%0.1,2)
+        if dx > 0.05:
+            x = disk_pos[0] + (0.1-dx)
         else:
             x = disk_pos[0] + dx
-        dy = round(disk_pos[1]%0.05,2)
-        if dy > 0.02:
-            y = disk_pos[1] + (0.05-dy)
+        dy = round(disk_pos[1]%0.1,2)
+        if dy > 0.05:
+            y = disk_pos[1] + (0.1-dy)
         else:
             y = disk_pos[1] + dy
         new_point = (x,y)

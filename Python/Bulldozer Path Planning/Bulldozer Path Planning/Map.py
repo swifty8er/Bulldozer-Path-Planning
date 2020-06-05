@@ -82,6 +82,7 @@ class Map:
 
 
     def createPushingHeatmap(self):
+        print("Creating pushing heatmap...")
         heatmap = {}
         x = self._min_x
         while x <= self._max_x:
@@ -89,14 +90,15 @@ class Map:
             while y <= self._max_y:
                 point = (x,y)
                 heatmap[point] = []
-                for angle in range(0,362,2):
+                for angle in range(0,362,4):
                     second_point = (x+self._disk_radius*2*math.cos(math.radians(angle)),y+self._disk_radius*2*math.sin(math.radians(angle)))
                     line = [point,second_point]
                     if not self.lineIntersectsObstacle(line):
                         heatmap[point].append((angle+180)%360)
-                y += 0.05
+                y += 0.1
 
-            x += 0.05
+            x += 0.1
+        print("Done!")
         return heatmap
 
 
