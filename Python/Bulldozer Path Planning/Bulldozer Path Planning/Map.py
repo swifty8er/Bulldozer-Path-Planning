@@ -88,7 +88,7 @@ class Map:
         while x <= self._max_x:
             y = self._min_y
             while y <= self._max_y:
-                point = (x,y)
+                point = (round(x,1),round(y,1))
                 heatmap[point] = []
                 for angle in range(0,362,4):
                     second_point = (x+self._disk_radius*2*math.cos(math.radians(angle)),y+self._disk_radius*2*math.sin(math.radians(angle)))

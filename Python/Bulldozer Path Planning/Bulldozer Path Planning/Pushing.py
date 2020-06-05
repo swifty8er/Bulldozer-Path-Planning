@@ -73,7 +73,7 @@ class Pushing:
 
 
     @staticmethod
-    def getPushPointsFromHeatmap(disk_pos,map,curr_heading=-1):
+    def getPushPointsFromHeatmap(disk_pos,closest_goal,map,curr_heading=-1):
         push_points = []
         dx = round(disk_pos[0]%0.1,2)
         if dx > 0.05:
@@ -99,8 +99,14 @@ class Pushing:
             beta = (alpha+180)%360
             push_point = (disk_pos[0]+2*map.disk_radius*math.cos(math.radians(beta)),disk_pos[1]+2*map.disk_radius*math.sin(math.radians(beta)))
             push_pose = Vehicle(push_point[0],push_point[1],alpha)
-            push_point.append(push_pose)
+            push_points.append(push_pose)
             alpha += delta_angle
+        
+        continuousPushAngle = Pushing.getContinuousPushAngle(disk_pos,closest_goal)
+        angle = (continiousPushAngle+180)%360
+        contVeh = Vehicle(disk_pos[0]+2*map.disk_radius*math.cos(math.radians(angle)),disk_pos[1]+2*map.disk_radius*math.sin(math.radians(angle)),continuousPushAngle)
+        push_points.append(contVeh)
+        return push_points
 
     # Find the push points for the vehicle to push the given disk with its boundary
     @staticmethod
