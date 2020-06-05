@@ -347,7 +347,7 @@ class RRT:
                 rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
 
             new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
-            if new_pose != False and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
+            if new_pose != False and push_point.isAheadOf(new_pose) and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
                 print("SubRRT success!")
                 self.drawSubtree(subRRT,ax)
                 self.addSubRRTToTree(subRRT)
@@ -365,7 +365,7 @@ class RRT:
 
 
     def attemptBezierConnection(self,subRRT,pose1,pose2,disk_positions):
-        bezier_curve = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(pose1,pose2)
+        bezier_curve = BezierLib.createBezierCurveBetweenTwoVehicle(pose1,pose2,self._map,disk_positions)
         if bezier_curve != False:
             if self.testBezierCurve(bezier_curve,disk_positions):
                 if pose1 not in subRRT:
@@ -485,7 +485,7 @@ class RRT:
                 for n2 in subtree[n1]:
                     edge = subtree[n1][n2]
                     if isinstance(edge[0],bezier.curve.Curve):
-                        edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
+                        edge[0].plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
                     else:
                         try:
                             (radius,theta,direction) = edge
@@ -506,7 +506,7 @@ class RRT:
             for n2 in self.tree[n1].keys():
                 edge = self.tree[n1][n2]
                 if isinstance(edge[0],bezier.curve.Curve):
-                    edge.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
+                    edge[0].plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=ax)
                 else:
                     try:
                         (radius,theta,direction) = edge

@@ -97,7 +97,7 @@ class BezierLib():
     @staticmethod
     def createBezierCurveBetweenTwoVehicle(v1,v2,map,curr_disk_positions):
         distance = v1.EuclideanDistance(v2)
-        r = distance / 4.0
+        r = distance / 5.0
         x_points = [v1.x,v1.x+r*math.cos(math.radians(v1.theta)),v2.x-r*math.cos(math.radians(v2.theta)),v2.x]
         y_points = [v1.y,v1.y+r*math.sin(math.radians(v1.theta)),v2.y-r*math.sin(math.radians(v2.theta)),v2.y]
         nodes = np.asfortranarray([x_points,y_points])
