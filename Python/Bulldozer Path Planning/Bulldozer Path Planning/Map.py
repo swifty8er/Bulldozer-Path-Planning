@@ -22,8 +22,11 @@ class Map:
         self._goal_poses_xy = goalpos
         self._initial_vehicle_pos_xy = vehpos
         self._initial_disk_poses_xy = diskpos
-        #for i in range(len(self._nodes)):
-        #    print(self._nodes[i])
+        self._pushingHeatmap = self.createPushingHeatmap()
+
+    @property 
+    def pushing_heatmap(self):
+        return self._pushingHeatmap
 
     @property
     def number(self):
@@ -76,6 +79,33 @@ class Map:
     @property
     def initial_disk_pos_xy(self):
         return self._initial_disk_poses_xy
+
+
+    def createPushingHeatmap(self):
+        heatmap = {}
+        x = self._min_x
+        while x <= self._max_x:
+            y = self._min_y
+            while y <= self._max_y:
+                point = (x,y)
+                heatmap[point] = []
+                for angle in range(0,362,2):
+                    second_point = (x+self._disk_radius*2*math.cos(math.radians(angle)),y+self._disk_radius*2*math.sin(math.radians(angle)))
+                    line = [point,second_point]
+                    if not self.lineIntersectsObstacle(line):
+                        heatmap[point].append((angle+180)%360)
+                y += 0.05
+
+            x += 0.05
+        return heatmap
+
+
+    def lineIntersectsObstacle(self,line):
+        edges = self.getMapEdgesAndObstacles()
+        for edge in edges:
+            if BasicGeometry.doLinesIntersect(line,edge):
+                return True
+        return False
 
     def getExtremeState(self):
         return Vehicle(self._max_x,self._max_y,180.0)

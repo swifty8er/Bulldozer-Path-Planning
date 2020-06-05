@@ -1,5 +1,6 @@
 import math
 import random
+import numpy as np
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
 
@@ -69,6 +70,37 @@ class Pushing:
         v = BasicGeometry.vec_from_points(closest_goal,curr_disk_pos)
         phi = BasicGeometry.vector_angle(v)
         return (math.degrees(phi)-180)%360
+
+
+    @staticmethod
+    def getPushPointsFromHeatmap(disk_pos,map,curr_heading=-1):
+        push_points = []
+        dx = round(disk_pos[0]%0.05,2)
+        if dx > 0.02:
+            x = disk_pos[0] + (0.05-dx)
+        else:
+            x = disk_pos[0] + dx
+        dy = round(disk_pos[1]%0.05,2)
+        if dy > 0.02:
+            y = disk_pos[1] + (0.05-dy)
+        else:
+            y = disk_pos[1] + dy
+        new_point = (x,y)
+        push_angles = map.pushing_heatmap[new_point]
+        min_angle = min(push_angles) + 2
+        max_angle = max(push_angles) - 2
+        delta_angle = (max_angle - min_angle) / 7.0
+        alpha = min_angle
+        while alpha <= max_angle:
+            if round(alpha,0) == curr_heading:
+                alpha += delta_angle
+                continue
+
+            beta = (alpha+180)%360
+            push_point = (disk_pos[0]+2*map.disk_radius*math.cos(math.radians(beta)),disk_pos[1]+2*map.disk_radius*math.sin(math.radians(beta)))
+            push_pose = Vehicle(push_point[0],push_point[1],alpha)
+            push_point.append(push_pose)
+            alpha += delta_angle
 
     # Find the push points for the vehicle to push the given disk with its boundary
     @staticmethod

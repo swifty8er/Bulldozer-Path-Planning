@@ -373,7 +373,7 @@ class PQState:
                     resultingStates.append(pushedState)
            
                 # next consider navigating to a different push point on the current disk
-                new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,closest_goal,self._vehicle_pose.theta)
+                new_push_points = Pushing.getPushPointsFromHeatmap(curr_disk_pos,self._map,self._vehicle_pose.theta)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
@@ -394,7 +394,7 @@ class PQState:
                     continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i,axis)
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
-                new_push_points = Pushing.getPushPoints(curr_disk_pos,self._map.disk_radius,closest_goal)
+                new_push_points = Pushing.getPushPointsFromHeatmap(curr_disk_pos,self._map,self._vehicle_pose.theta)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
                         pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
