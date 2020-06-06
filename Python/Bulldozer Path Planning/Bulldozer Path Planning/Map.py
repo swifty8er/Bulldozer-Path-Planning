@@ -91,7 +91,7 @@ class Map:
                 point = (round(x,1),round(y,1))
                 heatmap[point] = []
                 for angle in range(0,362,4):
-                    second_point = (x+self._disk_radius*2*math.cos(math.radians(angle)),y+self._disk_radius*2*math.sin(math.radians(angle)))
+                    second_point = (x+self._disk_radius*3*math.cos(math.radians(angle)),y+self._disk_radius*3*math.sin(math.radians(angle)))
                     line = [point,second_point]
                     if not self.lineIntersectsObstacle(line):
                         heatmap[point].append((angle+180)%360)
