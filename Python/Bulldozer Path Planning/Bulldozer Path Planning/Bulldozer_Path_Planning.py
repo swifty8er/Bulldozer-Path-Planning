@@ -117,8 +117,8 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         if not curr_state.connectToPreviousPose(ax1):
-            if curr_state.growRRTAndConnectToPushPoint(ax1) and not curr_state.connectToPreviousPose(ax1):
-                continue
+            #if curr_state.growRRTAndConnectToPushPoint(ax1) and not curr_state.connectToPreviousPose(ax1):
+            continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
