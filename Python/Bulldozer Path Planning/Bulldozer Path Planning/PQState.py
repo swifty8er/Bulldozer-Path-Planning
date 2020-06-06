@@ -404,7 +404,7 @@ class PQState:
         return resultingStates
 
 
-    def generatePosesAlongEdge(self,n1,n2,num_steps=20):
+    def generatePosesAlongEdge(self,n1,n2,num_steps=12):
         poses = [n1]
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:
@@ -420,15 +420,15 @@ class PQState:
                                 heading = n1.theta
                             else:
                                 if direction == "F":
-                                    next_list = bezierEdge.evaluate(s+0.025).tolist()
+                                    next_list = bezierEdge.evaluate(s+0.04).tolist()
                                 else:
-                                    next_list = bezierEdge.evaluate(s-0.025).tolist()
+                                    next_list = bezierEdge.evaluate(s-0.04).tolist()
                                 real_next = [next_list[0][0],next_list[1][0]]
                                 heading = math.degrees(BasicGeometry.vector_angle(BasicGeometry.vec_from_points(real_point,real_next)))
                             
                             newPose = Vehicle(real_point[0],real_point[1],heading)
                             poses.append(newPose)
-                            s+=0.025
+                            s+=0.04
                         
                     else:
                         (radius,theta,direction) = edge
@@ -493,7 +493,7 @@ class PQState:
                         newtp = (tp[0]*2,tp[1]*2)
                         image  = image.reshape(newtp + (3,))
                         if i == len(self._vehicle_path)-1 and k == len(edge_path) - 1:
-                            for t in range(175):
+                            for t in range(100):
                                 solution_images.append(image)
                         else:
                             solution_images.append(image)
