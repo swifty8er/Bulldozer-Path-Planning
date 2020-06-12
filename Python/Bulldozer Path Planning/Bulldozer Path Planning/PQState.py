@@ -321,7 +321,7 @@ class PQState:
         (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
         if not found:
             return False # do not push disk out of goal
-        (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,self._map)
+        (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,disk_being_pushed,self._map)
         if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
@@ -350,7 +350,7 @@ class PQState:
         phi = BasicGeometry.vector_angle(v)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
-            (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,self._map)
+            (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,disk_being_pushed,self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
                 distance = push_point.EuclideanDistance(new_vehicle_pose)
