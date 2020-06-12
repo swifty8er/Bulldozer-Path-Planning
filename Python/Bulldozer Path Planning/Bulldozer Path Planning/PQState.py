@@ -228,7 +228,19 @@ class PQState:
 
 
     def rewireRRT(self,candidates,ax=False):
+        process_cand = []
         for candidate in candidates:
+            too_close = False
+            for c in process_cand:
+                if candidate.EuclideanDistance(c) < 0.075:
+                    too_close = True
+                    break
+
+            if too_close:
+                continue
+            process_cand.append(candidate)
+        print("After post processing there are %d re-wiring candidates" % len(process_cand))
+        for candidate in process_cand:
             self._RRT.rewireNode(candidate,self._curr_disk_positions,ax)
 
     def getEdgeLength(self,n1,n2):
@@ -278,7 +290,7 @@ class PQState:
             self._RRT.drawEdge(curr_node,next_node,ax,'k-')
 
         plt.draw()
-        plt.pause(5)
+        plt.pause(1)
         plt.show(block=False)
 
     def drawVehiclePose(self,axis):
@@ -309,7 +321,7 @@ class PQState:
         (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
         if not found:
             return False # do not push disk out of goal
-        (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._map)
+        (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,self._map)
         if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
@@ -338,7 +350,7 @@ class PQState:
         phi = BasicGeometry.vector_angle(v)
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
-            (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._map)
+            (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
                 distance = push_point.EuclideanDistance(new_vehicle_pose)

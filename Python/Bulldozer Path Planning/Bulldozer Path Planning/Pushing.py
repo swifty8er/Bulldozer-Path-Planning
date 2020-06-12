@@ -7,16 +7,16 @@ from Vehicle import Vehicle
 class Pushing:
 
     @staticmethod
-    def continuousPushDistance(push_point,curr_disk_pos,distance,map):
+    def continuousPushDistance(push_point,curr_disk_pos,distance,curr_disk_positions,map):
         new_disk_pos = (curr_disk_pos[0]+distance*math.cos(math.radians(push_point.theta)),curr_disk_pos[1]+distance*math.sin(math.radians(push_point.theta)))
-        if not Pushing.pushingCollision(push_point,new_disk_pos,map):
+        if not Pushing.pushingCollision(push_point,new_disk_pos,curr_disk_positions,map):
             new_vehicle_pose = Vehicle(push_point.x+distance*math.cos(math.radians(push_point.theta)),push_point.y+distance*math.sin(math.radians(push_point.theta)),push_point.theta)
             return (new_disk_pos,new_vehicle_pose)
         else:
             return (curr_disk_pos,push_point)
 
     @staticmethod
-    def pushDisk(push_point,curr_disk_pos,closestGoal,map,max_distance=(0.4*math.pi)/4.0,num_steps=50):
+    def pushDisk(push_point,curr_disk_pos,closestGoal,curr_disk_positions,map,max_distance=(0.4*math.pi)/4.0,num_steps=50):
         bestPush = None
         min_dist = math.inf
         found = False
@@ -27,7 +27,7 @@ class Pushing:
             for i in range(num_steps):
                 new_disk_pos = (curr_disk_pos[0]+r*math.cos(math.radians(push_point.theta)),curr_disk_pos[1]+r*math.sin(math.radians(push_point.theta)))
                 dist = BasicGeometry.manhattanDistance(new_disk_pos,closestGoal)
-                if dist < min_dist and not Pushing.pushingCollision(push_point,new_disk_pos,map):
+                if dist < min_dist and not Pushing.pushingCollision(push_point,new_disk_pos,curr_disk_positions,map):
                     min_dist = dist
                     new_vehicle_pose = Vehicle(push_point.x+r*math.cos(math.radians(push_point.theta)),push_point.y+r*math.sin(math.radians(push_point.theta)),push_point.theta)
                     bestPush = (new_disk_pos,new_vehicle_pose)
@@ -36,7 +36,7 @@ class Pushing:
             r = max_distance
             new_disk_pos = (curr_disk_pos[0]+r*math.cos(math.radians(push_point.theta)),curr_disk_pos[1]+r*math.sin(math.radians(push_point.theta)))
             dist = BasicGeometry.manhattanDistance(new_disk_pos,closestGoal)
-            if not Pushing.pushingCollision(push_point,new_disk_pos,map):
+            if not Pushing.pushingCollision(push_point,new_disk_pos,curr_disk_positions,map):
                 new_vehicle_pose = Vehicle(push_point.x+r*math.cos(math.radians(push_point.theta)),push_point.y+r*math.sin(math.radians(push_point.theta)),push_point.theta)
                 bestPush = (new_disk_pos,new_vehicle_pose)
                 found = True
@@ -52,7 +52,7 @@ class Pushing:
 
 
     @staticmethod
-    def pushingCollision(push_point,disk_pos,map):
+    def pushingCollision(push_point,disk_pos,curr_disk_positions,map):
         edges =  map.getMapEdgesAndObstacles()
         newLine = [[push_point.x,push_point.y],[disk_pos[0],disk_pos[1]]]
         for edge in edges:
@@ -61,6 +61,11 @@ class Pushing:
             if BasicGeometry.circleArcIntersectsLine(disk_pos,map.disk_radius,edge):
                 return True
             if map.disk_radius - BasicGeometry.point2LineDist(edge,disk_pos) > np.finfo(np.float32).eps:
+                return True
+        for curr_pos in curr_disk_positions:
+            if (curr_pos[0] == disk_pos[0]) and (curr_pos[1] == disk_pos[1]):
+                continue
+            if 2*map.disk_radius - BasicGeometry.ptDist(curr_pos,disk_pos) > np.finfo(np.float32).eps:
                 return True
         return False
 

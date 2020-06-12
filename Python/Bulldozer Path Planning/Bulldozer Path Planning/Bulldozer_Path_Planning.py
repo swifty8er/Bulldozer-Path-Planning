@@ -118,8 +118,9 @@ for mm in mapNums:
         plt.show(block=False)
         (connected, rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
         i = 0
-        while not connected and i < 10:
-            curr_state.rewireRRT(rewiring_candidates,ax1)
+        while not connected and i < 4:
+            print("A* search failed, found %d re-wiring candidates, i = %d" % (len(rewiring_candidates),i))
+            curr_state.rewireRRT(rewiring_candidates)
             (connected,rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
             i+=1
 
