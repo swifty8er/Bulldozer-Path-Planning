@@ -227,6 +227,10 @@ class PQState:
         return (False,rewiring_candidates)
 
 
+    def rewireRRT(self,candidates,ax=False):
+        for candidate in candidates:
+            self._RRT.rewireNode(candidate,self._curr_disk_positions,ax)
+
     def getEdgeLength(self,n1,n2):
         if n1 in self._RRT.tree:
             if n2 in self._RRT.tree[n1]:

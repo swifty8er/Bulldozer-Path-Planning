@@ -69,7 +69,7 @@ file_out = open("TimingData/Results.txt",'w')
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [1,2,4,5]
+mapNums = [7]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -117,10 +117,12 @@ for mm in mapNums:
         plt.pause(0.01)
         plt.show(block=False)
         (connected, rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
-        if not connected:
-            print("Failed to connect using A* search, found %d re-wiring candidates" % len(rewiring_candidates))
-            #if curr_state.growRRTAndConnectToPushPoint(ax1) and not curr_state.connectToPreviousPose(ax1):
-            continue
+        i = 0
+        while not connected and i < 10:
+            curr_state.rewireRRT(rewiring_candidates,ax1)
+            (connected,rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
+            i+=1
+
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:

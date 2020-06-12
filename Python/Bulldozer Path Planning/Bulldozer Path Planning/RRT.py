@@ -380,6 +380,27 @@ class RRT:
 
 
 
+    def rewireNode(self,node,curr_disk_positions,ax=False):
+        nearest_neighbours = self._quadtree.radialNearestNeighbours(node,1.0,[])
+        for nn in nearest_neighbours:
+            if node.isAheadOf(nn):
+                beizer_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
+            else:
+                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(node,nn)
+            if bezier_new != False:
+                if isinstance(bezier_new,bezier.curve.Curve):
+                    if not self.bezierEdgeObstaclesCollision(bezier_new) and not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
+                        self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
+                        if axis!=False:
+                            bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
+                            plt.draw()
+                            plt.pause(0.1)
+                            plt.show(block=False)
+                else:
+                    if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
+                        self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
+                       
+
 
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
@@ -404,7 +425,7 @@ class RRT:
                 bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
                 if bezier_new != False:
                     if isinstance(bezier_new,bezier.curve.Curve):
-                        if not self.bezierEdgeObstaclesCollision(bezier_new):
+                        if not self.bezierEdgeObstaclesCollision(bezier_new) and not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
                             self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
                             if axis!=False:
                                 bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
