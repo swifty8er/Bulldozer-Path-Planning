@@ -79,7 +79,7 @@ class Pushing:
 
 
     @staticmethod
-    def getPushPointsFromHeatmap(disk_pos,closest_goal,map,curr_heading=-1):
+    def getPushPointsFromHeatmap(disk_pos,closest_goal,curr_disk_positions,disk_being_pushed,map,curr_heading=-1):
         push_points = []
         new_point = (round(disk_pos[0],1),round(disk_pos[1],1))
         push_angles = map.pushing_heatmap[new_point]
@@ -94,8 +94,17 @@ class Pushing:
 
             beta = (alpha+180)%360
             push_point = (disk_pos[0]+2*map.disk_radius*math.cos(math.radians(beta)),disk_pos[1]+2*map.disk_radius*math.sin(math.radians(beta)))
-            push_pose = Vehicle(push_point[0],push_point[1],alpha)
-            push_points.append(push_pose)
+            collisionWithDisk = False
+            for i in range(len(curr_disk_positions)):
+                if i == disk_being_pushed:
+                    continue
+                curr_pos = curr_disk_positions[i]
+                if 2*map.disk_radius - BasicGeometry.ptDist(curr_pos,push_point) > np.finfo(np.float32).eps:
+                    collisionWithDisk = True
+                    break
+            if not collisionWithDisk:
+                push_pose = Vehicle(push_point[0],push_point[1],alpha)
+                push_points.append(push_pose)
             alpha += delta_angle
         
         continuousPushAngle = Pushing.getContinuousPushAngle(disk_pos,closest_goal)
