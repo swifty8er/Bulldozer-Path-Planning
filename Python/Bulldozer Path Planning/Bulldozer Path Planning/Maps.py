@@ -49,7 +49,7 @@ class Maps:
 
 
     def __init__(self):
-        raw_mb = open("C:/Users/User/Documents/Bulldozer Path Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Microban Levels.txt", "r")
+        raw_mb = open("C:/Users/mswift/Documents/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/Microban Levels.txt", "r")
         self._test_maps = []
         if raw_mb.readable():
             curr_max_str_len = 0

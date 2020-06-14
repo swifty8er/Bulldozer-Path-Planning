@@ -19,9 +19,12 @@ class MapState():
     def _findNodes(map):
         #set up the nodes in the map
         nodes = []
-        for i in range(map._max_y-map._min_y):
-            for j in range(map._max_x-map._min_x):
-                new_node = [map._min_x+0.5 + j*map._grid_size, map._min_y+0.5 + i*map._grid_size]
+        
+        currXPos = map.min_x + map.disk_radius + 0.05
+        currYPos = map.min_y + map.disk_radius + 0.05
+        while currYPos < map.max_y - map.disk_radius + 0.051:
+            while currXPos < map.max_x - map.disk_radius + 0.051:
+                new_node = np.array([currXPos, currYPos])
                 #remove any outbounds points
                 boundary = path.Path(map._boundary)
                 if (boundary.contains_point(new_node) == True):
@@ -36,6 +39,10 @@ class MapState():
                             nodes.append(new_node)
                     else:
                         nodes.append(new_node)
+                currXPos += 2*(map.disk_radius + 0.05)
+            currYPos += 2*(map.disk_radius + 0.05)
+            currXPos = map.min_x + map.disk_radius + 0.05
+        
 
         #find the indexes of the nodes that hold a vehicle, disk or goal
         for i in range(len(map._initial_vehicle_pos_xy)):
