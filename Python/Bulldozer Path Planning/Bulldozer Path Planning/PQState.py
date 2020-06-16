@@ -56,7 +56,7 @@ class PQState:
     def __hash__(self):
         h = 0
         for pos in self._curr_disk_positions:
-            t = (pos[0],pos[1])
+            t = (round(pos[0],1),round(pos[1],1))
             h = h^hash(t)
         return h
 
@@ -77,7 +77,7 @@ class PQState:
                 if found:
                     index = self._map.goal_pos_xy.index(closestGoal)
                     reached[index] = True
-                    h += BasicGeometry.ptDist(disk,closestGoal)
+                    h += math.sqrt(BasicGeometry.ptDist(disk,closestGoal))
         return h
 
 
@@ -239,9 +239,20 @@ class PQState:
             if too_close:
                 continue
             process_cand.append(candidate)
+            process_cand += self.addOtherCollidingNeighbours(candidate)
         print("After post processing there are %d re-wiring candidates" % len(process_cand))
         for candidate in process_cand:
             self._RRT.rewireNode(candidate,self._curr_disk_positions,ax)
+
+
+    def addOtherCollidingNeighbours(self,candidate):
+        otherColliding = []
+        for node in self._RRT.tree[candidate]:
+            for nn in self._RRT.tree[node]:
+                if self._RRT.edgeCollidesWithDirtPile(node,nn,self._RRT.tree[node][nn],self._curr_disk_positions):
+                    otherColliding.append(node)
+        return otherColliding
+          
 
     def getEdgeLength(self,n1,n2):
         if n1 in self._RRT.tree:
@@ -336,7 +347,7 @@ class PQState:
             new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
             new_past_disk_positions.append(self._curr_disk_positions)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
-            new_g = self._g + gValue
+            new_g = gValue
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use A* where g = full path length
@@ -352,7 +363,7 @@ class PQState:
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,disk_being_pushed,self._map)
             if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
-                gValue = BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y))
+                gValue = BasicGeometry.ptDist(closest_goal,curr_disk_pos)
                 distance = push_point.EuclideanDistance(new_vehicle_pose)
                 new_edge = (distance,0,"F")
                 inv_edge = (distance,0,"R")
@@ -366,7 +377,7 @@ class PQState:
                 new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
                 new_past_disk_positions.append(self._curr_disk_positions)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)
-                new_g = self._g + gValue
+                new_g = gValue
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
                 #use A* where g = full path length
@@ -387,7 +398,7 @@ class PQState:
                     if continousPushState != False:
                         resultingStates.append(continousPushState)
                 push_point = self._vehicle_pose
-                pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,0)
+                pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.ptDist(closest_goal,curr_disk_pos))
                 if pushedState != False:
                     resultingStates.append(pushedState)
            
@@ -395,7 +406,7 @@ class PQState:
                 new_push_points = Pushing.getPushPointsFromHeatmap(curr_disk_pos,closest_goal,self._curr_disk_positions,self._disk_being_pushed,self._map,self._vehicle_pose.theta)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,self._disk_being_pushed,BasicGeometry.ptDist(closest_goal,curr_disk_pos))
                         if pushedState != False:
                             resultingStates.append(pushedState)
                        
@@ -416,7 +427,7 @@ class PQState:
                 new_push_points = Pushing.getPushPointsFromHeatmap(curr_disk_pos,closest_goal,self._curr_disk_positions,i,self._map,self._vehicle_pose.theta)
                 for push_point in new_push_points:
                     if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
-                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.manhattanDistance((self._vehicle_pose.x,self._vehicle_pose.y),(push_point.x,push_point.y)))
+                        pushedState = self.getStateAfterPush(push_point,curr_disk_pos,i,BasicGeometry.ptDist(closest_goal,curr_disk_pos))
                         if pushedState != False:
                             resultingStates.append(pushedState)
                         
@@ -471,15 +482,12 @@ class PQState:
         poses.append(n2)
         return poses
 
-    def plotSolution(self):
+    def plotSolution(self,ax1):
         solution_images = []
-        #all_nodes = self._pg.nodes + self._pg.push_points + self._pg.dest_points
-        #curr_disk_index = [0]*len(disks_path)
-        #curr_disk_pos = []
-        #push_point_rng = [self.num_of_nodes, self.num_of_nodes + int(self.num_of_points/2) - 1]
-        #dest_points_rng = [self.num_of_nodes + int(self.num_of_points/2), self.total_num_nodes - 1]
-        #for curr_disk_path in disks_path:
-        #    curr_disk_pos.append(all_nodes[curr_disk_path[0]])
+
+        print("Final vehicle path is")
+        for path in self._vehicle_path:
+            self.drawPath(path,ax1)
 
         final_disk_positions = self._past_disk_positions
         final_disk_positions.append(self._curr_disk_positions)

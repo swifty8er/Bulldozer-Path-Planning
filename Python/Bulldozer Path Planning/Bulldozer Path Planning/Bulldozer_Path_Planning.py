@@ -123,7 +123,8 @@ for mm in mapNums:
             curr_state.rewireRRT(rewiring_candidates)
             (connected,rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
             i+=1
-
+        if not connected:
+            continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
@@ -142,7 +143,7 @@ for mm in mapNums:
         #Save results as a gif
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
-        imageio.mimsave(file_path, curr_state.plotSolution(), fps=25)
+        imageio.mimsave(file_path, curr_state.plotSolution(ax1), fps=25)
         file_out.write("Map %d solved in %.2f minutes [A* search completed in %.2f minutes] \n" % (map.number,solveTime,initTime))
     else:
         print("Failed")
