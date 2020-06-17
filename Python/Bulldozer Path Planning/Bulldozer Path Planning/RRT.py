@@ -336,6 +336,46 @@ class RRT:
 
         return False
 
+
+    def bidirectionalRRTConnection(self,starting_pose,ending_pose,curr_disk_positions,axis=False):
+        forwardRRT = self.initaliseTree(starting_pose)
+        backwardsRRT = self.initaliseTree(ending_pose)
+        forwardDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
+        forwardDistmetree.addState(starting_pose)
+        backwardDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
+        backwardDistmetree.addState(ending_pose)
+        for i in range(700):
+            n = random.randint(1,10)
+            if n < 3:
+                rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
+            if i % 2 == 0:
+                currentRRT = forwardRRT
+                currentDistmetree = forwardDistmetree
+                otherRRT = backwardsRRT
+                if n >=3:
+                    rand_pose = ending_pose
+            else:
+                currentRRT = backwardsRRT
+                currentDistmetree = backwardDistmetree
+                otherRRT = forwardRRT
+                if n >= 3:
+                    rand_pose = starting_pose
+            new_pose = self.extendSubtree(currentRRT,currentDistmetree,rand_pose,curr_disk_positions)
+            if new_pose != False:
+               #attempt beizer connection between two RRTs
+               for node in otherRRT:
+                   if node.isAheadOf(new_pose) and self.attemptBezierConnection(currentRRT,new_pose,node,curr_disk_positions):
+                       print("Bidirectional RRT success!")
+                       bidirectionalRRT = self.combineRRTs(currentRRT,otherRRT)
+                       self.drawSubtree(bidirectionalRRT,axis)
+                       self.addSubRRTToTree(bidirectionalRRT)
+                       return True
+
+
+            print("Bidirectional RRT failure")
+            return False
+
+        
     def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions,ax=False):
         subRRT = self.initaliseTree(starting_pose)
         tempDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)

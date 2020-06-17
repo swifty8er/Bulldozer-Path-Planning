@@ -116,15 +116,9 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.01)
         plt.show(block=False)
-        (connected, rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
-        i = 0
-        while not connected and i < 4:
-            print("A* search failed, found %d re-wiring candidates, i = %d" % (len(rewiring_candidates),i))
-            curr_state.rewireRRT(rewiring_candidates)
-            (connected,rewiring_candidates) = curr_state.connectToPreviousPose(ax1)
-            i+=1
-        if not connected:
-            continue
+        if not curr_state.connectToPreviousPose(ax1):
+            if curr_state.growBidirectionalRRTToConnectPoses(ax1) and not curr_state.connectToPreviousPose(ax1):
+                continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:

@@ -188,10 +188,13 @@ class PQState:
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
         return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(self._previous_pose,push_point,self._curr_disk_positions,axis)
 
+    def growBidirectionalRRTToConnectPoses(self,axis=False):
+        push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
+        return self._RRT.bidrectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
+    
     def connectToPreviousPose(self,axis=False):
-        rewiring_candidates = []
         if self._previous_pose == None:
-            return (True,[])
+            return True
         pq = queue.PriorityQueue()
         visitedNodes = {}
         previousPose = self._previous_pose
@@ -206,7 +209,7 @@ class PQState:
                 path.reverse()
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(path)
-                return (True,[])
+                return True
             if len(path)>0:
                 curr_disk_positions = self.rollBackDiskPush()
             else:
@@ -216,15 +219,13 @@ class PQState:
                 new_path = path.copy()
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
-                    if self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],curr_disk_positions):
-                        rewiring_candidates.append(pose)
-                    elif not next_pose in visitedNodes:
+                    if not next_pose in visitedNodes:
                         new_g = self.getEdgeLength(pose,next_pose)
                         new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
                         pq.put(new_state)
                           
 
-        return (False,rewiring_candidates)
+        return False
 
 
     def rewireRRT(self,candidates,ax=False):
