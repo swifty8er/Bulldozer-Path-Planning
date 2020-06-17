@@ -190,7 +190,7 @@ class PQState:
 
     def growBidirectionalRRTToConnectPoses(self,axis=False):
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.bidrectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
+        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
     
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:

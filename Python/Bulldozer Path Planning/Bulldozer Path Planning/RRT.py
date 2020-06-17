@@ -372,9 +372,18 @@ class RRT:
                        return True
 
 
-            print("Bidirectional RRT failure")
-            return False
+        print("Bidirectional RRT failure")
+        return False
 
+
+    def combineRRTs(self,rrt1,rrt2):
+        for node in rrt2:
+            if node not in rrt1:
+                rrt1[node] = {}
+            for n2 in rrt2[node]:
+                rrt1[node][n2] = rrt2[node][n2]
+
+        return rrt1
         
     def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions,ax=False):
         subRRT = self.initaliseTree(starting_pose)
