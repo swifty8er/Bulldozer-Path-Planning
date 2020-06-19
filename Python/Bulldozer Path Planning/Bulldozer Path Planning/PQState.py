@@ -25,8 +25,8 @@ class PQState:
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
-        self._f = self.calculateHeuristicValue() #greedy search for now
-
+        self._f = g + self.calculateHeuristicValue() #greedy search for now
+        print("PQ state g = %.2f, h = %.2f, f = %.2f" % (self._g,self._f-self._g,self._f))
     
     @property
     def f(self):
@@ -184,13 +184,9 @@ class PQState:
         return path
 
 
-    def growRRTAndConnectToPushPoint(self,pose1,pose2,axis=False):
-        push_point = pose2
-        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(pose1,push_point,self._curr_disk_positions,axis)
-
-    def growBidirectionalRRTToConnectPoses(self,axis=False):
-        push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
+    def growBidirectionalRRTToConnectPoses(self,pose1,pose2,axis=False):
+        push_point = list(self._RRT.tree[pose2].keys())[0]
+        return self._RRT.bidirectionalRRTConnection(pose1,push_point,self._curr_disk_positions,axis)
     
     def connectTwoPoses(self,pose1,pose2,axis=False):
         pq = queue.PriorityQueue()
@@ -225,33 +221,6 @@ class PQState:
 
         return (False,0)
 
-
-    def rewireRRT(self,candidates,ax=False):
-        process_cand = []
-        for candidate in candidates:
-            too_close = False
-            for c in process_cand:
-                if candidate.EuclideanDistance(c) < 0.075:
-                    too_close = True
-                    break
-
-            if too_close:
-                continue
-            process_cand.append(candidate)
-            process_cand += self.addOtherCollidingNeighbours(candidate)
-        print("After post processing there are %d re-wiring candidates" % len(process_cand))
-        for candidate in process_cand:
-            self._RRT.rewireNode(candidate,self._curr_disk_positions,ax)
-
-
-    def addOtherCollidingNeighbours(self,candidate):
-        otherColliding = []
-        for node in self._RRT.tree[candidate]:
-            for nn in self._RRT.tree[node]:
-                if self._RRT.edgeCollidesWithDirtPile(node,nn,self._RRT.tree[node][nn],self._curr_disk_positions):
-                    otherColliding.append(node)
-        return otherColliding
-          
 
     def getEdgeLength(self,n1,n2):
         if n1 in self._RRT.tree:
@@ -339,18 +308,20 @@ class PQState:
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
             new_disk_positions = copy.deepcopy(self._curr_disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
-            #vehicle_path.append(push_point)
-            #vehicle_path.append(new_vehicle_pose)
-            #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
-            #new_vehicle_paths.append(vehicle_path)
             new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
             new_past_disk_positions.append(self._curr_disk_positions)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
-            new_g = gValue
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use A* where g = full path length
-            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
+            (connected,fullPathLength) = self.connectTwoPoses(new_vehicle_pose,self._vehicle_pose)
+            if not connected:
+                if not self.growBidirectionalRRTToConnectPoses(new_vehicle_pose,self._vehicle_pose):
+                    return False
+                (connected,fullPathLength) = self.connectTwoPoses(new_vehicle_pose,self._vehicle_pose)
+                if not connected:
+                    return False
+            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+fullPathLength)
            
         return False
 
