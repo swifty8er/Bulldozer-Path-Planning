@@ -318,9 +318,9 @@ class RRT:
                 if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
                     return False
             for disk_pos in curr_disk_positions:
-                if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                if 2 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-            s += 0.01
+            s += 0.005
         return True
 
     def bezierEdgeObstaclesCollision(self,bezierCurve):

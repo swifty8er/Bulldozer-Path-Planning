@@ -486,10 +486,6 @@ class PQState:
     def plotSolution(self,ax1):
         solution_images = []
 
-        print("Final vehicle path is")
-        for path in self._vehicle_path:
-            self.drawPath(path,ax1)
-
         final_disk_positions = self._past_disk_positions
         final_disk_positions.append(self._curr_disk_positions)
         disk_index = 0

@@ -1,9 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
 import math
+from scipy import ndimage
 
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
+
+bulldozer_pic = mpimg.imread('Bulldozer_pic.png')
 
 class Map:
     #A list of attributes that specify the size, shape and starting positions of a Continous Sokoban problem
@@ -180,13 +185,20 @@ class Map:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
        
-        robot_pose = [vehicle_pos.x,vehicle_pos.y]
-        pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
-        ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
-        r = 0.5
-        dx = r*math.cos(math.radians(vehicle_pos.theta))
-        dy = r*math.sin(math.radians(vehicle_pos.theta))
-        ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
+        rotated_pic = ndimage.rotate(bulldozer_pic, vehicle_pos.theta)
+        imagebox = OffsetImage(rotated_pic)
+
+        ab = AnnotationBbox(imagebox, (vehicle_pos.x, vehicle_pos.y))
+
+        ax.add_artist(ab)
+
+        #robot_pose = [vehicle_pos.x,vehicle_pos.y]
+        #pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
+        #ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
+        #r = 0.5
+        #dx = r*math.cos(math.radians(vehicle_pos.theta))
+        #dy = r*math.sin(math.radians(vehicle_pos.theta))
+        #ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
         for disk_pos in curr_disk_positions:
             disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
