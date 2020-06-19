@@ -208,11 +208,12 @@ class PQState:
                 visitedNodes[pose] = True
                 new_path = path.copy()
                 new_path.append(pose)
-                for next_pose in self._RRT.tree[pose] and not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._curr_disk_positions):
+                for next_pose in self._RRT.tree[pose]:
                     if not next_pose in visitedNodes:
-                        new_g = self.getEdgeLength(pose,next_pose)
-                        new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
-                        pq.put(new_state)
+                       if len(path)>0 and not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._curr_disk_positions):
+                           new_g = self.getEdgeLength(pose,next_pose)
+                           new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g)
+                           pq.put(new_state)
                           
 
         return (False,0)
