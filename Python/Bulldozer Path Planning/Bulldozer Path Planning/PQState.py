@@ -204,15 +204,11 @@ class PQState:
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(path)
                 return (True,g)
-            if len(path)>0:
-                curr_disk_positions = self.rollBackDiskPush()
-            else:
-                curr_disk_positions = self._curr_disk_positions
             if pose not in visitedNodes:
                 visitedNodes[pose] = True
                 new_path = path.copy()
                 new_path.append(pose)
-                for next_pose in self._RRT.tree[pose]:
+                for next_pose in self._RRT.tree[pose] and not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT[pose][next_pose],self._curr_disk_positions):
                     if not next_pose in visitedNodes:
                         new_g = self.getEdgeLength(pose,next_pose)
                         new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
@@ -340,10 +336,6 @@ class PQState:
                 self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
                 new_disk_positions = copy.deepcopy(self._curr_disk_positions)
                 new_disk_positions[disk_being_pushed] = new_disk_pos
-                #vehicle_path.append(push_point)
-                #vehicle_path.append(new_vehicle_pose)
-                #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
-                #new_vehicle_paths.append(vehicle_path)
                 new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
                 new_past_disk_positions.append(self._curr_disk_positions)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)

@@ -11,9 +11,6 @@ import random
 import math
 from matplotlib import pyplot as plt
 
-SCALING = 100.0
-OFFSET = 300.0
-NUM_NODES = 3000
 
 class Status(Enum):
     REACHED = 1
@@ -385,26 +382,6 @@ class RRT:
 
         return rrt1
         
-    def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions,ax=False):
-        subRRT = self.initaliseTree(starting_pose)
-        tempDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
-        tempDistmetree.addState(starting_pose)
-        for i in range(700):
-            n = random.randint(1,10)
-            if n % 3 == 0:
-                rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
-            else:
-                rand_pose = push_point
-
-            new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
-            if new_pose != False and push_point.isAheadOf(new_pose) and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
-                print("SubRRT success!")
-                self.drawSubtree(subRRT,ax)
-                self.addSubRRTToTree(subRRT)
-                return True
-        print("SubRRT failure :(")
-        self.drawSubtree(subRRT,ax)
-        return False
 
 
     def addSubRRTToTree(self,subRRT):
@@ -426,29 +403,6 @@ class RRT:
                 subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
                 return True
         return False
-
-
-
-    def rewireNode(self,node,curr_disk_positions,axis=False):
-        nearest_neighbours = self._quadtree.radialNearestNeighbours(node,1.0,[])
-        for nn in nearest_neighbours:
-            if node.isAheadOf(nn):
-                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
-            else:
-                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(node,nn)
-            if bezier_new != False:
-                if isinstance(bezier_new,bezier.curve.Curve):
-                    if not self.bezierEdgeObstaclesCollision(bezier_new) and not self.edgeCollidesWithDirtPile(nn,node,(bezier_new,"F"),curr_disk_positions):
-                        self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
-                        if axis!=False:
-                            bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                            plt.draw()
-                            plt.pause(0.1)
-                            plt.show(block=False)
-                else:
-                    if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
-                        self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                       
 
 
 
