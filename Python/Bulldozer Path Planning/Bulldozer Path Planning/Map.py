@@ -185,8 +185,8 @@ class Map:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
        
-        rotated_pic = ndimage.rotate(bulldozer_pic, vehicle_pos.theta)
-        imagebox = OffsetImage(rotated_pic)
+        rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
+        imagebox = OffsetImage(rotated_pic,zoom=0.9)
 
         ab = AnnotationBbox(imagebox, (vehicle_pos.x, vehicle_pos.y))
 
