@@ -184,21 +184,19 @@ class PQState:
         return path
 
 
-    def growRRTAndConnectToPushPoint(self,axis=False):
-        push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(self._previous_pose,push_point,self._curr_disk_positions,axis)
+    def growRRTAndConnectToPushPoint(self,pose1,pose2,axis=False):
+        push_point = pose2
+        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(pose1,push_point,self._curr_disk_positions,axis)
 
     def growBidirectionalRRTToConnectPoses(self,axis=False):
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
         return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
     
-    def connectToPreviousPose(self,axis=False):
-        if self._previous_pose == None:
-            return True
+    def connectTwoPoses(self,pose1,pose2,axis=False):
         pq = queue.PriorityQueue()
         visitedNodes = {}
-        previousPose = self._previous_pose
-        currentPose = self._vehicle_pose
+        previousPose = pose1
+        currentPose = pose2
         starting_state = (currentPose.EuclideanDistance(previousPose),currentPose,[],0)
         pq.put(starting_state)
         while not pq.empty():
@@ -209,7 +207,7 @@ class PQState:
                 path.reverse()
                 self._vehicle_path = copy.deepcopy(self._vehicle_path)
                 self._vehicle_path.append(path)
-                return True
+                return (True,g)
             if len(path)>0:
                 curr_disk_positions = self.rollBackDiskPush()
             else:
@@ -225,7 +223,7 @@ class PQState:
                         pq.put(new_state)
                           
 
-        return False
+        return (False,0)
 
 
     def rewireRRT(self,candidates,ax=False):
@@ -378,11 +376,17 @@ class PQState:
                 new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
                 new_past_disk_positions.append(self._curr_disk_positions)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)
-                new_g = gValue
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
                 #use A* where g = full path length
-                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g)
+                (connected,fullPathLength) = self.connectTwoPoses(new_vehicle_pose,self._vehicle_pose,ax)
+                if not connected:
+                    if not self.growBidirectionalRRTToConnectPoses(new_vehicle_pose,self._vehicle_pose,ax):
+                        return False
+                    (connected,fullPathLength) = self.connectTwoPoses(new_vehicle_pose,self._vehicle_pose,ax)
+                    if not connected:
+                        return False
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+fullPathLength)
            
         return False
 
