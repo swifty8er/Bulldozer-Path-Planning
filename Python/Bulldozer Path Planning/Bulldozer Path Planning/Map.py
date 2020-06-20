@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
 import matplotlib.image as mpimg
+import matplotlib.patches as patches
 import math
 from scipy import ndimage
 
@@ -186,10 +187,14 @@ class Map:
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
        
         rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
+        lx = len(rotated_pic)
+        ly = len(rotated_pic[0])
+        X, Y = np.ogrid[0:lx, 0:ly]
+        mask = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
+        # Masks
+        rotated_pic[mask] = 0
         imagebox = OffsetImage(rotated_pic,zoom=0.07)
-
         ab = AnnotationBbox(imagebox, (vehicle_pos.x, vehicle_pos.y),frameon=False)
-
         ax.add_artist(ab)
 
         #robot_pose = [vehicle_pos.x,vehicle_pos.y]
