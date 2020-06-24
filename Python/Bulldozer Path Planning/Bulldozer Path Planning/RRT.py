@@ -385,26 +385,6 @@ class RRT:
 
         return rrt1
         
-    def dynamicallyGrowSubRRTAndConnectToPushPoint(self,starting_pose,push_point,curr_disk_positions,ax=False):
-        subRRT = self.initaliseTree(starting_pose)
-        tempDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
-        tempDistmetree.addState(starting_pose)
-        for i in range(700):
-            n = random.randint(1,10)
-            if n % 3 == 0:
-                rand_pose = self.generateRandomStateNonCollidingWithDisk(curr_disk_positions)
-            else:
-                rand_pose = push_point
-
-            new_pose = self.extendSubtree(subRRT,tempDistmetree,rand_pose,curr_disk_positions)
-            if new_pose != False and push_point.isAheadOf(new_pose) and self.attemptBezierConnection(subRRT,new_pose,push_point,curr_disk_positions):
-                print("SubRRT success!")
-                self.drawSubtree(subRRT,ax)
-                self.addSubRRTToTree(subRRT)
-                return True
-        print("SubRRT failure :(")
-        self.drawSubtree(subRRT,ax)
-        return False
 
 
     def addSubRRTToTree(self,subRRT):
