@@ -185,15 +185,15 @@ class Map:
         for goal in self._goal_poses_xy:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
-       
-        rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
-        lx = len(rotated_pic)
-        ly = len(rotated_pic[0])
+        
+        lx = len(bulldozer_pic)
+        ly = len(bulldozer_pic[0])
         X, Y = np.ogrid[0:lx, 0:ly]
         mask = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
         # Masks
-        rotated_pic[mask] = 0
-        imagebox = OffsetImage(rotated_pic,zoom=0.07)
+        bulldozer_pic[mask] = 0
+        rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
+        imagebox = OffsetImage(rotated_pic,zoom=0.13)
         ab = AnnotationBbox(imagebox, (vehicle_pos.x, vehicle_pos.y),frameon=False)
         ax.add_artist(ab)
 
