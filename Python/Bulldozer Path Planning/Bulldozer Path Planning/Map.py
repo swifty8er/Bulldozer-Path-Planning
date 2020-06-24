@@ -193,9 +193,7 @@ class Map:
         # Masks
         bulldozer_pic[mask] = 0
         rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
-        imagebox = OffsetImage(rotated_pic,zoom=0.13)
-        ab = AnnotationBbox(imagebox, (vehicle_pos.x, vehicle_pos.y),frameon=False)
-        ax.add_artist(ab)
+        ax.imshow(rotated_pic,origin='upper',extent=(vehicle_pos.x-self._disk_radius,vehicle_pos.x+self._disk_radius,vehicle_pos.y-self._disk_radius,vehicle_pos.y+self._disk_radius))
 
         #robot_pose = [vehicle_pos.x,vehicle_pos.y]
         #pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
