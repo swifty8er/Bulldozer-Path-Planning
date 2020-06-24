@@ -184,13 +184,11 @@ class PQState:
         return path
 
 
-    def growRRTAndConnectToPushPoint(self,axis=False):
-        push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.dynamicallyGrowSubRRTAndConnectToPushPoint(self._previous_pose,push_point,self._curr_disk_positions,axis)
-
     def growBidirectionalRRTToConnectPoses(self,axis=False):
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self._curr_disk_positions,axis)
+        self.drawVehiclePose(axis,push_point)
+        time.sleep(30)
+        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
     
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
@@ -305,8 +303,11 @@ class PQState:
         plt.pause(1)
         plt.show(block=False)
 
-    def drawVehiclePose(self,axis):
-        vehicle_pos = (self.vehicle_pose.x,self.vehicle_pose.y)
+    def drawVehiclePose(self,axis,pose=False):
+        if not pose:
+            vehicle_pos = (self.vehicle_pose.x,self.vehicle_pose.y)
+        else:
+            vehicle_pos = (pose.x,pose.y)
         pos_circle = BasicGeometry.circlePoints(vehicle_pos, self._map.disk_radius, 25)
         axis.plot(pos_circle[0],pos_circle[1],color='red', linewidth=2)
         r = 0.5
