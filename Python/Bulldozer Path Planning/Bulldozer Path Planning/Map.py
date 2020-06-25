@@ -9,7 +9,13 @@ from scipy import ndimage
 from BasicGeometry import BasicGeometry
 from Vehicle import Vehicle
 
-bulldozer_pic = mpimg.imread('Bulldozer_pic.png')
+bulldozer_pic = plt.imread('bulldozer_pic.png')
+#lx = len(bulldozer_pic)
+#ly = len(bulldozer_pic[0])
+#X, Y = np.ogrid[0:lx, 0:ly]
+#mask = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
+## Masks
+#bulldozer_pic[mask] = 0
 
 class Map:
     #A list of attributes that specify the size, shape and starting positions of a Continous Sokoban problem
@@ -186,14 +192,11 @@ class Map:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
         
-        lx = len(bulldozer_pic)
-        ly = len(bulldozer_pic[0])
-        X, Y = np.ogrid[0:lx, 0:ly]
-        mask = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
-        # Masks
-        bulldozer_pic[mask] = 0
+        patch = patches.Circle((vehicle_pos.x,vehicle_pos.y), radius=self._disk_radius, transform=ax.transData)
+        
         rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
-        ax.imshow(rotated_pic,origin='upper',extent=(vehicle_pos.x-self._disk_radius,vehicle_pos.x+self._disk_radius,vehicle_pos.y-self._disk_radius,vehicle_pos.y+self._disk_radius))
+        im = ax.imshow(rotated_pic,extent=(vehicle_pos.x-self._disk_radius,vehicle_pos.x+self._disk_radius,vehicle_pos.y-self._disk_radius,vehicle_pos.y+self._disk_radius))
+        im.set_clip_path(patch)
 
         #robot_pose = [vehicle_pos.x,vehicle_pos.y]
         #pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
