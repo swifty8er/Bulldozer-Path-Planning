@@ -125,6 +125,18 @@ class PQState:
     def rollBackDiskPush(self):
         return self._past_disk_positions[-1]
 
+    def bezierCurveIntersectsDisk(self,bezierCurve,curr_disk_positions):
+        s = 0.0
+        while s<=1.0:
+            point_list = bezierCurve.evaluate(s)
+            point = [i[0] for i in point_list]
+            for disk_pos in curr_disk_positions:
+                if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                    return True
+            s+=0.01
+        return False
+
+
 
     def connectCubicBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions):
         curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)

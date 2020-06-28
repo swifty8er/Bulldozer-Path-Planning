@@ -8,6 +8,8 @@ from BasicGeometry import BasicGeometry
 
 MIN_RADIUS = 0.4
 MAX_ANGLE_DIFFERENCE = 5.0
+invphi = (math.sqrt(5) - 1) / 2  # 1 / phi
+invphi2 = (3 - math.sqrt(5)) / 2  # 1 / phi^2
 
 class BezierLib():
     @staticmethod
@@ -147,6 +149,40 @@ class BezierLib():
             r += deltaR
         return curves
 
+
+    @staticmethod
+    def testMinRadiusGoldenSection(curve):
+        (s1,s2) = BezierLib.gssrec(curve,0.0,1.0)
+        s = (s1+s2)/2.0
+        kappa = BasicGeometry.evaluateKappa(curve,s)
+        if round(kappa,2) == 0:
+            radiusOfCurvature = math.inf
+        else:
+            radiusOfCurvature = 1.0/kappa
+        if radiusOfCurvature < MIN_RADIUS:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def gssrec(f, a, b, tol=1e-3, h=None, c=None, d=None, fc=None, fd=None):
+        (a, b) = (min(a, b), max(a, b))
+        if h is None:
+           h = b - a
+        if h <= tol:
+           return (a, b)
+        if c is None:
+           c = a + invphi2 * h
+        if d is None:
+           d = a + invphi * h
+        if fc is None:
+           fc = BasicGeometry.evaluateKappa(f,c)
+        if fd is None:
+           fd = BasicGeometry.evaluateKappa(f,d)
+        if fc < fd:
+            return BezierLib.gssrec(f, a, d, tol, h * invphi, c=None, fc=None, d=c, fd=fc)
+        else:
+            return BezierLib.gssrec(f, c, b, tol, h * invphi, c=d, fc=fd, d=None, fd=None)
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
