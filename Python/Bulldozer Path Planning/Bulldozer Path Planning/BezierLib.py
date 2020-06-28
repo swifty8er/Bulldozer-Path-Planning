@@ -165,7 +165,7 @@ class BezierLib():
             return True
 
     @staticmethod
-    def gssrec(f, a, b, tol=1e-3, h=None, c=None, d=None, fc=None, fd=None):
+    def gssrec(f, a, b, tol=1e-7, h=None, c=None, d=None, fc=None, fd=None):
         (a, b) = (min(a, b), max(a, b))
         if h is None:
            h = b - a
@@ -176,9 +176,17 @@ class BezierLib():
         if d is None:
            d = a + invphi * h
         if fc is None:
-           fc = BasicGeometry.evaluateKappa(f,c)
+           kc = BasicGeometry.evaluateKappa(f,c)
+           if round(kc,2) == 0:
+               fc = math.inf
+           else:
+               fc = 1.0/kc
         if fd is None:
-           fd = BasicGeometry.evaluateKappa(f,d)
+            kd = BasicGeometry.evaluateKappa(f,d)
+            if round(kd,2) == 0:
+                fd = math.inf;
+            else:
+                fd = 1.0/kd
         if fc < fd:
             return BezierLib.gssrec(f, a, d, tol, h * invphi, c=None, fc=None, d=c, fd=fc)
         else:

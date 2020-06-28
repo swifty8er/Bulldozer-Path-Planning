@@ -192,19 +192,19 @@ class Map:
             goal_circle = BasicGeometry.circlePoints(goal, self._disk_radius*1.1, 25)
             ax.plot(goal_circle[0],goal_circle[1],color='green', linewidth=line_width)
         
-        patch = patches.Circle((vehicle_pos.x,vehicle_pos.y), radius=self._disk_radius, transform=ax.transData)
+        #patch = patches.Circle((vehicle_pos.x,vehicle_pos.y), radius=self._disk_radius, transform=ax.transData)
         
-        rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
-        im = ax.imshow(rotated_pic,extent=(vehicle_pos.x-self._disk_radius,vehicle_pos.x+self._disk_radius,vehicle_pos.y-self._disk_radius,vehicle_pos.y+self._disk_radius))
-        im.set_clip_path(patch)
+        #rotated_pic = ndimage.rotate(bulldozer_pic, (vehicle_pos.theta+180)%360)
+        #im = ax.imshow(rotated_pic,extent=(vehicle_pos.x-self._disk_radius,vehicle_pos.x+self._disk_radius,vehicle_pos.y-self._disk_radius,vehicle_pos.y+self._disk_radius))
+        #im.set_clip_path(patch)
 
-        #robot_pose = [vehicle_pos.x,vehicle_pos.y]
-        #pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
-        #ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
-        #r = 0.5
-        #dx = r*math.cos(math.radians(vehicle_pos.theta))
-        #dy = r*math.sin(math.radians(vehicle_pos.theta))
-        #ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
+        robot_pose = [vehicle_pos.x,vehicle_pos.y]
+        pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
+        ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
+        r = 0.5
+        dx = r*math.cos(math.radians(vehicle_pos.theta))
+        dy = r*math.sin(math.radians(vehicle_pos.theta))
+        ax.arrow(vehicle_pos.x,vehicle_pos.y,dx,dy,width=0.05,color='red')
         for disk_pos in curr_disk_positions:
             disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
             ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)

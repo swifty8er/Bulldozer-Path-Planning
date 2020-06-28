@@ -175,11 +175,11 @@ class PQState:
                 curr_disk_pos = self._past_disk_positions[i]
                 finalPose = [path[-1]]
                 new_path = self.bezierSmoothPath(path[:-1],curr_disk_pos,ax) + finalPose
+                self.drawPath(new_path,ax)
             else:
                 new_path = path
             final_path.append(new_path)
             i+=1
-
         self._vehicle_path = final_path
 
 
