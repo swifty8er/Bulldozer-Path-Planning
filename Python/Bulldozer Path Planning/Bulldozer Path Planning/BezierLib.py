@@ -152,7 +152,7 @@ class BezierLib():
 
     @staticmethod
     def testMinRadiusGoldenSection(curve):
-        (s1,s2) = BezierLib.gssrec(curve,0.0,1.0)
+        (s1,s2) = BezierLib.gssrec(curve,0.0,0.5)
         s = (s1+s2)/2.0
         kappa = BasicGeometry.evaluateKappa(curve,s)
         if round(kappa,2) == 0:
@@ -161,11 +161,19 @@ class BezierLib():
             radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature < MIN_RADIUS:
             return False
+        (s1,s2) = BezierLib.gssrec(curve,0.5,1.0)
+        s = (s1+s2)/2.0
+        kappa = BasicGeometry.evaluateKappa(curve,s)
+        if round(kappa,2) == 0:
+            radiusOfCurvature = math.inf
         else:
-            return True
+            radiusOfCurvature = 1.0/kappa
+        if radiusOfCurvature < MIN_RADIUS:
+            return False
+        return True
 
     @staticmethod
-    def gssrec(f, a, b, tol=1e-7, h=None, c=None, d=None, fc=None, fd=None):
+    def gssrec(f, a, b, tol=1e-10, h=None, c=None, d=None, fc=None, fd=None):
         (a, b) = (min(a, b), max(a, b))
         if h is None:
            h = b - a

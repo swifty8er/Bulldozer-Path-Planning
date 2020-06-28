@@ -395,40 +395,17 @@ class RRT:
 
 
     def attemptBezierConnection(self,subRRT,pose1,pose2,disk_positions):
-        bezier_curve = BezierLib.createBezierCurveBetweenTwoVehicle(pose1,pose2,self._map,disk_positions)
-        if bezier_curve != False:
-            if self.testBezierCurve(bezier_curve,disk_positions):
+        bezier_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
+        for curve in bezier_curves:
+            if self.testBezierCurve(curve,disk_positions):
                 if pose1 not in subRRT:
                     subRRT[pose1] = {}
-                subRRT[pose1][pose2] = (bezier_curve,"F")
+                subRRT[pose1][pose2] = (curve,"F")
                 if pose2 not in subRRT:
                     subRRT[pose2] = {}
-                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
+                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(curve),"R")
                 return True
         return False
-
-
-
-    def rewireNode(self,node,curr_disk_positions,axis=False):
-        nearest_neighbours = self._quadtree.radialNearestNeighbours(node,1.0,[])
-        for nn in nearest_neighbours:
-            if node.isAheadOf(nn):
-                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
-            else:
-                bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(node,nn)
-            if bezier_new != False:
-                if isinstance(bezier_new,bezier.curve.Curve):
-                    if not self.bezierEdgeObstaclesCollision(bezier_new) and not self.edgeCollidesWithDirtPile(nn,node,(bezier_new,"F"),curr_disk_positions):
-                        self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
-                        if axis!=False:
-                            bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
-                            plt.draw()
-                            plt.pause(0.1)
-                            plt.show(block=False)
-                else:
-                    if not self.edgeCollidesWithDirtPile(nn,node,bezier_new,curr_disk_positions):
-                        self.addEdge(node,nn,bezier_new,self.getInverseControl(bezier_new))
-                       
 
 
 
