@@ -144,15 +144,33 @@ class BezierLib():
             y_points = [pose1.y,pose1.y+r*math.sin(math.radians(pose1.theta)),pose2.y-r*math.sin(math.radians(pose2.theta)),pose2.y]
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=3)
-            if BezierLib.testMinRadiusGoldenSection(curve):
+            if BezierLib.testMinRadiusGoldenSection(curve,(x_points[1],y_points[1]),(x_points[2],y_points[2])):
                 curves.append(curve)
             r += deltaR
         return curves
 
 
     @staticmethod
-    def testMinRadiusGoldenSection(curve):
-        (s1,s2) = BezierLib.gssrec(curve,0.0,0.5)
+    def testCurveSection(curve,s1,s2):
+        s = s1
+        while s<=s2:
+            kappa = BasicGeometry.evaluateKappa(curve,s)
+            if round(kappa,2) == 0:
+                radiusOfCurvature = math.inf
+            else:
+                radiusOfCurvature = 1.0/kappa
+            if radiusOfCurvature < MIN_RADIUS:
+                return False
+            s+=0.005
+        return True
+
+    @staticmethod
+    def testMinRadiusGoldenSection(curve,controlPoint1,controlPoint2):
+        if not BezierLib.testCurveSection(curve,0.0,0.075):
+            return False
+        if not BezierLib.testCurveSection(curve,1.0-0.075,1.0):
+            return False
+        (s1,s2) = BezierLib.gssrec(curve,0.0,0.5,controlPoint1)
         s = (s1+s2)/2.0
         kappa = BasicGeometry.evaluateKappa(curve,s)
         if round(kappa,2) == 0:
@@ -161,7 +179,7 @@ class BezierLib():
             radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature < MIN_RADIUS:
             return False
-        (s1,s2) = BezierLib.gssrec(curve,0.5,1.0)
+        (s1,s2) = BezierLib.gssrec(curve,0.5,1.0,controlPoint2)
         s = (s1+s2)/2.0
         kappa = BasicGeometry.evaluateKappa(curve,s)
         if round(kappa,2) == 0:
@@ -173,7 +191,9 @@ class BezierLib():
         return True
 
     @staticmethod
-    def gssrec(f, a, b, tol=1e-10, h=None, c=None, d=None, fc=None, fd=None):
+    # this code taken from https://en.wikipedia.org/wiki/Golden-section_search
+    # modified to find the minimum radius of curvature
+    def gssrec(f, a, b, controlPoint, tol=1e-5, h=None, c=None, d=None, fc=None, fd=None):
         (a, b) = (min(a, b), max(a, b))
         if h is None:
            h = b - a
@@ -184,21 +204,17 @@ class BezierLib():
         if d is None:
            d = a + invphi * h
         if fc is None:
-           kc = BasicGeometry.evaluateKappa(f,c)
-           if round(kc,2) == 0:
-               fc = math.inf
-           else:
-               fc = 1.0/kc
+           point_c = f.evaluate(c)
+           p_c = [i[0] for i in point_c]
+           fc = BasicGeometry.ptDist(p_c,controlPoint)
         if fd is None:
-            kd = BasicGeometry.evaluateKappa(f,d)
-            if round(kd,2) == 0:
-                fd = math.inf;
-            else:
-                fd = 1.0/kd
+            point_d = f.evaluate(d)
+            p_d = [i[0] for i in point_d]
+            fd = BasicGeometry.ptDist(p_d,controlPoint)
         if fc < fd:
-            return BezierLib.gssrec(f, a, d, tol, h * invphi, c=None, fc=None, d=c, fd=fc)
+            return BezierLib.gssrec(f, a, d, controlPoint, tol, h * invphi, c=None, fc=None, d=c, fd=fc)
         else:
-            return BezierLib.gssrec(f, c, b, tol, h * invphi, c=d, fc=fd, d=None, fd=None)
+            return BezierLib.gssrec(f, c, b, controlPoint, tol, h * invphi, c=d, fc=fd, d=None, fd=None)
 
     @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):

@@ -125,11 +125,15 @@ class PQState:
     def rollBackDiskPush(self):
         return self._past_disk_positions[-1]
 
-    def bezierCurveIntersectsDisk(self,bezierCurve,curr_disk_positions):
+    def bezierCurveIntersectsDiskOrObstacle(self,bezierCurve,curr_disk_positions):
         s = 0.0
+        edges = self._map.getMapEdgesAndObstacles()
         while s<=1.0:
             point_list = bezierCurve.evaluate(s)
             point = [i[0] for i in point_list]
+            for edge in edges:
+                if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
+                    return True
             for disk_pos in curr_disk_positions:
                 if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return True
@@ -141,13 +145,13 @@ class PQState:
     def connectCubicBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions):
         curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
         for curve in curves:
-            if not self.bezierCurveIntersectsDisk(curve,curr_disk_positions):
+            if not self.bezierCurveIntersectsDiskOrObstacle(curve,curr_disk_positions):
                 return (True,curve,"F")
         rev_p1 = Vehicle(pose1.x,pose1.y,(pose1.theta+180)%360)
         rev_p2 = Vehicle(pose2.x,pose2.y,(pose2.theta+180)%360)
         reverse_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(rev_p1,rev_p2)
         for curve in reverse_curves:
-            if not self.bezierCurveIntersectsDisk(curve,curr_disk_positions):
+            if not self.bezierCurveIntersectsDiskOrObstacle(curve,curr_disk_positions):
                 return (True,curve,"R")
         return (False,None,None)
 
