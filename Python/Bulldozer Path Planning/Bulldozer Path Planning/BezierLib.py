@@ -132,6 +132,23 @@ class BezierLib():
 
 
     @staticmethod
+    def createCubicBezierCurvesBetweenTwoPoses(pose1,pose2):
+        curves = []
+        dist = pose1.EuclideanDistance(pose2)
+        r = dist/10.0
+        deltaR = dist/10.0
+        while (r<=dist):
+            x_points = [pose1.x,pose1.x+r*math.cos(math.radians(pose1.theta)),pose2.x-r*math.cos(math.radians(pose2.theta)),pose2.x]
+            y_points = [pose1.y,pose1.y+r*math.sin(math.radians(pose1.theta)),pose2.y-r*math.sin(math.radians(pose2.theta)),pose2.y]
+            nodes = np.asfortranarray([x_points,y_points])
+            curve = bezier.Curve(nodes,degree=3)
+            if BezierLib.testMinRadiusGoldenSection(curve):
+                curves.append(curve)
+            r += deltaR
+        return curves
+
+
+    @staticmethod
     def getBestBezierCurveConnectionBetweenTwoPoses(pose1,pose2,map,curr_disk_positions,degree,iterations,max_num_candidates):
         curves = []
         num_control_points = degree-3

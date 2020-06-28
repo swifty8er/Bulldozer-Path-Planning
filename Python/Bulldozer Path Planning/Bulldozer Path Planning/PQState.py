@@ -126,7 +126,20 @@ class PQState:
         return self._past_disk_positions[-1]
 
 
-    def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=500,max_degree=5):
+    def connectCubicBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions):
+        curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
+        for curve in curves:
+            if not self.bezierCurveIntersectsDisk(curve,curr_disk_positions):
+                return (True,curve,"F")
+        rev_p1 = Vehicle(pose1.x,pose1.y,(pose1.theta+180)%360)
+        rev_p2 = Vehicle(pose2.x,pose2.y,(pose2.theta+180)%360)
+        reverse_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(rev_p1,rev_p2)
+        for curve in reverse_curves:
+            if not self.bezierCurveIntersectsDisk(curve,curr_disk_positions):
+                return (True,curve,"R")
+        return (False,None,None)
+
+    def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=1000,max_degree=3):
         degree = 3
         iterations = starting_num_iterations
         while degree <= max_degree:
@@ -168,7 +181,7 @@ class PQState:
                 startIndex = endIndex
                 endIndex = len(path)-1
             else:
-                (successful,bezier_curve,direction) = self.connectBezierCurveBetweenTwoPoses(pose1,pose2,curr_disk_pos)
+                (successful,bezier_curve,direction) = self.connectCubicBezierCurveBetweenTwoPoses(pose1,pose2,curr_disk_pos)
                 if successful:
                     if direction == "F":
                         opp_direction = "R"
