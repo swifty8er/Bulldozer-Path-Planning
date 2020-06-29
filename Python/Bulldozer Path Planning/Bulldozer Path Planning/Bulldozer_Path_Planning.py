@@ -116,6 +116,7 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.01)
         plt.show(block=False)
+        print("Disks pushed = %d, path length = %d" % (len(curr_state._vehicle_path),len(curr_state._past_disk_positions)))
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:

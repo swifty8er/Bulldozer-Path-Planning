@@ -309,6 +309,7 @@ class RRT:
 
 
     def testBezierCurve(self,bezierCurve,curr_disk_positions):
+        print("Test bezier curve RRT")
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s <= 1.0:
@@ -324,6 +325,7 @@ class RRT:
         return True
 
     def bezierEdgeObstaclesCollision(self,bezierCurve):
+        print("Test bezier collision with obstacles RRT")
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s<=1.0:
@@ -338,6 +340,7 @@ class RRT:
 
 
     def bidirectionalRRTConnection(self,starting_pose,ending_pose,curr_disk_positions,axis=False):
+        print("Attempting bidirectional RRT module connection...")
         forwardRRT = self.initaliseTree(starting_pose)
         backwardsRRT = self.initaliseTree(ending_pose)
         forwardDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
@@ -411,7 +414,9 @@ class RRT:
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
     def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=10):
+        print("Connecting push point to RRT...")
         if push_point in self.tree: #if push point is already connected to tree, return true
+            print("Done!")
             return True
         connected = False
         pos_tuple = (push_point.x,push_point.y)
@@ -446,11 +451,12 @@ class RRT:
                             connected = True
                             nc+=1
                 if nc > num_connections:
+                    print("Done!")
                     return True
                    
 
                     
-        
+        print("Done!")
         return connected
      
     #perform post processing on radial nearest neighbours

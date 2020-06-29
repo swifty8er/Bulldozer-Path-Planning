@@ -135,8 +135,12 @@ class BezierLib():
 
     @staticmethod
     def createCubicBezierCurvesBetweenTwoPoses(pose1,pose2):
+        print("Creating cubic bezier curves between two poses")
         curves = []
         dist = pose1.EuclideanDistance(pose2)
+        if round(dist,2) < 0.2:
+            print("Done")
+            return curves
         r = dist/10.0
         deltaR = dist/10.0
         while (r<=dist):
@@ -147,11 +151,13 @@ class BezierLib():
             if BezierLib.testMinRadiusGoldenSection(curve,(x_points[1],y_points[1]),(x_points[2],y_points[2])):
                 curves.append(curve)
             r += deltaR
+        print("Done")
         return curves
 
 
     @staticmethod
     def testCurveSection(curve,s1,s2):
+        #print("Testing curve section")
         s = s1
         while s<=s2:
             kappa = BasicGeometry.evaluateKappa(curve,s)
@@ -166,6 +172,7 @@ class BezierLib():
 
     @staticmethod
     def testMinRadiusGoldenSection(curve,controlPoint1,controlPoint2):
+        #print("Testing min radius with golden section search")
         if not BezierLib.testCurveSection(curve,0.0,0.075):
             return False
         if not BezierLib.testCurveSection(curve,1.0-0.075,1.0):
@@ -192,8 +199,9 @@ class BezierLib():
 
     @staticmethod
     # this code taken from https://en.wikipedia.org/wiki/Golden-section_search
-    # modified to find the minimum radius of curvature
+    # modified to find the closest point on the curve to the given control point
     def gssrec(f, a, b, controlPoint, tol=1e-5, h=None, c=None, d=None, fc=None, fd=None):
+        #print("Golden section search called")
         (a, b) = (min(a, b), max(a, b))
         if h is None:
            h = b - a
