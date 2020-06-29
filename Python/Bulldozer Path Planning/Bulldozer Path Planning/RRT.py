@@ -174,7 +174,6 @@ class RRT:
         edges = self._map.getMapEdgesAndObstacles()
         for edge in edges:
             if BasicGeometry.arcLineCollisionAlgorithm(node,control,edge,self._map.disk_radius):
-                #print("Collision found between (x,y,theta) = (%.2f,%.2f,%.2f) (r,deltaTheta,direction) = (%.2f,%.2f,%s) edge = (%.2f,%2.f,%.2f,%.2f)" % (node.x,node.y,node.theta,control[0],control[1],control[2],edge[0][0],edge[0][1],edge[1][0],edge[1][1]) )
                 return True
         return False
 
@@ -309,7 +308,6 @@ class RRT:
 
 
     def testBezierCurve(self,bezierCurve,curr_disk_positions):
-        print("Test bezier curve RRT")
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s <= 1.0:
@@ -325,7 +323,6 @@ class RRT:
         return True
 
     def bezierEdgeObstaclesCollision(self,bezierCurve):
-        print("Test bezier collision with obstacles RRT")
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s<=1.0:
@@ -340,7 +337,6 @@ class RRT:
 
 
     def bidirectionalRRTConnection(self,starting_pose,ending_pose,curr_disk_positions,axis=False):
-        print("Attempting bidirectional RRT module connection...")
         forwardRRT = self.initaliseTree(starting_pose)
         backwardsRRT = self.initaliseTree(ending_pose)
         forwardDistmetree = DistMetree(self._map.getCentreState(),None,self._map.getCentreState().DistanceMetric(self._map.getExtremeState()),180.0,0)
@@ -414,9 +410,7 @@ class RRT:
 
     # Make the maximum number of connections between the push_point and its reversed extreme control nodes and their nearest neighbours
     def connectPushPoint(self,push_point,curr_disk_pos,curr_disk_positions,axis=False,num_connections=10):
-        print("Connecting push point to RRT...")
         if push_point in self.tree: #if push point is already connected to tree, return true
-            print("Done!")
             return True
         connected = False
         pos_tuple = (push_point.x,push_point.y)
@@ -451,12 +445,10 @@ class RRT:
                             connected = True
                             nc+=1
                 if nc > num_connections:
-                    print("Done!")
                     return True
                    
 
                     
-        print("Done!")
         return connected
      
     #perform post processing on radial nearest neighbours
