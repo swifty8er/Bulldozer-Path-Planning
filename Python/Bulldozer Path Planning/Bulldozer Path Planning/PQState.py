@@ -137,7 +137,7 @@ class PQState:
             for disk_pos in curr_disk_positions:
                 if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return True
-            s+=0.01
+            s+=0.005
         return False
 
 
@@ -244,7 +244,7 @@ class PQState:
                 new_path = path.copy()
                 new_path.append(pose)
                 for next_pose in self._RRT.tree[pose]:
-                    if not next_pose in visitedNodes:
+                    if not next_pose in visitedNodes and not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],curr_disk_positions):
                         new_g = self.getEdgeLength(pose,next_pose)
                         new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) #change this to use the arc path length
                         pq.put(new_state)
@@ -510,6 +510,12 @@ class PQState:
                                 the_angle += delta_angle
         poses.append(n2)
         return poses
+
+    def getFinalPathLength(self):
+        length = 0
+        for path in self._vehicle_path:
+            length += self.calcPathLength(path)
+        return length
 
     def plotSolution(self,ax1):
         solution_images = []

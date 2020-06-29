@@ -69,7 +69,7 @@ file_out = open("TimingData/Results.txt",'w')
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [3,1,2,4,5,6,7]
+mapNums = [1,2,3,4,5,6]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -138,7 +138,8 @@ for mm in mapNums:
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
         imageio.mimsave(file_path, curr_state.plotSolution(ax1), fps=25)
-        file_out.write("Map %d solved in %.2f minutes [A* search completed in %.2f minutes] \n" % (map.number,solveTime,initTime))
+        pathLength = curr_state.getFinalPathLength()
+        file_out.write("Map %d solved in %.2f minutes with total path length %.2f [A* search completed in %.2f minutes] \n" % (map.number,solveTime,pathLength,initTime))
     else:
         print("Failed")
 file_out.close()

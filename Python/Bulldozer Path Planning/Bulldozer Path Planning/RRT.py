@@ -320,7 +320,7 @@ class RRT:
             for disk_pos in curr_disk_positions:
                 if 2 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-            s += 0.005
+            s += 0.01
         return True
 
     def bezierEdgeObstaclesCollision(self,bezierCurve):
