@@ -25,8 +25,8 @@ class PQState:
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
-        self._f = g + 10*self.calculateHeuristicValue()
-        print("g = %.2f, h = %.2f, f=%.2f" % (self._g,(self._f-self._g)/10,self._f))
+        self._f = 0.1*g + self.calculateHeuristicValue()
+        print("g = %.2f, h = %.2f, f=%.2f" % (self._g,(self._f-0.1*self._g),self._f))
     
     @property
     def f(self):
@@ -213,9 +213,12 @@ class PQState:
         return path
 
 
-    def growBidirectionalRRTToConnectPoses(self,axis=False):
+    def growBidirectionalRRTToConnectPoses(self,post=True,axis=False):
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
+        if post:
+            return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
+        else:
+            return self._RRT.bidirectionalRRTConnection(self._vehicle_pose,push_point,self._curr_disk_positions,axis)
     
     def connectTwoPoses(self,pose1,pose2,pose3):
         if pose1 == None:
@@ -385,7 +388,7 @@ class PQState:
             #use A* where g = full path length
             (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
             if not connected:
-                if not self.growBidirectionalRRTToConnectPoses():
+                if not self.growBidirectionalRRTToConnectPoses(False):
                     return False
                 (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
                 if not connected:
@@ -417,7 +420,7 @@ class PQState:
                 new_pushed_disks.append(disk_being_pushed)
                 (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
                 if not connected:
-                    if not self.growBidirectionalRRTToConnectPoses():
+                    if not self.growBidirectionalRRTToConnectPoses(False):
                         return False
                     (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
                     if not connected:
