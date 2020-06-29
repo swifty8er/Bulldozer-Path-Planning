@@ -418,16 +418,17 @@ class PQState:
                 new_g = gValue
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
-                (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+                (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
                 if not connected:
                     if not self.growBidirectionalRRTToConnectPoses(False):
                         return False
-                    (connected,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+                    (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
                     if not connected:
                         return False
-
+                new_vehicle_path = copy.deepcopy(self._vehicle_path)
+                new_vehicle_path.append(path)
                 #use A* where g = full path length
-                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g+pathLength)
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,new_vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g+pathLength)
            
         return False
 
