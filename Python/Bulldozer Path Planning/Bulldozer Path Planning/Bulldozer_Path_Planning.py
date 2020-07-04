@@ -64,12 +64,13 @@ ControlsList = [
 
 
 fig1, ax1 = plt.subplots(1, 1)
+fig2, ax2 = plt.subplots(1, 1)
 file_out = open("TimingData/Results.txt",'w')
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [3]
+mapNums = [4]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -78,6 +79,7 @@ for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
     map.plotStartingMap(ax1)
+    map.plotStartingMap(ax2)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
@@ -96,6 +98,10 @@ for mm in mapNums:
             i+=1
     print("RRT growth complete")
     StartingRRT.draw(ax1)
+    StartingRRT.draw(ax2,True)
+    plt.draw()
+    plt.pause(3)
+    plt.show()
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
         StartingQuadtree.addState(node)
@@ -109,7 +115,7 @@ for mm in mapNums:
     pq.put(curr_state)
     start_time = time.time()
 
-    while not pq.empty():
+    while not pq.empty() and (time.time()-start_time < 3600):
         curr_state = pq.get()
         plt.cla()
         curr_state.plotState(ax1)
@@ -138,6 +144,10 @@ for mm in mapNums:
         imageio.mimsave(file_path, curr_state.plotSolution(ax1), fps=25)
         pathLength = curr_state.getFinalPathLength()
         file_out.write("Map %d solved in %.2f minutes with total path length %.2f [A* search completed in %.2f minutes] \n" % (map.number,solveTime,pathLength,initTime))
+    elif (time.time() - start_time >= 3600):
+        file_out.write("Map %d timeout" % (map.number))
+        print("Timeout")
     else:
+        file_out.write("Map %d failed" % (map.number))
         print("Failed")
 file_out.close()

@@ -527,7 +527,7 @@ class RRT:
             plt.show(block=False)
             time.sleep(15)
 
-    def draw(self,ax):
+    def draw(self,ax,gray=False):
         for n1 in self.tree.keys():
             for n2 in self.tree[n1].keys():
                 edge = self.tree[n1][n2]
@@ -539,10 +539,10 @@ class RRT:
                     except:
                         raise Exception("Invalid RRT edge found")
                     if direction == 'F' or direction == 'R':
-                        ax.plot([n1.x,n2.x],[n1.y,n2.y],'k-',linewidth=1)
+                        ax.plot([n1.x,n2.x],[n1.y,n2.y],color=[200.0/255.0,200.0/255.0,200.0/255.0],linewidth=1)
                     else:
                         (x_points,y_points) = n1.getCircleArcPoints(edge,25)
-                        ax.plot(x_points,y_points,'k-',linewidth=1)
+                        ax.plot(x_points,y_points,color=[200.0/255.0,200.0/255.0,200.0/255.0],linewidth=1)
         plt.draw()
         plt.pause(1)
         plt.show(block=False)

@@ -163,7 +163,7 @@ class BezierLib():
                 radiusOfCurvature = 1.0/kappa
             if radiusOfCurvature < MIN_RADIUS:
                 return False
-            s+=0.005
+            s+=0.001
         return True
 
     @staticmethod
