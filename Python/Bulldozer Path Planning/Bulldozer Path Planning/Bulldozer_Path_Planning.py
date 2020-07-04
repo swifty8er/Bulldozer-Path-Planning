@@ -63,13 +63,14 @@ ControlsList = [
     (4.199,4.286,"RR")]
 
 
-fig1, ax1 = plt.subplots(1, 1)
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+#fig1, ax1 = plt.subplots(1, 1)
 file_out = open("TimingData/Results.txt",'w')
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [1,2,3,4,5,6]
+mapNums = [3]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -78,6 +79,9 @@ for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
     map.plotStartingMap(ax1)
+    map.plotStartingMap(ax2)
+    map.plotStartingMap(ax3)
+    map.plotStartingMap(ax4)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
@@ -96,6 +100,12 @@ for mm in mapNums:
             i+=1
     print("RRT growth complete")
     StartingRRT.draw(ax1)
+    StartingRRT.draw(ax2)
+    StartingRRT.draw(ax3)
+    StartingRRT.draw(ax4)
+    plt.draw()
+    plt.pause(3)
+    plt.show(block=False)
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
         StartingQuadtree.addState(node)
@@ -111,19 +121,19 @@ for mm in mapNums:
 
     while not pq.empty():
         curr_state = pq.get()
-        plt.cla()
-        curr_state.plotState(ax1)
-        plt.draw()
-        plt.pause(0.01)
-        plt.show(block=False)
-        if not curr_state.connectToPreviousPose(ax1):
-            if not (curr_state.growBidirectionalRRTToConnectPoses(ax1) and curr_state.connectToPreviousPose(ax1)):
+        #plt.cla()
+        #curr_state.plotState(ax1)
+        #plt.draw()
+        #plt.pause(0.01)
+        #plt.show(block=False)
+        if not curr_state.connectToPreviousPose():
+            if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
                 continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
             visitedStates[curr_state] = True
-            new_states = curr_state.getResultingStates(ax1)
+            new_states = curr_state.getResultingStates()
             for state in new_states:
                 if not state in visitedStates:
                     pq.put(state)
@@ -131,9 +141,14 @@ for mm in mapNums:
     if curr_state.isFinishState() == True:
         initTime = (time.time() - start_time)/60.0
         print("Solved in initial time %.2f minutes, bezier smoothing path..." % (initTime))
-        curr_state.bezierSmoothSolutionPath(ax1)
+        curr_state.drawVehiclePath(ax3)
+        curr_state.bezierSmoothSolutionPath()
+        curr_state.drawVehiclePath(ax4)
         solveTime  = ( time.time() - start_time ) /60
         print("Done in minutes = ",solveTime)
+        plt.draw()
+        plt.pause(4)
+        plt.show()
         #Save results as a gif
         kwargs_write = {'fps':25.0, 'quantizer':'nq'}
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'

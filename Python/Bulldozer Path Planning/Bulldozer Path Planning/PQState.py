@@ -179,7 +179,8 @@ class PQState:
                 curr_disk_pos = self._past_disk_positions[i]
                 finalPose = [path[-1]]
                 new_path = self.bezierSmoothPath(path[:-1],curr_disk_pos,ax) + finalPose
-                self.drawPath(new_path,ax)
+                if ax!=False:
+                    self.drawPath(new_path,ax)
             else:
                 new_path = path
             final_path.append(new_path)
@@ -313,14 +314,22 @@ class PQState:
 
 
 
+    def drawVehiclePath(self,ax):
+        for path in self._vehicle_path:
+            for i in range(len(path)-1):
+                curr_node = path[i]
+                next_node = path[i+1]
+                self._RRT.drawEdge(curr_node,next_node,ax,'r-')
+
+
 
 
     def drawPath(self,path,ax):
-        plt.cla()
-        self.plotState(ax)
-        plt.draw()
-        plt.pause(0.1)
-        plt.show(block=False)
+        #plt.cla()
+        #self.plotState(ax)
+        #plt.draw()
+        #plt.pause(0.1)
+        #plt.show(block=False)
         for i in range(len(path)-1):
             curr_node = path[i]
             next_node = path[i+1]
@@ -414,7 +423,7 @@ class PQState:
            
         return False
 
-    def getResultingStates(self,axis):
+    def getResultingStates(self,axis=False):
         resultingStates = []
         # first consider pushing the current disk forward
         if self._disk_being_pushed != -1:
