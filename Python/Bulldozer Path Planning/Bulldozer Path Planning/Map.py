@@ -96,11 +96,13 @@ class Map:
     def createPushingHeatmap(self):
         print("Creating pushing heatmap...")
         heatmap = {}
-        x = self._min_x
-        while x <= self._max_x:
+        x = self._min_x+0.1
+        while x < self._max_x:
+            x = round(x,1)
             y = self._min_y
             while y <= self._max_y:
-                point = (round(x,1),round(y,1))
+                y = round(y,1)
+                point = (x,y)
                 heatmap[point] = []
                 for angle in range(0,362,4):
                     second_point = (x+self._disk_radius*3*math.cos(math.radians(angle)),y+self._disk_radius*3*math.sin(math.radians(angle)))
@@ -113,6 +115,23 @@ class Map:
         print("Done!")
         return heatmap
 
+
+    def plotHeatmap(self,ax):
+        x_points = []
+        y_points = []
+        x_bins = []
+        y_bins = []
+        points = sorted(self._pushingHeatmap.keys())
+        for point in points:
+            for i in range(len(self._pushingHeatmap[point])):
+                x_points.append(point[0])
+                y_points.append(point[1])
+            if point[0] not in x_bins:
+                x_bins.append(point[0])
+            if point[1] not in y_bins:
+                y_bins.append(point[1])
+
+        ax.hist2d(x_points,y_points,bins=[len(x_bins),len(y_bins)])
 
     def lineIntersectsObstacle(self,line):
         edges = self.getMapEdgesAndObstacles()

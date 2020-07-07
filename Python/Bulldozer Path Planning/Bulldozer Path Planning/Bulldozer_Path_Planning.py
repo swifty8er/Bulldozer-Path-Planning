@@ -62,9 +62,14 @@ ControlsList = [
     (2.223,8.097,"RR"),
     (4.199,4.286,"RR")]
 
-
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-#fig1, ax1 = plt.subplots(1, 1)
+hMap = myMap.test_maps[5]
+#fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+fig1, ax1 = plt.subplots(1, 1)
+hMap.plotHeatmap(ax1)
+plt.draw()
+plt.pause(3)
+plt.show()
+exit(0)
 file_out = open("TimingData/Results.txt",'w')
 # Main loop over all the test maps
 #for map in myMap.test_maps:
