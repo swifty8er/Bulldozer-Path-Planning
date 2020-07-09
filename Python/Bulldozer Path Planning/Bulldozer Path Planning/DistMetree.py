@@ -123,8 +123,8 @@ class DistMetree:
     def getParentState(self,i):
         half_dist = self._max_euclidean_dist/2.0
         half_delta_angle = self._delta_angle / 2.0
-        new_angle_1 = (self._centre_angle - self._delta_angle)%360
-        new_angle_2 = (self._centre_angle + self._delta_angle)%360
+        new_angle_1 = (self._centre_angle - half_delta_angle)%360
+        new_angle_2 = (self._centre_angle + half_delta_angle)%360
         if i == 0:
             return Vehicle(self.centreState.x+half_dist,self.centreState.y+half_dist,new_angle_1)
         elif i == 1:
