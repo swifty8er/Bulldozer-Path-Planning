@@ -104,14 +104,14 @@ class PQState:
         
         return (closestGoal,found)
 
-    def getClosestGoalToPushLine(self,curr_disk_position):
+    def getClosestGoalToPushLine(self,curr_disk_position,push_point):
         shortestDist = math.inf
         closestGoal = None
         i = 0
         found = False
         for goal_pos in self._map.goal_pos_xy:
             if not self._reached_goals[i]:
-                angle_between_heading_and_goal = abs(math.radians(self._vehicle_pose.theta) - BasicGeometry.vector_angle(BasicGeometry.vec_from_points(curr_disk_position,goal_pos)))
+                angle_between_heading_and_goal = abs(math.radians(push_point.theta) - BasicGeometry.vector_angle(BasicGeometry.vec_from_points(curr_disk_position,goal_pos)))
                 dist = BasicGeometry.GoalDistanceMetric(curr_disk_position[0],curr_disk_position[1],angle_between_heading_and_goal,goal_pos[0],goal_pos[1])
                 if dist < shortestDist:
                     shortestDist = dist
@@ -215,6 +215,8 @@ class PQState:
 
 
     def growBidirectionalRRTToConnectPoses(self,axis=False):
+        if self._vehicle_pose not in self._RRT.tree:
+            return False
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
         return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
     
@@ -240,7 +242,7 @@ class PQState:
                 curr_disk_positions = self.rollBackDiskPush()
             else:
                 curr_disk_positions = self._curr_disk_positions
-            if pose not in visitedNodes:
+            if pose not in visitedNodes and pose in self._RRT.tree:
                 visitedNodes[pose] = True
                 new_path = path.copy()
                 new_path.append(pose)
@@ -252,34 +254,6 @@ class PQState:
                           
 
         return False
-
-
-    def rewireRRT(self,candidates,ax=False):
-        process_cand = []
-        for candidate in candidates:
-            too_close = False
-            for c in process_cand:
-                if candidate.EuclideanDistance(c) < 0.075:
-                    too_close = True
-                    break
-
-            if too_close:
-                continue
-            process_cand.append(candidate)
-            process_cand += self.addOtherCollidingNeighbours(candidate)
-        print("After post processing there are %d re-wiring candidates" % len(process_cand))
-        for candidate in process_cand:
-            self._RRT.rewireNode(candidate,self._curr_disk_positions,ax)
-
-
-    def addOtherCollidingNeighbours(self,candidate):
-        otherColliding = []
-        for node in self._RRT.tree[candidate]:
-            for nn in self._RRT.tree[node]:
-                if self._RRT.edgeCollidesWithDirtPile(node,nn,self._RRT.tree[node][nn],self._curr_disk_positions):
-                    otherColliding.append(node)
-        return otherColliding
-          
 
     def getEdgeLength(self,n1,n2):
         if n1 in self._RRT.tree:
@@ -367,7 +341,7 @@ class PQState:
         return reached
 
     def getStateAfterPush(self,push_point,curr_disk_pos,disk_being_pushed,gValue):
-        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos,push_point)
         if not found:
             return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,disk_being_pushed,self._map)
@@ -376,6 +350,8 @@ class PQState:
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
+            if not new_vehicle_pose in self._RRT.tree:
+                print("Failed to add new vehicle pose to the RRT")
             new_disk_positions = copy.deepcopy(self._curr_disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
             #vehicle_path.append(push_point)
@@ -406,6 +382,8 @@ class PQState:
                 new_edge = (distance,0,"F")
                 inv_edge = (distance,0,"R")
                 self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
+                if not new_vehicle_pose in self._RRT.tree:
+                    print("Failed to add new vehicle pose to the RRT")
                 new_disk_positions = copy.deepcopy(self._curr_disk_positions)
                 new_disk_positions[disk_being_pushed] = new_disk_pos
                 #vehicle_path.append(push_point)
@@ -429,7 +407,7 @@ class PQState:
         if self._disk_being_pushed != -1:
             curr_disk_pos = self._curr_disk_positions[self._disk_being_pushed]
             if not self.diskInGoal(curr_disk_pos):
-                (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+                (closest_goal,found) = self.getClosestGoalEuclidean(curr_disk_pos,self._reached_goals)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
                     #attempt continuous angle push
                     continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,self._disk_being_pushed,axis)
@@ -456,7 +434,7 @@ class PQState:
                 continue
             curr_disk_pos = self._curr_disk_positions[i]
             if not self.diskInGoal(curr_disk_pos):
-                (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+                (closest_goal,found) = self.getClosestGoalEuclidean(curr_disk_pos,self._reached_goals)
                 if found and BasicGeometry.ptDist(closest_goal,curr_disk_pos) < 2.5*self._map.disk_radius:
                     #attempt continuous angle push
                     continousPushState = self.getContinuousAnglePushState(curr_disk_pos,closest_goal,i,axis)

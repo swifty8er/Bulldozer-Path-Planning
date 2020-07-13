@@ -70,7 +70,7 @@ fig1, ax1 = plt.subplots(1, 1)
 #plt.pause(3)
 #plt.show()
 #exit(0)
-file_out = open("TimingData/Results.txt",'w')
+written = False
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
@@ -156,7 +156,15 @@ for mm in mapNums:
         file_path = 'ElliottGifs/Map ' + str(map.number) +'.gif'
         imageio.mimsave(file_path, curr_state.plotSolution(ax1), fps=25)
         pathLength = curr_state.getFinalPathLength()
-        file_out.write("Map %d solved in %.2f minutes with total path length %.2f [A* search completed in %.2f minutes] \n" % (map.number,solveTime,pathLength,initTime))
+        if not written:
+            file_out = open("TimingData/Results.txt",'w')
+            file_out.write("Map %d solved in %.2f seconds with total path length %.2f [A* search completed in %.2f seconds] \n" % (map.number,solveTime*60.0,pathLength,initTime*60.0))
+            file_out.close()
+            written = True
+        else:
+            file_out = open("TimingData/Results.txt","a+")
+            file_out.write("Map %d solved in %.2f seconds with total path length %.2f [A* search completed in %.2f seconds] \n" % (map.number,solveTime*60.0,pathLength,initTime*60.0))
+            file_out.close()
     else:
         print("Failed")
 file_out.close()

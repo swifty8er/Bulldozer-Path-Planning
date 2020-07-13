@@ -395,6 +395,8 @@ class RRT:
 
 
     def attemptBezierConnection(self,subRRT,pose1,pose2,disk_positions):
+        if pose1 == pose2:
+            return False
         bezier_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
         for curve in bezier_curves:
             if self.testBezierCurve(curve,disk_positions):
