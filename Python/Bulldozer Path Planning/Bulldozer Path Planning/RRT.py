@@ -428,8 +428,8 @@ class RRT:
         backwardsNodes = self.enumerateBackwardsControls(push_point) #create the two extreme reverse control points
         nc = 0
         for node in backwardsNodes:
-            nearest_neighbours = self.postProcessNearestNeighbours(node,nearest_neighbours)
-            for nn in nearest_neighbours:
+            processed_nn = self.postProcessNearestNeighbours(node,nearest_neighbours)
+            for nn in processed_nn:
                 bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
                 if bezier_new != False:
                     if isinstance(bezier_new,bezier.curve.Curve):
