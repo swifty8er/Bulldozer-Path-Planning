@@ -52,37 +52,8 @@ class BezierLib():
         y_points = [v1.y,intersectionPoint[1],v2.y]
         nodes = np.asfortranarray([x_points,y_points])
         curve = bezier.Curve(nodes,degree=2)
-
-        s = 0.0
-        dist = math.inf
-        t = None
-        while s <= 1.0:
-            point_array = curve.evaluate(s).tolist()
-            point = [i[0] for i in point_array]
-            d = BasicGeometry.ptDist(intersectionPoint,point)
-            if d < dist:
-                dist = d
-                t = s
-            s += 0.1
-
-        if t == None:
-            raise Exception("No t value found")
-        interval = 0.2
-        # Binary search to find the closest point on the bezier curve to the intersection point
-        # This is where the radius of curvature will be smallest
-        while interval > 0.01:
-            p1_array = curve.evaluate(t+interval/2.0).tolist()
-            p1 = [i[0] for i in p1_array]
-            p2_array = curve.evaluate(t-interval/2.0).tolist()
-            p2 = [i[0] for i in p2_array]
-            point_array = curve.evaluate(t).tolist()
-            point = [i[0] for i in point_array]
-            if BasicGeometry.ptDist(p1,intersectionPoint) < BasicGeometry.ptDist(point,intersectionPoint):
-                t = t+interval/2.0
-            elif BasicGeometry.ptDist(p2,intersectionPoint) < BasicGeometry.ptDist(point,intersectionPoint):
-                t = t-interval/2.0
-            else:
-                interval = interval/2.0
+        (a,b) = BezierLib.gssrec(curve,0.0,1.0,intersectionPoint)
+        t = (a+b)/2.0
         kappa = BasicGeometry.evaluateKappa(curve,t)
         if round(kappa,2) == 0:
             radiusOfCurvature = math.inf
@@ -192,7 +163,7 @@ class BezierLib():
 
     @staticmethod
     # this code taken from https://en.wikipedia.org/wiki/Golden-section_search
-    # modified to find the minimum radius of curvature
+    # modified to find the closest point to the control point
     def gssrec(f, a, b, controlPoint, tol=1e-5, h=None, c=None, d=None, fc=None, fd=None):
         (a, b) = (min(a, b), max(a, b))
         if h is None:
