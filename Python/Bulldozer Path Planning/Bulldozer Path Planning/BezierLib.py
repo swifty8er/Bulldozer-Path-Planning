@@ -36,7 +36,12 @@ class BezierLib():
         intersectionPoint = BasicGeometry.findVectorLinesIntersectionPoint(v1.x,v1.y,v1.theta,v2.x,v2.y,v2.theta)
         if intersectionPoint == None:
             return False
-        if intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
+        if intersectionPoint[0] == math.inf and intersectionPoint[1] == math.inf:
+            # vectors are same line
+            # we know that v1 is behind v2
+            # create straight line control
+            return (BasicGeometry.ptDist((v1.x,v1.y),(v2.x,v2.y)),0,"F")
+        elif intersectionPoint[0] == math.inf and intersectionPoint[1] == None:
             dist = abs(v1.x-v2.x)
             if v1.x<v2.x:
                 return (dist,0,"F")

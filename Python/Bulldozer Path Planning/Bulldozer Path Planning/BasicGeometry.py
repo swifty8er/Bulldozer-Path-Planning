@@ -394,8 +394,7 @@ class BasicGeometry():
                 t2 = (y1-y2)/math.sin(math.radians(theta2))
         else:
             if ( (y1-y2) + (x2-x1)*math.tan(math.radians(theta1))) == 0:
-                # deal with this case later
-                return None
+                (math.inf,math.inf)
             else:
                 t2 = (math.sin(math.radians(theta2)) - math.cos(math.radians(theta2))* math.tan(math.radians(theta1)))/( (y1-y2) + (x2-x1)*math.tan(math.radians(theta1)))
         
