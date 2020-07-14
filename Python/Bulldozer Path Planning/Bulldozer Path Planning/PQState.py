@@ -345,19 +345,13 @@ class PQState:
         if not found:
             return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,disk_being_pushed,self._map)
-        if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
+        if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]) and not (push_point == new_vehicle_pose):
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
             self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-            if not new_vehicle_pose in self._RRT.tree:
-                print("Failed to add new vehicle pose to the RRT")
             new_disk_positions = copy.deepcopy(self._curr_disk_positions)
             new_disk_positions[disk_being_pushed] = new_disk_pos
-            #vehicle_path.append(push_point)
-            #vehicle_path.append(new_vehicle_pose)
-            #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
-            #new_vehicle_paths.append(vehicle_path)
             new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
             new_past_disk_positions.append(self._curr_disk_positions)
             new_reached_goals = self.determineGoalsReached(new_disk_positions)
@@ -376,20 +370,14 @@ class PQState:
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,disk_being_pushed,self._map)
-            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
+            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]) and not (push_point == new_vehicle_pose):
                 gValue = BasicGeometry.ptDist(closest_goal,curr_disk_pos)
                 distance = push_point.EuclideanDistance(new_vehicle_pose)
                 new_edge = (distance,0,"F")
                 inv_edge = (distance,0,"R")
                 self._RRT.addEdge(new_vehicle_pose,push_point,new_edge,inv_edge)
-                if not new_vehicle_pose in self._RRT.tree:
-                    print("Failed to add new vehicle pose to the RRT")
                 new_disk_positions = copy.deepcopy(self._curr_disk_positions)
                 new_disk_positions[disk_being_pushed] = new_disk_pos
-                #vehicle_path.append(push_point)
-                #vehicle_path.append(new_vehicle_pose)
-                #new_vehicle_paths = copy.deepcopy(self._vehicle_path)
-                #new_vehicle_paths.append(vehicle_path)
                 new_past_disk_positions = copy.deepcopy(self._past_disk_positions)
                 new_past_disk_positions.append(self._curr_disk_positions)
                 new_reached_goals = self.determineGoalsReached(new_disk_positions)

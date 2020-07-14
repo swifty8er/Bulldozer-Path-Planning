@@ -323,7 +323,7 @@ class RRT:
             s += 0.01
         return True
 
-    def bezierEdgeObstaclesCollision(self,bezierCurve):
+    def bezierEdgeObstaclesDisksCollision(self,bezierCurve,curr_disk_positions):
         s = 0.0
         edges = self._map.getMapEdgesAndObstacles()
         while s<=1.0:
@@ -332,7 +332,10 @@ class RRT:
             for edge in edges:
                 if self._map.disk_radius - BasicGeometry.point2LineDist(edge,point) > np.finfo(np.float32).eps:
                     return True
-            s+=0.02
+            for disk_pos in curr_disk_positions:
+                if 1.95 * self._map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
+                    return True
+            s+=0.01
 
         return False
 
@@ -433,7 +436,7 @@ class RRT:
                 bezier_new = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(nn,node)
                 if bezier_new != False:
                     if isinstance(bezier_new,bezier.curve.Curve):
-                        if not self.bezierEdgeObstaclesCollision(bezier_new) and not self.edgeCollidesWithDirtPile(nn,node,(bezier_new,"F"),curr_disk_positions):
+                        if not self.bezierEdgeObstaclesDisksCollision(bezier_new,curr_disk_positions):
                             self.addEdge(node,nn,(bezier_new,"F"),(BezierLib.getInverseCurve(bezier_new),"R"))
                             if axis!=False:
                                 bezier_new.plot(100,color=[235.0/255.0,131.0/255.0,52.0/255.0],ax=axis)
