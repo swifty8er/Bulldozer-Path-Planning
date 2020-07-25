@@ -66,6 +66,18 @@ class PQState:
                 return False
         return True
 
+    def checkReachedGoals(self,global_reached_goals):
+        for i in range(len(self._reached_goals)):
+            state_val = self._reached_goals[i]
+            global_val = global_reached_goals[i]
+            if state_val and not global_val:
+                global_reached_goals[i] = True
+            if global_val and not state_val:
+                self._f = self._f * 2
+                return True
+        return False
+
+
 
     def calculateHeuristicValue(self):
         reached = self._reached_goals.copy()
@@ -143,16 +155,14 @@ class PQState:
 
 
     def connectCubicBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions):
-        curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
-        for curve in curves:
-            if not self.bezierCurveIntersectsDiskOrObstacle(curve,curr_disk_positions):
-                return (True,curve,"F")
+        curve = BezierLib.createCubicBezierCurveBetweenTwoPoses(pose1,pose2,self._map,curr_disk_positions)
+        if curve != False:
+            return (True,curve,"F")
         rev_p1 = Vehicle(pose1.x,pose1.y,(pose1.theta+180)%360)
         rev_p2 = Vehicle(pose2.x,pose2.y,(pose2.theta+180)%360)
-        reverse_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(rev_p1,rev_p2)
-        for curve in reverse_curves:
-            if not self.bezierCurveIntersectsDiskOrObstacle(curve,curr_disk_positions):
-                return (True,curve,"R")
+        reverse_curve = BezierLib.createCubicBezierCurveBetweenTwoPoses(rev_p1,rev_p2,self._map,curr_disk_positions)
+        if reverse_curve != False:
+            return (True,reverse_curve,"R")
         return (False,None,None)
 
     def connectBezierCurveBetweenTwoPoses(self,pose1,pose2,curr_disk_positions,starting_num_iterations=1000,max_degree=3):

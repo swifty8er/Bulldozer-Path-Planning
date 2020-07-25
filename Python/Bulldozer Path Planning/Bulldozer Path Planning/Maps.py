@@ -49,7 +49,7 @@ class Maps:
 
 
     def __init__(self):
-        raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/time_complexity_maps.txt", "r")
+        raw_mb = open("C:/Users/cBrak/Documents/UNSW2020/thesis/Bulldozer-Path-Planning/Python/Bulldozer Path Planning/Bulldozer Path Planning/new_maps.txt", "r")
         self._test_maps = []
         if raw_mb.readable():
             self._test_maps = self.LoadElliottTestMaps(raw_mb)

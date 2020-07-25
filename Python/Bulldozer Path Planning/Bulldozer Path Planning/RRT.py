@@ -400,15 +400,15 @@ class RRT:
     def attemptBezierConnection(self,subRRT,pose1,pose2,disk_positions):
         if pose1 == pose2:
             return False
-        bezier_curves = BezierLib.createCubicBezierCurvesBetweenTwoPoses(pose1,pose2)
-        for curve in bezier_curves:
-            if self.testBezierCurve(curve,disk_positions):
+        bezier_curve = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(pose1,pose2)
+        if bezier_curve != False:
+            if not self.bezierEdgeObstaclesDisksCollision(bezier_curve,disk_positions):
                 if pose1 not in subRRT:
                     subRRT[pose1] = {}
-                subRRT[pose1][pose2] = (curve,"F")
+                subRRT[pose1][pose2] = (bezier_curve,"F")
                 if pose2 not in subRRT:
                     subRRT[pose2] = {}
-                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(curve),"R")
+                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
                 return True
         return False
 

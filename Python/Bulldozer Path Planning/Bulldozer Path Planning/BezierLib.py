@@ -105,30 +105,33 @@ class BezierLib():
             for disk_pos in curr_disk_positions:
                 if 1.95 * map.disk_radius - BasicGeometry.ptDist(disk_pos,point) > np.finfo(np.float32).eps:
                     return False
-            s+= 0.005
+            s+= 0.0005
         return True
 
 
     @staticmethod
-    def createCubicBezierCurvesBetweenTwoPoses(pose1,pose2):
-        curves = []
+    def createCubicBezierCurveBetweenTwoPoses(pose1,pose2,map,curr_disk_positions):
         dist = pose1.EuclideanDistance(pose2)
         r = dist/10.0
         deltaR = dist/10.0
         while (r<=dist):
             x_points = [pose1.x,pose1.x+r*math.cos(math.radians(pose1.theta)),pose2.x-r*math.cos(math.radians(pose2.theta)),pose2.x]
             y_points = [pose1.y,pose1.y+r*math.sin(math.radians(pose1.theta)),pose2.y-r*math.sin(math.radians(pose2.theta)),pose2.y]
+            if BasicGeometry.ptDist([x_points[0],y_points[0]],[x_points[2],y_points[2]]) < BasicGeometry.ptDist([x_points[-1],y_points[-1]],[x_points[1],y_points[1]]):
+                break            
             nodes = np.asfortranarray([x_points,y_points])
             curve = bezier.Curve(nodes,degree=3)
             if BezierLib.testMinRadiusGoldenSection(curve,(x_points[1],y_points[1]),(x_points[2],y_points[2])):
-                curves.append(curve)
+                if BezierLib.testCurve(curve,map,curr_disk_positions):
+                    return curve
             r += deltaR
-        return curves
+        return False
 
 
     @staticmethod
     def testCurveSection(curve,s1,s2):
         s = s1
+        headings = []
         while s<=s2:
             kappa = BasicGeometry.evaluateKappa(curve,s)
             if round(kappa,2) == 0:
@@ -137,16 +140,23 @@ class BezierLib():
                 radiusOfCurvature = 1.0/kappa
             if radiusOfCurvature < MIN_RADIUS:
                 return False
+            p1 = curve.evaluate(s)
+            p2 = curve.evaluate(min(s+0.005,1.0))
+            point1 = [i[0] for i in p1]
+            point2 = [i[0] for i in p2]
+            vec = BasicGeometry.vec_from_points(point1,point2)
+            headings.append(BasicGeometry.vector_angle(vec))
             s+=0.001
+        for i in range(len(headings)-1):
+            h1 = headings[i]
+            h2 = headings[i+1]
+            if abs(h1-h2) > math.radians(150):
+                return False
         return True
 
     @staticmethod
     def testMinRadiusGoldenSection(curve,controlPoint1,controlPoint2):
-        if not BezierLib.testCurveSection(curve,0.0,0.075):
-            return False
-        if not BezierLib.testCurveSection(curve,1.0-0.075,1.0):
-            return False
-        (s1,s2) = BezierLib.gssrec(curve,0.0,0.5,controlPoint1)
+        (s1,s2) = BezierLib.gssrec(curve,0.0,1.0,controlPoint1)
         s = (s1+s2)/2.0
         kappa = BasicGeometry.evaluateKappa(curve,s)
         if round(kappa,2) == 0:
@@ -155,20 +165,26 @@ class BezierLib():
             radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature < MIN_RADIUS:
             return False
-        (s1,s2) = BezierLib.gssrec(curve,0.5,1.0,controlPoint2)
-        s = (s1+s2)/2.0
-        kappa = BasicGeometry.evaluateKappa(curve,s)
+        (t1,t2) = BezierLib.gssrec(curve,0.0,1.0,controlPoint2)
+        t = (s1+s2)/2.0
+        kappa = BasicGeometry.evaluateKappa(curve,t)
         if round(kappa,2) == 0:
             radiusOfCurvature = math.inf
         else:
             radiusOfCurvature = 1.0/kappa
         if radiusOfCurvature < MIN_RADIUS:
+            return False
+        if not BezierLib.testCurveSection(curve,max(s1-0.075,0.0),min(s2+0.075,1.0)):
+            return False
+        if not BezierLib.testCurveSection(curve,max(t1-0.075,0.0),min(t2+0.075,1.0)):
             return False
         return True
 
     @staticmethod
     # this code taken from https://en.wikipedia.org/wiki/Golden-section_search
     # modified to find the closest point to the control point
+
+
     def gssrec(f, a, b, controlPoint, tol=1e-5, h=None, c=None, d=None, fc=None, fd=None):
         (a, b) = (min(a, b), max(a, b))
         if h is None:

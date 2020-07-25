@@ -11,11 +11,6 @@ import random
 import sys
 
 from Maps import Maps
-from VisibilityGraph import VisibilityGraph
-from PushabilityGraph import PushabilityGraph
-from TranspositionTable import TranspositionTable
-from MapState import MapState
-from Graph import Graph
 from RRT import RRT
 from RRT import Status
 from Quadtree import Quadtree
@@ -71,11 +66,12 @@ fig1, ax1 = plt.subplots(1, 1)
 #plt.show()
 #exit(0)
 written = False
+w1 = False
 # Main loop over all the test maps
 #for map in myMap.test_maps:
 num = 0
 #mapNums = list(range(1,36))+list(range(38,77))+list(range(78,83))+list(range(84,93))+list(range(94,97))
-mapNums = [8]
+mapNums = [1,2,3,4,5,6]
 #mapNums = list(range(88,93))+list(range(94,97))
 #mapNums = list(range(1,4))
 #for mm in range(num,num+10):
@@ -84,12 +80,13 @@ for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
     map.plotStartingMap(ax1)
-    #map.plotStartingMap(ax2)
-    #map.plotStartingMap(ax3)
-    #map.plotStartingMap(ax4)
+    ##map.plotStartingMap(ax2)
+    ##map.plotStartingMap(ax3)
+    ##map.plotStartingMap(ax4)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
+    startTime = time.time()
     x_range = map.max_x - map.min_x
     y_range = map.max_y - map.min_y
     num_nodes = int(x_range * y_range * 200)
@@ -104,6 +101,17 @@ for mm in mapNums:
         if (status == Status.ADVANCED or status == Status.REACHED):
             i+=1
     print("RRT growth complete")
+    endTime = time.time() - startTime
+    print("RRT built in time = %.2f seconds" % (endTime))
+    if not w1:
+        file_out = open("TimingData/RRTBuildTimes.txt",'w')
+        file_out.write("RRT with %d nodes built in time = %.2f seconds \n" % (StartingRRT.num_nodes,endTime))
+        file_out.close()
+        w1 = True
+    else:
+        file_out = open("TimingData/RRTBuildTimes.txt","a+")
+        file_out.write("RRT with %d nodes built in time = %.2f seconds \n" % (StartingRRT.num_nodes,endTime))
+        file_out.close()
     #StartingRRT.draw(ax1)
     #StartingRRT.draw(ax2)
     #StartingRRT.draw(ax3)
@@ -123,6 +131,7 @@ for mm in mapNums:
     pq = queue.PriorityQueue()
     pq.put(curr_state)
     start_time = time.time()
+    globalReachedGoals = [False] * len(map.goal_pos_xy)
 
     while not pq.empty():
         curr_state = pq.get()
@@ -131,6 +140,9 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.01)
         plt.show(block=False)
+        if curr_state.checkReachedGoals(globalReachedGoals):
+            pq.put(curr_state)
+            continue
         if not curr_state.connectToPreviousPose():
             if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
                 continue
