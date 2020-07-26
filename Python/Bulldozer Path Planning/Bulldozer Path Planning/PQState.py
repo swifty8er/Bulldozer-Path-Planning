@@ -384,7 +384,7 @@ class PQState:
         return reached
 
     def getStateAfterPush(self,push_point,curr_disk_pos,disk_being_pushed,gValue):
-        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
+        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos,push_point)
         if not found:
             return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,disk_being_pushed,self._map)

@@ -402,14 +402,24 @@ class RRT:
             return False
         bezier_curve = BezierLib.createBezierCurveBetweenTwoVehiclesIntersectionMethod(pose1,pose2)
         if bezier_curve != False:
-            if not self.bezierEdgeObstaclesDisksCollision(bezier_curve,disk_positions):
-                if pose1 not in subRRT:
-                    subRRT[pose1] = {}
-                subRRT[pose1][pose2] = (bezier_curve,"F")
-                if pose2 not in subRRT:
-                    subRRT[pose2] = {}
-                subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
-                return True
+            if isinstance(bezier_curve,bezier.curve.Curve):
+                if not self.bezierEdgeObstaclesDisksCollision(bezier_curve,disk_positions):
+                    if pose1 not in subRRT:
+                        subRRT[pose1] = {}
+                    subRRT[pose1][pose2] = (bezier_curve,"F")
+                    if pose2 not in subRRT:
+                        subRRT[pose2] = {}
+                    subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
+                    return True
+            else:
+                if not self.edgeCollidesWithDirtPile(nn,node,bezier_curve,curr_disk_positions):
+                    if pose1 not in subRRT:
+                        subRRT[pose1] = {}
+                    subRRT[pose1][pose2] = bezier_curve
+                    if pose2 not in subRRT:
+                        subRRT[pose2] = {}
+                    subRRT[pose2][pose1] = self.getInverseControl(bezier_curve)
+                    return True
         return False
 
 
