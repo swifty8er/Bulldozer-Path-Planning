@@ -133,7 +133,7 @@ for mm in mapNums:
     start_time = time.time()
     globalReachedGoals = [False] * len(map.goal_pos_xy)
 
-    while not pq.empty():
+    while not pq.empty() and (time.time() - start_time < 3600):
         curr_state = pq.get()
         plt.cla()
         curr_state.plotState(ax1)
@@ -144,8 +144,8 @@ for mm in mapNums:
             pq.put(curr_state)
             continue
         if not curr_state.connectToPreviousPose():
-            if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
-                continue
+            #if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
+            continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
