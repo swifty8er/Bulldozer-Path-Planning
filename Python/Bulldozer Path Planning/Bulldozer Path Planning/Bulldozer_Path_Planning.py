@@ -143,9 +143,6 @@ for mm in mapNums:
         if curr_state.checkReachedGoals(globalReachedGoals):
             pq.put(curr_state)
             continue
-        if not curr_state.connectToPreviousPose():
-            #if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
-            continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
