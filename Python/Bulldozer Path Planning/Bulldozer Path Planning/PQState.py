@@ -25,7 +25,7 @@ class PQState:
         self._RRT = rrt
         self._disk_being_pushed = disk_being_pushed #index of disk being pushed -1 = no disk
         self._g = g
-        self._f = self.calculateHeuristicValue() #greedy search for now
+        self._f = 0.1*g + self.calculateHeuristicValue() #greedy search for now
 
     
     @property
@@ -224,12 +224,45 @@ class PQState:
         return path
 
 
-    def growBidirectionalRRTToConnectPoses(self,axis=False):
+    def growBidirectionalRRTToConnectPoses(self,post=True,axis=False):
         if self._vehicle_pose not in self._RRT.tree:
             return False
         push_point = list(self._RRT.tree[self._vehicle_pose].keys())[0]
-        return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
+        if post:
+            return self._RRT.bidirectionalRRTConnection(self._previous_pose,push_point,self.rollBackDiskPush(),axis)
+        else:
+            return self._RRT.bidirectionalRRTConnection(self._vehicle_pose,push_point,self._curr_disk_positions,axis)
     
+    def connectTwoPoses(self,pose1,pose2,pose3):
+        if pose1 == None:
+            print("Should never happen!")
+            return (True,[],0)
+        pq = queue.PriorityQueue()
+        visitedNodes = {}
+        previousPose = pose1
+        currentPose = pose2
+        finalPose = pose3
+        starting_state = (currentPose.EuclideanDistance(previousPose),currentPose,[],0)
+        pq.put(starting_state)
+        while not pq.empty():
+            curr_state = pq.get()
+            (f,pose,path,g) = curr_state
+            if pose == previousPose:
+                path.append(pose)
+                path.reverse()
+                path.append(finalPose)
+                return (True,path,g)
+            if pose not in visitedNodes:
+                visitedNodes[pose] = True
+                new_path = path.copy()
+                new_path.append(pose)
+                for next_pose in self._RRT.tree[pose]:
+                    if not next_pose in visitedNodes and not self._RRT.edgeCollidesWithDirtPile(pose,next_pose,self._RRT.tree[pose][next_pose],self._curr_disk_positions):
+                        new_g = self.getEdgeLength(pose,next_pose)
+                        new_state = (g+new_g+next_pose.EuclideanDistance(previousPose),next_pose,new_path,g+new_g) 
+                        pq.put(new_state)
+        return (False,[],None)
+
     def connectToPreviousPose(self,axis=False):
         if self._previous_pose == None:
             return True
@@ -351,11 +384,11 @@ class PQState:
         return reached
 
     def getStateAfterPush(self,push_point,curr_disk_pos,disk_being_pushed,gValue):
-        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos,push_point)
+        (closest_goal,found) = self.getClosestGoalToPushLine(curr_disk_pos)
         if not found:
             return False # do not push disk out of goal
         (new_disk_pos,new_vehicle_pose) = Pushing.pushDisk(push_point,curr_disk_pos,closest_goal,self._curr_disk_positions,disk_being_pushed,self._map)
-        if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]) and not (push_point == new_vehicle_pose):
+        if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
             distance = push_point.EuclideanDistance(new_vehicle_pose)
             new_edge = (distance,0,"F")
             inv_edge = (distance,0,"R")
@@ -369,7 +402,16 @@ class PQState:
             new_pushed_disks = self._pushed_disks.copy()
             new_pushed_disks.append(disk_being_pushed)
             #use A* where g = full path length
-            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
+            (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+            if not connected:
+                if not self.growBidirectionalRRTToConnectPoses(False):
+                    return False
+                (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+                if not connected:
+                    return False
+            new_vehicle_path = copy.deepcopy(self._vehicle_path)
+            new_vehicle_path.append(path)
+            return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,new_vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,self._g+gValue)
            
         return False
 
@@ -380,7 +422,7 @@ class PQState:
         push_point = Vehicle(curr_disk_pos[0]+2*self._map.disk_radius*math.cos(phi),curr_disk_pos[1]+2*self._map.disk_radius*math.sin(phi),(math.degrees(phi)-180)%360)
         if self._RRT.connectPushPoint(push_point,curr_disk_pos,self._curr_disk_positions):
             (new_disk_pos,new_vehicle_pose) = Pushing.continuousPushDistance(push_point,curr_disk_pos,BasicGeometry.vec_mag(v),self._curr_disk_positions,disk_being_pushed,self._map)
-            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]) and not (push_point == new_vehicle_pose):
+            if not (curr_disk_pos[0] == new_disk_pos[0] and curr_disk_pos[1] == new_disk_pos[1]):
                 gValue = BasicGeometry.ptDist(closest_goal,curr_disk_pos)
                 distance = push_point.EuclideanDistance(new_vehicle_pose)
                 new_edge = (distance,0,"F")
@@ -394,8 +436,17 @@ class PQState:
                 new_g = gValue
                 new_pushed_disks = self._pushed_disks.copy()
                 new_pushed_disks.append(disk_being_pushed)
+                (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+                if not connected:
+                    if not self.growBidirectionalRRTToConnectPoses(False):
+                        return False
+                    (connected,path,pathLength) = self.connectTwoPoses(self._vehicle_pose,push_point,new_vehicle_pose)
+                    if not connected:
+                        return False
+                new_vehicle_path = copy.deepcopy(self._vehicle_path)
+                new_vehicle_path.append(path)
                 #use A* where g = full path length
-                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,self._vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g)
+                return PQState(self._map,new_vehicle_pose,self._vehicle_pose,new_disk_positions,new_vehicle_path,new_past_disk_positions,new_reached_goals,disk_being_pushed,new_pushed_disks,self._RRT,new_g+pathLength)
            
         return False
 
