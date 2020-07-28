@@ -412,7 +412,7 @@ class RRT:
                     subRRT[pose2][pose1] = (BezierLib.getInverseCurve(bezier_curve),"R")
                     return True
             else:
-                if not self.edgeCollidesWithDirtPile(nn,node,bezier_curve,curr_disk_positions):
+                if not self.edgeCollidesWithDirtPile(pose1,pose2,bezier_curve,disk_positions):
                     if pose1 not in subRRT:
                         subRRT[pose1] = {}
                     subRRT[pose1][pose2] = bezier_curve
