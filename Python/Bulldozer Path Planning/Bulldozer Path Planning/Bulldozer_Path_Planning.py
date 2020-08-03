@@ -80,9 +80,6 @@ for mm in mapNums:
     map = myMap.test_maps[mm-1]
     print("Test Map", map.number)
     map.plotStartingMap(ax1)
-    ##map.plotStartingMap(ax2)
-    ##map.plotStartingMap(ax3)
-    ##map.plotStartingMap(ax4)
     plt.draw()
     plt.pause(1)
     plt.show(block=False)
@@ -112,13 +109,7 @@ for mm in mapNums:
         file_out = open("TimingData/RRTBuildTimes.txt","a+")
         file_out.write("RRT with %d nodes built in time = %.2f seconds \n" % (StartingRRT.num_nodes,endTime))
         file_out.close()
-    #StartingRRT.draw(ax1)
-    #StartingRRT.draw(ax2)
-    #StartingRRT.draw(ax3)
-    #StartingRRT.draw(ax4)
-    #plt.draw()
-    #plt.pause(3)
-    #plt.show(block=False)
+
     StartingQuadtree = Quadtree(map.getCentreState(),None,StartingRRT.computeMaxDistanceBetweenNodes(map.getCentreState()))
     for node in StartingRRT.tree:
         StartingQuadtree.addState(node)
@@ -140,12 +131,12 @@ for mm in mapNums:
         plt.draw()
         plt.pause(0.01)
         plt.show(block=False)
-        if curr_state.checkReachedGoals(globalReachedGoals):
-            pq.put(curr_state)
-            continue
+        #if curr_state.checkReachedGoals(globalReachedGoals):
+        #    pq.put(curr_state)
+        #    continue
         if not curr_state.connectToPreviousPose():
-            #if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
-            continue
+            if not (curr_state.growBidirectionalRRTToConnectPoses() and curr_state.connectToPreviousPose()):
+                continue
         if curr_state.isFinishState():
             break
         if not curr_state in visitedStates:
@@ -179,4 +170,12 @@ for mm in mapNums:
             file_out.close()
     else:
         print("Failed")
-file_out.close()
+        if not written:
+            file_out = open("TimingData/Results.txt",'w')
+            file_out.write("Map %d timeout \n" % (map.number))
+            file_out.close()
+            written = True
+        else:
+            file_out = open("TimingData/Results.txt","a+")
+            file_out.write("Map %d timeout \n" % (map.number))
+            file_out.close()

@@ -182,7 +182,14 @@ class Map:
         for disk_pos in self._initial_disk_poses_xy:
                 disk_circle = BasicGeometry.circlePoints(disk_pos, self._disk_radius, 25)
                 ax.plot(disk_circle[0],disk_circle[1],color='blue', linewidth=line_width)
-       
+
+        robot_pose = [self._initial_vehicle_pos_xy[0],self._initial_vehicle_pos_xy[1]]
+        pos_circle = BasicGeometry.circlePoints(robot_pose, self._disk_radius, 25)
+        ax.plot(pos_circle[0],pos_circle[1],color='red', linewidth=line_width)
+        r = 0.5
+        dx = r*math.cos(math.radians(90))
+        dy = r*math.sin(math.radians(90))
+        ax.arrow(robot_pose[0],robot_pose[1],dx,dy,width=0.05,color='red')
 
     def displayMap(self,ax,vehicle_pos,curr_disk_positions, line_width=2):
         ax.axis([self._min_x, self._max_x,  self._min_y, self._max_y])

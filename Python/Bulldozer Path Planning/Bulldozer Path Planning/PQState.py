@@ -89,7 +89,7 @@ class PQState:
                 if found:
                     index = self._map.goal_pos_xy.index(closestGoal)
                     reached[index] = True
-                    h += math.sqrt(BasicGeometry.ptDist(disk,closestGoal))
+                    h += BasicGeometry.ptDist(disk,closestGoal)
         return h
 
 
